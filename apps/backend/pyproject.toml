@@ -33,6 +33,11 @@ dependencies = [
     # missing on a given platform (CI on Linux ships the wheel out of
     # the box; the fallback also bounds input/pattern length).
     "google-re2>=1.1",
+    # PR #8 (D42, docs/05 §0): Unleash client for feature flags +
+    # kill-switches. Wrapped in app.core.feature_flags with a
+    # safe-fallback path so the dependency stays optional at runtime
+    # (no Unleash server in dev / CI).
+    "UnleashClient>=6.0",
 ]
 
 [dependency-groups]

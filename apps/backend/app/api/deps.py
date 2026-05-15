@@ -106,3 +106,43 @@ async def get_current_user(
 
 
 CurrentUser = Annotated[User, Depends(get_current_user)]
+
+
+async def current_user_optional(
+    request: Request,
+    db: DbSession,
+) -> User | None:
+    """Resolve the current user if a valid token is present, else None.
+
+    Used by endpoints that change behaviour based on auth state but
+    don't *require* it (e.g. ``GET /v1/feature-flags`` — anonymous
+    callers see the defaults, authenticated ones see per-user
+    rollouts). Never raises: any failure path returns ``None``.
+    """
+
+    token = _read_access_token(request)
+    if not token:
+        return None
+    try:
+        payload = decode_token(token)
+    except ValueError:
+        return None
+
+    sub = payload.get("sub")
+    token_type = payload.get("type")
+    if not sub or token_type != "access":
+        return None
+
+    try:
+        user_id = uuid.UUID(sub)
+    except ValueError:
+        return None
+
+    user = await db.get(User, user_id)
+    if user is None or user.status != UserStatus.ACTIVE:
+        return None
+
+    claim_tv = payload.get("tv", 0)
+    if not isinstance(claim_tv, int) or claim_tv != user.token_version:
+        return None
+    return user

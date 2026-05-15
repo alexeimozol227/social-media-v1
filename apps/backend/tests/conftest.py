@@ -35,6 +35,7 @@ from app.models import (  # noqa: F401
     AuditEvent,
     Brand,
     EmailVerification,
+    IdempotencyKey,
     PasswordReset,
     RefreshToken,
     User,
@@ -133,6 +134,7 @@ async def client(
     from app.api.routes.auth import get_redis as _routes_get_redis  # noqa: F401
     from app.core import redis as redis_module
     from app.core.email import get_email_sender
+    from app.db import session as db_session_module
     from app.main import app
 
     async def _override_get_db() -> AsyncIterator[AsyncSession]:
@@ -145,6 +147,11 @@ async def client(
     # see the fake.
     original_getter = redis_module._redis
     redis_module._redis = fake_redis
+    # Idempotency middleware (PR #8) reads ``AsyncSessionLocal``
+    # directly because it runs outside FastAPI DI — point it at the
+    # test SQLite factory.
+    original_factory = db_session_module.AsyncSessionLocal
+    db_session_module.AsyncSessionLocal = db_session_factory
     try:
         async with AsyncClient(
             transport=ASGITransport(app=app),
@@ -154,3 +161,4 @@ async def client(
     finally:
         app.dependency_overrides.clear()
         redis_module._redis = original_getter
+        db_session_module.AsyncSessionLocal = original_factory

@@ -65,6 +65,10 @@ class ErrorCode:
     SKILL_BUDGET_EXCEEDED = "SKILL_BUDGET_EXCEEDED"
     SKILL_COMPILATION_TIMEOUT = "SKILL_COMPILATION_TIMEOUT"
 
+    # Idempotency middleware (D-П13, docs/05 §2.3 + §2.4.5) — PR #8.
+    IDEMPOTENCY_KEY_MISMATCH = "IDEMPOTENCY_KEY_MISMATCH"
+    IDEMPOTENCY_IN_FLIGHT = "IDEMPOTENCY_IN_FLIGHT"
+
     # Generic
     VALIDATION_ERROR = "VALIDATION_ERROR"
     NOT_FOUND = "NOT_FOUND"
@@ -275,3 +279,37 @@ class SkillCompilationTimeoutError(AppError):
     error_code = ErrorCode.SKILL_COMPILATION_TIMEOUT
     http_status = 504
     default_message = "Skill compilation took too long."
+
+
+# ---- Idempotency middleware (PR #8) ----
+
+
+class IdempotencyKeyMismatchError(AppError):
+    """Replay with the same key but a different request body.
+
+    Per docs/05 §2.3 + §2.4.5, the Idempotency-Key contract binds a
+    key to one specific request payload. Reusing the key with a
+    different body is a client bug — we refuse rather than silently
+    returning the original response.
+    """
+
+    error_code = ErrorCode.IDEMPOTENCY_KEY_MISMATCH
+    http_status = 422
+    default_message = (
+        "Idempotency-Key was reused with a different request body. "
+        "Use a fresh key for new requests."
+    )
+
+
+class IdempotencyInFlightError(AppError):
+    """Two requests with the same key reached the server concurrently.
+
+    Returned when a row for ``(actor, method, path, key)`` already
+    exists but no response has been recorded yet — the first request
+    is still being processed. Clients should retry after a short
+    delay (the original response will then be cached).
+    """
+
+    error_code = ErrorCode.IDEMPOTENCY_IN_FLIGHT
+    http_status = 409
+    default_message = "An identical request is already being processed."

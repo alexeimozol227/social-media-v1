@@ -132,6 +132,26 @@ class Settings(BaseSettings):
     # How many one-shot recovery codes we mint on confirm + regenerate.
     mfa_recovery_code_count: int = Field(default=10)
 
+    # ---- Idempotency (PR #8, docs/04 П13 + docs/05 §2.3 + §2.4.5) ----
+    # 24h TTL is the docs/05 §2.4.5 contract: the same Idempotency-Key
+    # replays the cached response for a day, then the row is expired
+    # by a janitor sweep and a new request with that key creates a
+    # fresh entry.
+    idempotency_ttl_hours: int = Field(default=24)
+
+    # ---- Feature flags / Unleash (PR #8, docs/05 D42 + docs/04 §12.2) ----
+    # Empty URL = local fallback mode: ``is_enabled`` returns the
+    # caller-supplied default and never opens a network socket.
+    # This is the dev / CI default; production sets these via env.
+    unleash_url: str = Field(default="")
+    unleash_api_token: str = Field(default="")
+    unleash_app_name: str = Field(default="social-media-backend")
+    unleash_environment: str = Field(default="development")
+    # Long refresh interval keeps the in-process flag cache snappy
+    # without hammering the Unleash server in tight loops; this
+    # mirrors the upstream client default.
+    unleash_refresh_interval_seconds: int = Field(default=15)
+
     @property
     def cors_origins_list(self) -> list[str]:
         return [o.strip() for o in self.cors_origins.split(",") if o.strip()]

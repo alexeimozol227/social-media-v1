@@ -25,6 +25,18 @@ AsyncSessionLocal = async_sessionmaker(
 )
 
 
+def get_session_factory() -> async_sessionmaker[AsyncSession]:
+    """Return the active :class:`async_sessionmaker`.
+
+    Indirection (rather than importing :data:`AsyncSessionLocal`
+    directly) lets tests swap in a SQLite-bound factory for code that
+    can't use FastAPI's dependency injection (e.g. middleware) — see
+    the conftest ``client`` / ``ws_client`` fixtures.
+    """
+
+    return AsyncSessionLocal
+
+
 async def get_db() -> AsyncIterator[AsyncSession]:
     """FastAPI dependency that yields a DB session."""
 

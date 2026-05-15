@@ -12,9 +12,11 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.middleware.errors import register_error_handlers
+from app.api.middleware.idempotency import IdempotencyMiddleware
 from app.api.routes import auth as auth_routes
 from app.api.routes import email_verifications as email_verification_routes
 from app.api.routes import events as events_routes
+from app.api.routes import feature_flags as feature_flag_routes
 from app.api.routes import health as health_routes
 from app.api.routes import password_reset as password_reset_routes
 from app.core.config import settings
@@ -61,6 +63,11 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# PR #8 (П13, docs/05 §2.3 + §2.4.5): dedup write requests by
+# Idempotency-Key. Sits below CORS so CORS preflight still works,
+# but above route handlers so cached replays bypass them entirely.
+app.add_middleware(IdempotencyMiddleware)
+
 register_error_handlers(app)
 
 # Routers
@@ -70,6 +77,12 @@ app.include_router(email_verification_routes.router, prefix="/v1/auth", tags=["a
 app.include_router(password_reset_routes.router, prefix="/v1/auth", tags=["auth"])
 # PR #7 (D43, docs/06 §5 Спринт 1): per-user realtime stream over WebSocket.
 app.include_router(events_routes.router, prefix="/v1/events", tags=["events"])
+# PR #8 (D42 docs/05 §0): server-resolved feature flags for the SPA.
+app.include_router(
+    feature_flag_routes.router,
+    prefix="/v1/feature-flags",
+    tags=["feature-flags"],
+)
 
 
 @app.get("/", tags=["meta"])
