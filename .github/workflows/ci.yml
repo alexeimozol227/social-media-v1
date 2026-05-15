@@ -31,9 +31,9 @@ jobs:
 
     env:
       ENVIRONMENT: ci
-      DATABASE_URL: sqlite+aiosqlite:///:memory:
-      REDIS_URL: redis://localhost:6379/0
-      SECRET_KEY: ci-secret-key-not-used-in-production-must-be-32-bytes-min
+      DATABASE_URL: "sqlite+aiosqlite:///:memory:"
+      REDIS_URL: "redis://localhost:6379/0"
+      SECRET_KEY: "ci-secret-key-not-used-in-production-must-be-32-bytes-min"
       LOG_LEVEL: WARNING
 
     steps:
