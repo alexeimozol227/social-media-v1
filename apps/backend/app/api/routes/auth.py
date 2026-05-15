@@ -52,6 +52,7 @@ from app.schemas.auth import (
     LoginMFARequest,
     LoginMFARequiredResponse,
     LoginRequest,
+    MembershipSummary,
     MeResponse,
     MFADisableRequest,
     MFAEnrollConfirmRequest,
@@ -66,7 +67,7 @@ from app.schemas.auth import (
 )
 from app.services import audit as audit_service
 from app.services import auth as auth_service
-from app.services import email_templates
+from app.services import email_templates, memberships_cache
 from app.services import email_verifications as ev_service
 from app.services import refresh_tokens as refresh_service
 from app.services import totp as totp_service
@@ -616,9 +617,29 @@ async def logout(
 )
 async def me(current_user: CurrentUser, db: DbSession) -> MeResponse:
     workspace = await workspaces_service.current_for_user(db, current_user)
+    # D64: hand the SPA the cached memberships so role-aware UI doesn't
+    # need a second round-trip. The cache lookup is the same one the
+    # auth dependency just ran for tenant-binding, so by the time this
+    # handler executes the entry is already warm in Redis.
+    redis = get_redis()
+    raw_memberships = await memberships_cache.get_memberships(
+        redis,
+        db,
+        current_user.id,
+    )
+    memberships: list[MembershipSummary] = []
+    for entry in raw_memberships:
+        try:
+            memberships.append(MembershipSummary.model_validate(entry))
+        except Exception:  # pragma: no cover - defensive
+            logger.warning(
+                "auth.me.membership_validate_failed",
+                user_id=str(current_user.id),
+            )
     return MeResponse(
         user=UserPublic.model_validate(current_user),
         active_workspace=WorkspaceSummary.model_validate(workspace),
+        memberships=memberships,
     )
 
 

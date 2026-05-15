@@ -202,7 +202,8 @@ async def stream_ws(
             try:
                 msg = await asyncio.wait_for(
                     pubsub.get_message(
-                        ignore_subscribe_messages=True, timeout=1.0,
+                        ignore_subscribe_messages=True,
+                        timeout=1.0,
                     ),
                     timeout=2.0,
                 )

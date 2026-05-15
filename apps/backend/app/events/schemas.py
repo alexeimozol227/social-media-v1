@@ -71,9 +71,7 @@ class BaseEvent(BaseModel):
         description="Unique event identifier (UUIDv4). Consumer-side dedup key.",
     )
     event_type: str = Field(
-        description=(
-            "Dot-separated discriminator. Subclasses pin this to a Literal."
-        ),
+        description=("Dot-separated discriminator. Subclasses pin this to a Literal."),
     )
     agent_source: str = Field(
         description=(
@@ -133,9 +131,40 @@ class UserRegisteredEvent(BaseEvent):
     )
 
 
+class AuthRefreshRequiredEvent(BaseEvent):
+    """Membership / role change that demands a fresh access token (D64).
+
+    docs/04-architecture.md §18.6 + docs/05-tech-stack.md §4.5: any
+    mutation of ``workspace_members`` (invite, role edit, removal)
+    invalidates the Redis ``user:{id}:memberships`` cache *and*
+    publishes this event on the affected user's per-user WS channel.
+
+    The SPA reacts by issuing a one-shot ``POST /v1/auth/refresh``
+    — the refresh path re-issues the access token with the updated
+    ``active_workspace_id`` / ``platform_role`` claims and the
+    backend serves subsequent requests against the fresh cache
+    entry. The user doesn't have to sign out, the previous access
+    token expires naturally at the 15-min TTL.
+
+    ``reason`` is a free-form discriminator the UI can use to render
+    a contextual toast (``role_changed`` → "Your role has been
+    updated", ``invite_revoked`` → "Your access was revoked", etc.).
+    """
+
+    event_type: Literal["auth.refresh_required"] = "auth.refresh_required"
+    agent_source: Literal["platform.auth"] = "platform.auth"
+
+    reason: str = Field(
+        description=(
+            "Cause of the refresh request. Free-form slug; the SPA "
+            "may render contextual UI on known values."
+        ),
+    )
+
+
 # Discriminated union — every new event-type subclass goes here.
 Event = Annotated[
-    UserRegisteredEvent,
+    UserRegisteredEvent | AuthRefreshRequiredEvent,
     Field(discriminator="event_type"),
 ]
 

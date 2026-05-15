@@ -40,9 +40,8 @@ def test_each_skill_body_fits_declared_budget(encoder: object) -> None:
         tokens = len(encoder.encode(skill.manifest.body))  # type: ignore[attr-defined]
         if tokens > skill.manifest.token_budget:
             over_budget.append((skill.name, tokens, skill.manifest.token_budget))
-    assert not over_budget, (
-        "Skills exceeding their declared token_budget:\n"
-        + "\n".join(f"  {n}: {t} > {b}" for n, t, b in over_budget)
+    assert not over_budget, "Skills exceeding their declared token_budget:\n" + "\n".join(
+        f"  {n}: {t} > {b}" for n, t, b in over_budget
     )
 
 

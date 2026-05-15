@@ -105,9 +105,7 @@ class TestPlanPriceModel:
         db_session.add(price)
         await db_session.flush()
 
-        result = await db_session.execute(
-            select(PlanPrice).where(PlanPrice.plan_id == plan.id)
-        )
+        result = await db_session.execute(select(PlanPrice).where(PlanPrice.plan_id == plan.id))
         loaded = result.scalar_one()
         assert loaded.currency == "USD"
         assert loaded.amount == Decimal("18.00")
@@ -131,9 +129,7 @@ class TestPlanPriceModel:
             )
         await db_session.flush()
 
-        result = await db_session.execute(
-            select(PlanPrice).where(PlanPrice.plan_id == plan.id)
-        )
+        result = await db_session.execute(select(PlanPrice).where(PlanPrice.plan_id == plan.id))
         prices = result.scalars().all()
         assert len(prices) == 3
         currencies = {p.currency for p in prices}
@@ -189,9 +185,7 @@ class TestInvoiceModel:
         db_session.add(inv)
         await db_session.flush()
 
-        result = await db_session.execute(
-            select(Invoice).where(Invoice.workspace_id == ws.id)
-        )
+        result = await db_session.execute(select(Invoice).where(Invoice.workspace_id == ws.id))
         loaded = result.scalar_one()
         assert loaded.amount == Decimal("42.00")
         assert loaded.status == "draft"
@@ -307,9 +301,7 @@ class TestPlanSeed:
             for cur in ("USD", "RUB", "BYN"):
                 monthly = by_key[(cur, "monthly")]
                 annual = by_key[(cur, "annual")]
-                assert annual < monthly, (
-                    f"{code}/{cur}: annual ({annual}) >= monthly ({monthly})"
-                )
+                assert annual < monthly, f"{code}/{cur}: annual ({annual}) >= monthly ({monthly})"
 
     def test_limits_match_docs(self) -> None:
         """Verify key limits match docs/07 §2.1 table."""

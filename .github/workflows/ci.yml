@@ -53,8 +53,16 @@ jobs:
       - name: Ruff lint
         run: uv run ruff check .
 
+      - name: Ruff format check
+        run: uv run ruff format --check .
+
       - name: SET LOCAL lint
         run: uv run python tools/lint_set_local.py
+
+      - name: TIMESTAMPTZ check (docs/06 §5 Спринт 1)
+        # Stdlib-only — runs without the backend venv from repo root.
+        working-directory: ${{ github.workspace }}
+        run: python3 scripts/check_timestamptz.py
 
       - name: Validate skills (D68/D69/D70 from docs/04 §20)
         run: uv run python tools/validate_skills.py
@@ -145,10 +153,10 @@ jobs:
         with:
           version: 9
 
-      - name: Set up Node 20
+      - name: Set up Node 22
         uses: actions/setup-node@v4
         with:
-          node-version: "20"
+          node-version: "22"
           cache: pnpm
           cache-dependency-path: apps/web/pnpm-lock.yaml
 
@@ -160,6 +168,9 @@ jobs:
 
       - name: TypeScript check
         run: pnpm typecheck
+
+      - name: i18n audit (ru.json ⇔ en.json + Cyrillic hardcode)
+        run: pnpm run i18n:audit
 
       - name: Next build
         run: pnpm build

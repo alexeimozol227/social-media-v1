@@ -58,9 +58,10 @@ test-web:
 
 lint: lint-backend lint-web
 lint-backend:
-	cd apps/backend && uv run ruff check . && uv run python tools/lint_set_local.py
+	cd apps/backend && uv run ruff check . && uv run ruff format --check . && uv run python tools/lint_set_local.py
+	python3 scripts/check_timestamptz.py
 lint-web:
-	cd apps/web && pnpm lint
+	cd apps/web && pnpm lint && pnpm run i18n:audit
 
 typecheck: typecheck-backend typecheck-web
 typecheck-backend:
