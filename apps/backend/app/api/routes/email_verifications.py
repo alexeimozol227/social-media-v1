@@ -17,7 +17,7 @@ a later PR.
 from __future__ import annotations
 
 import structlog
-from fastapi import APIRouter, Depends, Response, status
+from fastapi import APIRouter, Depends, Request, Response, status
 
 from app.api.deps import CurrentUser, DbSession
 from app.core.email import EmailSender, get_email_sender
@@ -25,6 +25,7 @@ from app.core.i18n import Locale, get_locale
 from app.errors import EmailAlreadyVerifiedError
 from app.models.email_verification import PURPOSE_SIGNUP
 from app.schemas.auth import VerifyEmailRequest
+from app.services import audit as audit_service
 from app.services import email_verifications as ev_service
 
 logger = structlog.get_logger(__name__)
@@ -79,6 +80,7 @@ async def verify_email(
     payload: VerifyEmailRequest,
     current_user: CurrentUser,
     db: DbSession,
+    request: Request,
 ) -> Response:
     """Confirm a sign-up verification code.
 
@@ -103,5 +105,15 @@ async def verify_email(
     )
 
     current_user.email_verified_at = verification.consumed_at
+    # PR #5: audit. Email verification is the only path that flips
+    # the ``email_verified_at`` column — admin lens uses this event
+    # to attribute first-time activation.
+    await audit_service.record(
+        db,
+        event_type="user.email_verified",
+        severity="info",
+        user_id=current_user.id,
+        request=request,
+    )
     await db.commit()
     return Response(status_code=status.HTTP_204_NO_CONTENT)

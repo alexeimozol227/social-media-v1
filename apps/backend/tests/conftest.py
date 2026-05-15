@@ -32,6 +32,7 @@ from sqlalchemy.pool import StaticPool
 from app.db.base import Base
 from app.db.session import get_db
 from app.models import (  # noqa: F401
+    AuditEvent,
     Brand,
     EmailVerification,
     PasswordReset,
