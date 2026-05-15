@@ -17,6 +17,39 @@ services:
       timeout: 5s
       retries: 10
 
+  # docs/04-architecture.md §18.7 + docs/05-tech-stack.md §2.4.1:
+  # production traffic from the FastAPI workers goes through
+  # PgBouncer with ``pool_mode=transaction`` so per-request
+  # ``SET LOCAL app.current_user_id`` / ``current_tenant_id`` GUCs
+  # are scoped to the (implicit) transaction PgBouncer keeps open
+  # to the backend connection. Dev workers can still point
+  # ``DATABASE_URL`` straight at port ``5432`` while you're iterating
+  # on a migration; ``DATABASE_URL_POOLED`` (port ``6432``) is the
+  # production-parity URL.
+  pgbouncer:
+    image: edoburu/pgbouncer:v1.25.1-p0
+    environment:
+      DB_USER: ${POSTGRES_USER:-postgres}
+      DB_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      DB_HOST: postgres
+      DB_PORT: "5432"
+      DB_NAME: ${POSTGRES_DB:-social_media_dev}
+      POOL_MODE: transaction
+      AUTH_TYPE: scram-sha-256
+      MAX_CLIENT_CONN: "200"
+      DEFAULT_POOL_SIZE: "25"
+      ADMIN_USERS: ${POSTGRES_USER:-postgres}
+    ports:
+      - "6432:5432"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -h 127.0.0.1 -p 5432 -U ${POSTGRES_USER:-postgres} || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
   redis:
     image: redis:7-alpine
     ports:

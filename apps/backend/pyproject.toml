@@ -109,3 +109,6 @@ testpaths = ["tests"]
 filterwarnings = [
     "ignore::DeprecationWarning",
 ]
+markers = [
+    "postgres: integration tests that require a real Postgres backend (skipped when DATABASE_URL points at sqlite)",
+]

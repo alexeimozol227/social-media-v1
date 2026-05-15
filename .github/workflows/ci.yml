@@ -68,6 +68,68 @@ jobs:
       - name: Pytest
         run: uv run pytest -v --tb=short
 
+  backend-postgres:
+    name: backend (postgres integration — RLS / PgBouncer parity)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/backend
+
+    services:
+      postgres:
+        image: pgvector/pgvector:pg16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: social_media_ci
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
+
+    env:
+      ENVIRONMENT: ci
+      DATABASE_URL: "postgresql+asyncpg://postgres:postgres@localhost:5432/social_media_ci"
+      REDIS_URL: "redis://localhost:6379/0"
+      SECRET_KEY: "ci-secret-key-not-used-in-production-must-be-32-bytes-min"
+      LOG_LEVEL: WARNING
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
+        with:
+          version: "0.5.x"
+
+      - name: Set up Python 3.12
+        run: uv python install 3.12
+
+      - name: Install dependencies
+        run: uv sync --frozen || uv sync
+
+      - name: Alembic upgrade head (applies 0008_rls_policies)
+        run: uv run alembic upgrade head
+
+      - name: Pytest — Postgres-only integration suite
+        # docs/04 §18.7 + PR #11: only the integration suite gates on
+        # this job; the SQLite ``backend`` job above already runs the
+        # full unit + handler suite for fast feedback.
+        run: uv run pytest -v --tb=short -m postgres tests/integration
+
   web:
     name: web (lint + typecheck + build)
     runs-on: ubuntu-latest

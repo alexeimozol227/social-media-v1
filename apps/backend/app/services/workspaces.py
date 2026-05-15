@@ -15,6 +15,7 @@ from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.db.rls import set_rls_context
 from app.models.brand import Brand
 from app.models.user import User
 from app.models.workspace import Workspace, WorkspaceType
@@ -48,6 +49,18 @@ async def ensure_default(session: AsyncSession, user: User) -> Workspace:
     if existing is not None:
         return existing
 
+    # The workspace INSERT is guarded by the ``workspaces_isolation``
+    # RLS policy (D27 / D65): the row's ``owner_id`` must match
+    # ``app.current_user_id``. Install that GUC up front so the
+    # bootstrap path of a brand-new sign-up passes the WITH CHECK
+    # predicate without needing a BYPASSRLS role.
+    await set_rls_context(
+        session,
+        user_id=user.id,
+        tenant_id=None,
+        platform_role=user.platform_role,
+    )
+
     workspace = Workspace(
         owner_id=user.id,
         name=user.full_name or DEFAULT_NAME,
@@ -64,6 +77,16 @@ async def ensure_default(session: AsyncSession, user: User) -> Workspace:
         if again is None:  # pragma: no cover - defensive
             raise
         return again
+
+    # Now that the workspace exists, promote it to the active tenant so
+    # the membership + default brand INSERTs satisfy the
+    # ``workspace_id = current_tenant_id`` half of the RLS predicate.
+    await set_rls_context(
+        session,
+        user_id=user.id,
+        tenant_id=workspace.id,
+        platform_role=user.platform_role,
+    )
 
     member = WorkspaceMember(
         workspace_id=workspace.id,
