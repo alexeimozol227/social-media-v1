@@ -1,5 +1,6 @@
 """ORM models package."""
 
+from app.models.audit_event import AuditEvent, AuditSeverity
 from app.models.brand import Brand
 from app.models.email_verification import EmailVerification
 from app.models.password_reset import PasswordReset
@@ -9,6 +10,8 @@ from app.models.workspace import Workspace, WorkspaceType
 from app.models.workspace_member import WorkspaceMember, WorkspaceMemberRole
 
 __all__ = [
+    "AuditEvent",
+    "AuditSeverity",
     "Brand",
     "EmailVerification",
     "PasswordReset",

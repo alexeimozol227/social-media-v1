@@ -33,6 +33,7 @@ from app.core.security import (
 from app.errors import (
     InvalidCredentialsError,
     InvalidRefreshTokenError,
+    LoginLockedError,
     MFAInvalidCodeError,
     MFANotEnabledError,
     MFARateLimitedError,
@@ -60,6 +61,7 @@ from app.schemas.auth import (
     UserPublic,
     WorkspaceSummary,
 )
+from app.services import audit as audit_service
 from app.services import auth as auth_service
 from app.services import email_templates
 from app.services import email_verifications as ev_service
@@ -185,10 +187,25 @@ async def _build_login_response(
 async def register(
     payload: RegisterRequest,
     db: DbSession,
+    request: Request,
     email_sender: EmailSender = Depends(get_email_sender),
     locale: Locale = Depends(get_locale),
 ) -> UserPublic:
     user = await auth_service.create_user(db, payload)
+
+    # PR #5 (D57): audit log for sensitive ops. ``create_user``
+    # already committed; the audit row goes in a tiny separate
+    # transaction so an audit-DB failure can't unwind the new
+    # account.
+    await audit_service.record(
+        db,
+        event_type="user.registered",
+        severity="info",
+        user_id=user.id,
+        request=request,
+        metadata={"email": user.email},
+    )
+    await db.commit()
 
     # Best-effort: dispatch the first sign-up verification code.
     # Transport / template failures must not block the registration
@@ -239,19 +256,53 @@ async def login(
     """
 
     redis = get_redis()
-    user = await auth_service.authenticate(
-        db,
-        email=payload.email,
-        password=payload.password,
-        redis=redis,
-    )
+    try:
+        user = await auth_service.authenticate(
+            db,
+            email=payload.email,
+            password=payload.password,
+            redis=redis,
+        )
+    except LoginLockedError:
+        # PR #5: log the lockout — admin lens uses
+        # ``user.login_locked`` to surface brute-force candidates.
+        await audit_service.record(
+            db,
+            event_type="user.login_locked",
+            severity="warning",
+            user_id=None,
+            request=request,
+            metadata={"email": payload.email.strip().lower()},
+        )
+        await db.commit()
+        raise
+    except InvalidCredentialsError:
+        await audit_service.record(
+            db,
+            event_type="user.login_failed",
+            severity="warning",
+            user_id=None,
+            request=request,
+            metadata={"email": payload.email.strip().lower()},
+        )
+        await db.commit()
+        raise
 
     if totp_service.is_enrolled(user):
         # Don't set cookies — the user is not authenticated until they
-        # also clear the second factor.
+        # also clear the second factor. We still record a 'password
+        # ok, awaiting 2FA' breadcrumb so the audit lens shows the
+        # whole sign-in chain.
         mfa_token = create_mfa_token(
             subject=str(user.id),
             token_version=user.token_version,
+        )
+        await audit_service.record(
+            db,
+            event_type="user.login_mfa_required",
+            severity="info",
+            user_id=user.id,
+            request=request,
         )
         await db.commit()
         return LoginMFARequiredResponse(
@@ -264,6 +315,14 @@ async def login(
         response=response,
         request=request,
         user=user,
+    )
+    await audit_service.record(
+        db,
+        event_type="user.login_success",
+        severity="info",
+        user_id=user.id,
+        request=request,
+        metadata={"mfa": False},
     )
     await db.commit()
     return body
@@ -333,6 +392,14 @@ async def login_mfa(
     matched = await totp_service.verify(db=db, user=user, code=payload.code)
     if not matched:
         await auth_service.record_mfa_login_failure(redis, jti)
+        await audit_service.record(
+            db,
+            event_type="user.login_mfa_failed",
+            severity="warning",
+            user_id=user.id,
+            request=request,
+        )
+        await db.commit()
         raise MFAInvalidCodeError()
 
     await auth_service.clear_mfa_login_attempts(redis, jti)
@@ -342,6 +409,14 @@ async def login_mfa(
         response=response,
         request=request,
         user=user,
+    )
+    await audit_service.record(
+        db,
+        event_type="user.login_success",
+        severity="info",
+        user_id=user.id,
+        request=request,
+        metadata={"mfa": True},
     )
     await db.commit()
     return body
@@ -375,6 +450,30 @@ async def refresh(
         )
     except RefreshTokenReplayedError:
         _clear_auth_cookies(response)
+        # PR #5: replay = critical security event. The family is
+        # already revoked (rotate_refresh committed before raising).
+        # Look the (now-revoked) row back up so we can attribute the
+        # audit event to the right user + family without leaking the
+        # plaintext token into ``metadata``.
+        try:
+            result = await db.execute(
+                select(RefreshToken).where(
+                    RefreshToken.token_hash == refresh_service.hash_refresh_token(presented)
+                )
+            )
+            row = result.scalar_one_or_none()
+        except Exception:
+            row = None
+        if row is not None:
+            await audit_service.record(
+                db,
+                event_type="user.refresh_replayed",
+                severity="critical",
+                user_id=row.user_id,
+                request=request,
+                metadata={"family_id": str(row.family_id)},
+            )
+            await db.commit()
         raise
     except InvalidRefreshTokenError:
         _clear_auth_cookies(response)
@@ -414,6 +513,7 @@ async def logout(
     204 no-op."""
 
     presented = request.cookies.get(REFRESH_COOKIE)
+    logout_user_id: uuid.UUID | None = None
     if presented:
         try:
             result = await db.execute(
@@ -423,11 +523,30 @@ async def logout(
             )
             row = result.scalar_one_or_none()
             if row is not None:
+                logout_user_id = row.user_id
                 await refresh_service.revoke_family(db, family_id=row.family_id)
                 await db.commit()
         except Exception as exc:  # pragma: no cover
             logger.warning(
                 "auth.logout_revoke_failed",
+                error=exc.__class__.__name__,
+            )
+
+    # PR #5: only audit when we actually had a session to tear down.
+    # A 204 no-op logout (cookie missing) is not interesting.
+    if logout_user_id is not None:
+        try:
+            await audit_service.record(
+                db,
+                event_type="user.logout",
+                severity="info",
+                user_id=logout_user_id,
+                request=request,
+            )
+            await db.commit()
+        except Exception as exc:  # pragma: no cover
+            logger.warning(
+                "auth.logout_audit_failed",
                 error=exc.__class__.__name__,
             )
 
@@ -499,6 +618,7 @@ async def mfa_enroll_confirm(
     payload: MFAEnrollConfirmRequest,
     current_user: CurrentUser,
     db: DbSession,
+    request: Request,
     email_sender: EmailSender = Depends(get_email_sender),
     locale: Locale = Depends(get_locale),
 ) -> MFAEnrollConfirmResponse:
@@ -513,6 +633,19 @@ async def mfa_enroll_confirm(
         redis=redis,
         code=payload.code,
     )
+
+    # PR #5: audit MFA-enabled — 'warning' severity so admin lens
+    # can correlate enabled+disabled within a short window (account
+    # takeover indicator).
+    await audit_service.record(
+        db,
+        event_type="user.mfa_enabled",
+        severity="warning",
+        user_id=current_user.id,
+        request=request,
+        metadata={"recovery_codes_issued": len(confirmed.recovery_codes)},
+    )
+    await db.commit()
 
     # Best-effort courtesy email — transport failures must not block
     # enrolment (the row is already committed).
@@ -543,6 +676,7 @@ async def mfa_disable(
     payload: MFADisableRequest,
     current_user: CurrentUser,
     db: DbSession,
+    request: Request,
     response: Response,
     email_sender: EmailSender = Depends(get_email_sender),
     locale: Locale = Depends(get_locale),
@@ -569,6 +703,13 @@ async def mfa_disable(
 
     await totp_service.disable(db=db, user=current_user)
     await refresh_service.revoke_all_for_user(db, user_id=current_user.id)
+    await audit_service.record(
+        db,
+        event_type="user.mfa_disabled",
+        severity="warning",
+        user_id=current_user.id,
+        request=request,
+    )
     await db.commit()
 
     try:
@@ -600,6 +741,7 @@ async def mfa_regenerate_recovery(
     payload: MFARecoveryRegenerateRequest,
     current_user: CurrentUser,
     db: DbSession,
+    request: Request,
 ) -> MFARecoveryRegenerateResponse:
     """Replace the stored recovery hashes with a fresh batch.
 
@@ -616,4 +758,13 @@ async def mfa_regenerate_recovery(
         raise MFAInvalidCodeError()
 
     codes = await totp_service.regenerate_recovery_codes(db=db, user=current_user)
+    await audit_service.record(
+        db,
+        event_type="user.mfa_recovery_regenerated",
+        severity="warning",
+        user_id=current_user.id,
+        request=request,
+        metadata={"recovery_codes_issued": len(codes)},
+    )
+    await db.commit()
     return MFARecoveryRegenerateResponse(recovery_codes=list(codes))

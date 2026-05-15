@@ -36,6 +36,7 @@ from app.schemas.auth import (
     ForgotPasswordRequest,
     ResetPasswordRequest,
 )
+from app.services import audit as audit_service
 from app.services import password_reset as reset_service
 
 logger = structlog.get_logger(__name__)
@@ -117,6 +118,7 @@ async def forgot_password(
 )
 async def reset_password(
     payload: ResetPasswordRequest,
+    request: Request,
     response: Response,
     db: DbSession,
     email_sender: EmailSender = Depends(get_email_sender),
@@ -137,13 +139,25 @@ async def reset_password(
     Courtesy email locale is taken from ``Accept-Language``.
     """
 
-    await reset_service.consume_reset(
+    user = await reset_service.consume_reset(
         db,
         email_sender,
         token=payload.token,
         new_password=payload.new_password,
         lang=locale,
     )
+    # PR #5: password changes are warning-severity. ``consume_reset``
+    # already committed the password change + token-version bump;
+    # the audit row lands in its own transaction.
+    await audit_service.record(
+        db,
+        event_type="user.password_changed",
+        severity="warning",
+        user_id=user.id,
+        request=request,
+        metadata={"flow": "password_reset"},
+    )
+    await db.commit()
     _clear_auth_cookies(response)
     response.status_code = status.HTTP_204_NO_CONTENT
     return response
