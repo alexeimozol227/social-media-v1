@@ -18,6 +18,7 @@ from app.api.deps import (
 )
 from app.core.config import settings
 from app.core.email import EmailSender, get_email_sender
+from app.core.i18n import Locale, get_locale
 from app.core.logging import get_logger
 from app.core.redis import get_redis
 from app.core.security import create_access_token
@@ -161,6 +162,7 @@ async def register(
     payload: RegisterRequest,
     db: DbSession,
     email_sender: EmailSender = Depends(get_email_sender),
+    locale: Locale = Depends(get_locale),
 ) -> UserPublic:
     user = await auth_service.create_user(db, payload)
 
@@ -168,12 +170,14 @@ async def register(
     # Transport / template failures must not block the registration
     # response — the user can re-request via
     # ``POST /v1/auth/resend-verification`` once they're signed in.
+    # Email locale is taken from ``Accept-Language`` (defaults to ``ru``).
     try:
         await ev_service.request_verification(
             db,
             email_sender,
             user,
             purpose=PURPOSE_SIGNUP,
+            lang=locale,
         )
     except VerifyResendCooldownError:
         # Brand-new user, can't possibly be on cooldown — defensive

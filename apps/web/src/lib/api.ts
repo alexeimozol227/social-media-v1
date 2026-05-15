@@ -4,9 +4,52 @@
  * sign-in / refresh flows. We always include credentials so the
  * cookies travel back; on a 401 we let the page-level redirect take
  * over (App Router's middleware will handle this in a follow-up PR).
+ *
+ * Every request also carries an ``Accept-Language`` header whose
+ * value is the locale next-intl is currently rendering — i.e. the
+ * user's in-product language toggle wins over the browser default,
+ * so a Spanish-locale browser whose user clicked "English" gets
+ * English emails from the backend.
  */
 
 export const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8000";
+
+const SUPPORTED_LOCALES = new Set(["ru", "en"]);
+const DEFAULT_LOCALE = "ru";
+const LOCALE_COOKIE = "NEXT_LOCALE";
+
+/** Read the active UI locale on the client side.
+ *
+ * Source of truth: the ``NEXT_LOCALE`` cookie that next-intl sets
+ * whenever the user picks a language. Falls back to the value
+ * exposed by ``<html lang>`` (rendered by next-intl on the server)
+ * and finally to the project default ``ru``.
+ *
+ * Returns ``null`` on the server — server components that need to
+ * forward a locale should set ``Accept-Language`` explicitly.
+ */
+function readClientLocale(): string | null {
+  if (typeof document === "undefined") {
+    return null;
+  }
+  const match = document.cookie.match(/(?:^|;\s*)NEXT_LOCALE=([^;]+)/);
+  const raw = match?.[1];
+  if (raw) {
+    const candidate = decodeURIComponent(raw);
+    if (SUPPORTED_LOCALES.has(candidate)) {
+      return candidate;
+    }
+  }
+  const htmlLang = document.documentElement.lang;
+  if (htmlLang && SUPPORTED_LOCALES.has(htmlLang)) {
+    return htmlLang;
+  }
+  return DEFAULT_LOCALE;
+}
+
+// Re-export for completeness and so tests can pin against the
+// canonical cookie name without touching the implementation.
+export { LOCALE_COOKIE };
 
 export class ApiError extends Error {
   errorCode: string;
@@ -35,14 +78,26 @@ type RequestInitOpts = Omit<RequestInit, "body"> & {
 
 export async function apiFetch<T>(path: string, opts: RequestInitOpts = {}): Promise<T> {
   const { json, headers, ...rest } = opts;
+  const locale = readClientLocale();
+  const merged: Record<string, string> = {
+    "Content-Type": "application/json",
+    Accept: "application/json",
+  };
+  if (locale) {
+    // Force the backend to render emails / system copy in the
+    // UI-selected locale, NOT the browser default — see the file
+    // header for the rationale.
+    merged["Accept-Language"] = locale;
+  }
+  if (headers) {
+    for (const [k, v] of Object.entries(headers as Record<string, string | undefined>)) {
+      if (v !== undefined) merged[k] = v;
+    }
+  }
   const res = await fetch(`${API_BASE_URL}${path}`, {
     ...rest,
     credentials: "include",
-    headers: {
-      "Content-Type": "application/json",
-      Accept: "application/json",
-      ...(headers ?? {}),
-    },
+    headers: merged,
     body: json !== undefined ? JSON.stringify(json) : undefined,
   });
   if (!res.ok) {

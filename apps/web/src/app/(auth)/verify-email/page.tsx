@@ -42,7 +42,6 @@ export default function VerifyEmailPage() {
     try {
       await apiFetch<void>("/v1/auth/resend-verification", {
         method: "POST",
-        json: { lang: "ru" },
       });
       setInfo(t("resentSuccess"));
     } catch (err) {

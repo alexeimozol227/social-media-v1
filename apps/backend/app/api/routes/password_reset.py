@@ -30,6 +30,7 @@ from app.api.deps import (
 )
 from app.core.config import settings
 from app.core.email import EmailSender, get_email_sender
+from app.core.i18n import Locale, get_locale
 from app.core.redis import get_redis
 from app.schemas.auth import (
     ForgotPasswordRequest,
@@ -81,12 +82,15 @@ async def forgot_password(
     request: Request,
     db: DbSession,
     email_sender: EmailSender = Depends(get_email_sender),
+    locale: Locale = Depends(get_locale),
 ) -> Response:
     """Issue a password-reset link if ``email`` is registered.
 
     Always returns 202 regardless of outcome — the response shape and
     timing are deliberately uniform so a third party can't enumerate
     accounts via the forgot-password surface.
+
+    Email locale is taken from ``Accept-Language`` (defaults to ``ru``).
     """
 
     redis = get_redis()
@@ -101,7 +105,7 @@ async def forgot_password(
         ip=ip,
         user_agent=user_agent,
         redis=redis,
-        lang=payload.lang,  # type: ignore[arg-type]
+        lang=locale,
     )
     return Response(status_code=status.HTTP_202_ACCEPTED)
 
@@ -116,6 +120,7 @@ async def reset_password(
     response: Response,
     db: DbSession,
     email_sender: EmailSender = Depends(get_email_sender),
+    locale: Locale = Depends(get_locale),
 ) -> Response:
     """Exchange ``token`` for a password change.
 
@@ -128,6 +133,8 @@ async def reset_password(
     * ``PASSWORD_RESET_INVALID`` — token unknown.
     * ``PASSWORD_RESET_EXPIRED`` — token past expiry.
     * ``PASSWORD_RESET_CONSUMED`` — token already used.
+
+    Courtesy email locale is taken from ``Accept-Language``.
     """
 
     await reset_service.consume_reset(
@@ -135,7 +142,7 @@ async def reset_password(
         email_sender,
         token=payload.token,
         new_password=payload.new_password,
-        lang=payload.lang,  # type: ignore[arg-type]
+        lang=locale,
     )
     _clear_auth_cookies(response)
     response.status_code = status.HTTP_204_NO_CONTENT

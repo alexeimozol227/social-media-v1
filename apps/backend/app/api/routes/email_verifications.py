@@ -21,12 +21,10 @@ from fastapi import APIRouter, Depends, Response, status
 
 from app.api.deps import CurrentUser, DbSession
 from app.core.email import EmailSender, get_email_sender
+from app.core.i18n import Locale, get_locale
 from app.errors import EmailAlreadyVerifiedError
 from app.models.email_verification import PURPOSE_SIGNUP
-from app.schemas.auth import (
-    ResendVerificationRequest,
-    VerifyEmailRequest,
-)
+from app.schemas.auth import VerifyEmailRequest
 from app.services import email_verifications as ev_service
 
 logger = structlog.get_logger(__name__)
@@ -40,12 +38,16 @@ router = APIRouter()
     summary="Re-issue the sign-up email verification code",
 )
 async def resend_verification(
-    payload: ResendVerificationRequest,
     current_user: CurrentUser,
     db: DbSession,
     email_sender: EmailSender = Depends(get_email_sender),
+    locale: Locale = Depends(get_locale),
 ) -> Response:
     """Re-issue the sign-up verification code.
+
+    No request body — the target email is the signed-in user's
+    address and the email locale is read from the ``Accept-Language``
+    header.
 
     Idempotent on the cooldown window: a second call within
     ``email_verification_resend_cooldown_seconds`` returns 429 with
@@ -63,7 +65,7 @@ async def resend_verification(
         email_sender,
         current_user,
         purpose=PURPOSE_SIGNUP,
-        lang=payload.lang,  # type: ignore[arg-type]
+        lang=locale,
     )
     return Response(status_code=status.HTTP_202_ACCEPTED)
 

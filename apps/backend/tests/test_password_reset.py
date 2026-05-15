@@ -73,7 +73,7 @@ async def test_forgot_password_unknown_email_returns_202(
 ) -> None:
     resp = await client.post(
         "/v1/auth/forgot-password",
-        json={"email": "nobody@example.com", "lang": "ru"},
+        json={"email": "nobody@example.com"},
     )
     assert resp.status_code == 202
 
@@ -98,7 +98,7 @@ async def test_forgot_password_known_email_dispatches(
 
     resp = await client.post(
         "/v1/auth/forgot-password",
-        json={"email": "alice@example.com", "lang": "ru"},
+        json={"email": "alice@example.com"},
     )
     assert resp.status_code == 202
 
@@ -118,7 +118,6 @@ async def test_reset_password_invalid_token_400(client: AsyncClient) -> None:
         json={
             "token": "obviously-not-a-real-token-zzz",
             "new_password": "BrandNewPass!",
-            "lang": "ru",
         },
     )
     assert resp.status_code == 400
@@ -135,7 +134,7 @@ async def test_reset_password_expired_400(
     email_sender.sent.clear()
     await client.post(
         "/v1/auth/forgot-password",
-        json={"email": "alice@example.com", "lang": "ru"},
+        json={"email": "alice@example.com"},
     )
     reset_emails = [e for e in email_sender.sent if e["purpose"] == "password_reset"]
     assert reset_emails
@@ -152,7 +151,6 @@ async def test_reset_password_expired_400(
         json={
             "token": token,
             "new_password": "BrandNewPass!",
-            "lang": "ru",
         },
     )
     assert resp.status_code == 400
@@ -168,7 +166,7 @@ async def test_reset_password_consumed_400_on_replay(
     email_sender.sent.clear()
     await client.post(
         "/v1/auth/forgot-password",
-        json={"email": "alice@example.com", "lang": "ru"},
+        json={"email": "alice@example.com"},
     )
     reset_emails = [e for e in email_sender.sent if e["purpose"] == "password_reset"]
     token = _extract_reset_token(reset_emails[0]["body"])
@@ -179,7 +177,6 @@ async def test_reset_password_consumed_400_on_replay(
         json={
             "token": token,
             "new_password": "BrandNewPass!",
-            "lang": "ru",
         },
     )
     assert resp.status_code == 204, resp.text
@@ -190,7 +187,6 @@ async def test_reset_password_consumed_400_on_replay(
         json={
             "token": token,
             "new_password": "EvenNewerPass!",
-            "lang": "ru",
         },
     )
     assert resp.status_code == 400
@@ -221,7 +217,7 @@ async def test_reset_password_success_revokes_sessions_and_updates_password(
     email_sender.sent.clear()
     await client.post(
         "/v1/auth/forgot-password",
-        json={"email": "alice@example.com", "lang": "ru"},
+        json={"email": "alice@example.com"},
     )
     reset_emails = [e for e in email_sender.sent if e["purpose"] == "password_reset"]
     token = _extract_reset_token(reset_emails[0]["body"])
@@ -231,7 +227,6 @@ async def test_reset_password_success_revokes_sessions_and_updates_password(
         json={
             "token": token,
             "new_password": "BrandNewPass!",
-            "lang": "ru",
         },
     )
     assert resp.status_code == 204, resp.text
@@ -278,7 +273,7 @@ async def test_reset_password_revokes_old_access_token(
     email_sender.sent.clear()
     await client.post(
         "/v1/auth/forgot-password",
-        json={"email": "alice@example.com", "lang": "ru"},
+        json={"email": "alice@example.com"},
     )
     reset_emails = [e for e in email_sender.sent if e["purpose"] == "password_reset"]
     token = _extract_reset_token(reset_emails[0]["body"])
@@ -295,7 +290,6 @@ async def test_reset_password_revokes_old_access_token(
         json={
             "token": token,
             "new_password": "BrandNewPass!",
-            "lang": "ru",
         },
     )
     assert resp.status_code == 204

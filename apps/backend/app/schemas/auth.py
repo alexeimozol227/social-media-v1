@@ -71,15 +71,13 @@ class MeResponse(BaseModel):
 
 # ---- Email verification (PR #3) ----
 
-
-class ResendVerificationRequest(BaseModel):
-    """Body of ``POST /v1/auth/resend-verification``.
-
-    Authenticated route. The signed-in user re-requests the sign-up
-    code; ``lang`` chooses the email locale (defaults to ``ru``).
-    """
-
-    lang: str = Field(default="ru", pattern="^(ru|en)$")
+# Locale is read from the ``Accept-Language`` header (see
+# ``app/core/i18n.py``) — not from the request body. The frontend
+# overrides the browser default with the user-selected UI locale so
+# the language toggle takes precedence.
+#
+# ``/v1/auth/resend-verification`` has no request body — see the
+# route module for the rationale.
 
 
 class VerifyEmailRequest(BaseModel):
@@ -95,23 +93,18 @@ class VerifyEmailRequest(BaseModel):
 
 
 class ForgotPasswordRequest(BaseModel):
-    """Body of ``POST /v1/auth/forgot-password``.
-
-    Public route. ``lang`` is advisory — picks the email locale.
-    """
+    """Body of ``POST /v1/auth/forgot-password``. Public route."""
 
     email: EmailStr
-    lang: str = Field(default="ru", pattern="^(ru|en)$")
 
 
 class ResetPasswordRequest(BaseModel):
-    """Body of ``POST /v1/auth/reset-password``.
+    """Body of ``POST /v1/auth/reset-password``. Public route.
 
-    Public route. ``token`` is the plaintext token from the link;
-    ``new_password`` becomes the new password. Min length matches
-    the registration constraint.
+    ``token`` is the plaintext token from the link; ``new_password``
+    becomes the new password. Length matches the registration
+    constraint.
     """
 
     token: str = Field(min_length=16, max_length=256)
     new_password: str = Field(min_length=8, max_length=128)
-    lang: str = Field(default="ru", pattern="^(ru|en)$")

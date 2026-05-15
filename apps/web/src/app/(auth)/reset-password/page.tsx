@@ -29,7 +29,7 @@ function ResetPasswordInner() {
     try {
       await apiFetch<void>("/v1/auth/reset-password", {
         method: "POST",
-        json: { token, new_password: password, lang: "ru" },
+        json: { token, new_password: password },
       });
       setSuccess(true);
     } catch (err) {

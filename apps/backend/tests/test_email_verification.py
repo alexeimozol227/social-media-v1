@@ -200,7 +200,7 @@ async def test_resend_verification_cooldown_429(
 
     # First resend hits the per-row cooldown because register already
     # issued one less than 60s ago.
-    resp = await client.post("/v1/auth/resend-verification", json={"lang": "ru"})
+    resp = await client.post("/v1/auth/resend-verification")
     assert resp.status_code == 429
     body = resp.json()
     assert body["error_code"] == "VERIFY_RESEND_COOLDOWN"
@@ -222,7 +222,7 @@ async def test_resend_verification_after_cooldown(
         row.created_at = datetime.now(UTC) - timedelta(minutes=5)
         await session.commit()
 
-    resp = await client.post("/v1/auth/resend-verification", json={"lang": "ru"})
+    resp = await client.post("/v1/auth/resend-verification")
     assert resp.status_code == 202
 
     # Old row consumed, a fresh active row exists.
@@ -256,12 +256,12 @@ async def test_resend_verification_after_verified_409(
     resp = await client.post("/v1/auth/verify-email", json={"code": code})
     assert resp.status_code == 204
 
-    resp = await client.post("/v1/auth/resend-verification", json={"lang": "ru"})
+    resp = await client.post("/v1/auth/resend-verification")
     assert resp.status_code == 409
     assert resp.json()["error_code"] == "EMAIL_ALREADY_VERIFIED"
 
 
 @pytest.mark.asyncio
 async def test_resend_verification_unauthenticated_401(client: AsyncClient) -> None:
-    resp = await client.post("/v1/auth/resend-verification", json={"lang": "ru"})
+    resp = await client.post("/v1/auth/resend-verification")
     assert resp.status_code == 401

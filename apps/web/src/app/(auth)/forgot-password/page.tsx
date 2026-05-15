@@ -20,7 +20,7 @@ export default function ForgotPasswordPage() {
     try {
       await apiFetch<void>("/v1/auth/forgot-password", {
         method: "POST",
-        json: { email, lang: "ru" },
+        json: { email },
       });
       // Backend ALWAYS returns 202 — including for unknown emails —
       // so we always show the same confirmation page.
