@@ -17,6 +17,8 @@ from app.db.base import Base
 # ``--autogenerate`` to see them.
 from app.models import (  # noqa: F401
     Brand,
+    EmailVerification,
+    PasswordReset,
     RefreshToken,
     User,
     Workspace,

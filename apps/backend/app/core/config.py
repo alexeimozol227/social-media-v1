@@ -66,6 +66,35 @@ class Settings(BaseSettings):
     # Sentry. Empty = disabled (default for dev).
     sentry_dsn: str = Field(default="")
 
+    # ---- Email transport (PR #3) ----
+    # Resolution order:
+    #   1. ``unisender_api_key`` set        -> UniSender Go HTTP API.
+    #   2. ``smtp_host`` set                -> aiosmtplib (works with
+    #                                          MailHog at localhost:1025).
+    #   3. Otherwise                         -> LogEmailSender (dev/CI).
+    smtp_host: str = Field(default="")
+    smtp_port: int = Field(default=1025)
+    smtp_username: str = Field(default="")
+    smtp_password: str = Field(default="")
+    smtp_from: str = Field(default="no-reply@social-media-v1.local")
+    smtp_tls: bool = Field(default=False)
+
+    unisender_api_key: str = Field(default="")
+    unisender_api_url: str = Field(default="https://go1.unisender.ru/ru/transactional/api/v1")
+    unisender_from_email: str = Field(default="no-reply@social-media-v1.local")
+    unisender_from_name: str = Field(default="social-media-v1")
+
+    # ---- Email verification policy (PR #3) ----
+    # 15 min code TTL is the cross-industry default; 5 attempts is the
+    # OWASP recommendation for low-entropy human-typed codes.
+    email_verification_ttl_minutes: int = Field(default=15)
+    email_verification_resend_cooldown_seconds: int = Field(default=60)
+    email_verification_max_attempts: int = Field(default=5)
+
+    # ---- Password reset policy (PR #3) ----
+    password_reset_ttl_minutes: int = Field(default=30)
+    password_reset_cooldown_seconds: int = Field(default=60)
+
     @property
     def cors_origins_list(self) -> list[str]:
         return [o.strip() for o in self.cors_origins.split(",") if o.strip()]

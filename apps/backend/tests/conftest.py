@@ -31,7 +31,15 @@ from sqlalchemy.pool import StaticPool
 
 from app.db.base import Base
 from app.db.session import get_db
-from app.models import Brand, RefreshToken, User, Workspace, WorkspaceMember  # noqa: F401
+from app.models import (  # noqa: F401
+    Brand,
+    EmailVerification,
+    PasswordReset,
+    RefreshToken,
+    User,
+    Workspace,
+    WorkspaceMember,
+)
 
 
 @pytest_asyncio.fixture
@@ -74,19 +82,56 @@ def fake_redis() -> fakeredis.aioredis.FakeRedis:
     return fakeredis.aioredis.FakeRedis(decode_responses=True)
 
 
+class _CapturingEmailSender:
+    """Test double for :class:`app.core.email.EmailSender`.
+
+    Captures every send call into ``sent`` so tests can assert on
+    the subject / body / purpose. Body is captured verbatim because
+    the verification code lives inside it — the production transports
+    deliberately don't log it.
+    """
+
+    def __init__(self) -> None:
+        self.sent: list[dict[str, Any]] = []
+
+    async def send(
+        self,
+        *,
+        to: str,
+        subject: str,
+        body: str,
+        purpose: str | None = None,
+    ) -> None:
+        self.sent.append(
+            {
+                "to": to,
+                "subject": subject,
+                "body": body,
+                "purpose": purpose,
+            }
+        )
+
+
+@pytest.fixture
+def email_sender() -> _CapturingEmailSender:
+    return _CapturingEmailSender()
+
+
 @pytest_asyncio.fixture
 async def client(
     db_session_factory: async_sessionmaker[AsyncSession],
     fake_redis: fakeredis.aioredis.FakeRedis,
+    email_sender: _CapturingEmailSender,
 ) -> AsyncIterator[AsyncClient]:
     """An ``httpx.AsyncClient`` bound to a freshly-wired FastAPI app.
 
-    Both the DB session and the Redis client are overridden so the
-    test runs hermetically.
+    The DB session, Redis client, and email sender are all overridden
+    so the test runs hermetically.
     """
 
     from app.api.routes.auth import get_redis as _routes_get_redis  # noqa: F401
     from app.core import redis as redis_module
+    from app.core.email import get_email_sender
     from app.main import app
 
     async def _override_get_db() -> AsyncIterator[AsyncSession]:
@@ -94,6 +139,7 @@ async def client(
             yield session
 
     app.dependency_overrides[get_db] = _override_get_db
+    app.dependency_overrides[get_email_sender] = lambda: email_sender
     # Patch the singleton Redis getter so ``services.auth`` + routes
     # see the fake.
     original_getter = redis_module._redis

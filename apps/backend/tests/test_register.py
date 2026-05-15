@@ -45,9 +45,7 @@ async def test_register_success_creates_user_workspace_brand_membership(
         assert len(workspaces) == 1
         assert workspaces[0].owner_id == users[0].id
         assert workspaces[0].slug == "default"
-        members = (
-            await session.execute(select(WorkspaceMember))
-        ).scalars().all()
+        members = (await session.execute(select(WorkspaceMember))).scalars().all()
         assert len(members) == 1
         assert members[0].role == WorkspaceMemberRole.OWNER
         brands = (await session.execute(select(Brand))).scalars().all()

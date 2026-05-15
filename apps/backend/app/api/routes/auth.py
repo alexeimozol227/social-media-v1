@@ -5,7 +5,7 @@ docs/06-roadmap.md §5 Сприннт 1: ``/v1/auth/*`` in kebab-case.
 
 from __future__ import annotations
 
-from fastapi import APIRouter, Request, Response, status
+from fastapi import APIRouter, Depends, Request, Response, status
 from sqlalchemy import select
 
 from app.api.deps import (
@@ -17,10 +17,17 @@ from app.api.deps import (
     DbSession,
 )
 from app.core.config import settings
+from app.core.email import EmailSender, get_email_sender
+from app.core.i18n import Locale, get_locale
 from app.core.logging import get_logger
 from app.core.redis import get_redis
 from app.core.security import create_access_token
-from app.errors import InvalidRefreshTokenError, RefreshTokenReplayedError
+from app.errors import (
+    InvalidRefreshTokenError,
+    RefreshTokenReplayedError,
+    VerifyResendCooldownError,
+)
+from app.models.email_verification import PURPOSE_SIGNUP
 from app.models.refresh_token import RefreshToken
 from app.models.user import User
 from app.schemas.auth import (
@@ -32,6 +39,7 @@ from app.schemas.auth import (
     WorkspaceSummary,
 )
 from app.services import auth as auth_service
+from app.services import email_verifications as ev_service
 from app.services import refresh_tokens as refresh_service
 from app.services import workspaces as workspaces_service
 
@@ -150,8 +158,38 @@ async def _build_login_response(
     status_code=status.HTTP_201_CREATED,
     summary="Register a new user",
 )
-async def register(payload: RegisterRequest, db: DbSession) -> UserPublic:
+async def register(
+    payload: RegisterRequest,
+    db: DbSession,
+    email_sender: EmailSender = Depends(get_email_sender),
+    locale: Locale = Depends(get_locale),
+) -> UserPublic:
     user = await auth_service.create_user(db, payload)
+
+    # Best-effort: dispatch the first sign-up verification code.
+    # Transport / template failures must not block the registration
+    # response — the user can re-request via
+    # ``POST /v1/auth/resend-verification`` once they're signed in.
+    # Email locale is taken from ``Accept-Language`` (defaults to ``ru``).
+    try:
+        await ev_service.request_verification(
+            db,
+            email_sender,
+            user,
+            purpose=PURPOSE_SIGNUP,
+            lang=locale,
+        )
+    except VerifyResendCooldownError:
+        # Brand-new user, can't possibly be on cooldown — defensive
+        # no-op for parity with the typed-error API.
+        pass
+    except Exception as exc:
+        logger.warning(
+            "auth.register_verification_dispatch_failed",
+            user_id=str(user.id),
+            error=exc.__class__.__name__,
+        )
+
     return UserPublic.model_validate(user)
 
 

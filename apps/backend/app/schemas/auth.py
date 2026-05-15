@@ -67,3 +67,44 @@ class MeResponse(BaseModel):
 
     user: UserPublic
     active_workspace: WorkspaceSummary | None
+
+
+# ---- Email verification (PR #3) ----
+
+# Locale is read from the ``Accept-Language`` header (see
+# ``app/core/i18n.py``) — not from the request body. The frontend
+# overrides the browser default with the user-selected UI locale so
+# the language toggle takes precedence.
+#
+# ``/v1/auth/resend-verification`` has no request body — see the
+# route module for the rationale.
+
+
+class VerifyEmailRequest(BaseModel):
+    """Body of ``POST /v1/auth/verify-email``.
+
+    Authenticated. ``code`` is the 6-digit code from the email.
+    """
+
+    code: str = Field(min_length=6, max_length=6, pattern=r"^\d{6}$")
+
+
+# ---- Password reset (PR #3) ----
+
+
+class ForgotPasswordRequest(BaseModel):
+    """Body of ``POST /v1/auth/forgot-password``. Public route."""
+
+    email: EmailStr
+
+
+class ResetPasswordRequest(BaseModel):
+    """Body of ``POST /v1/auth/reset-password``. Public route.
+
+    ``token`` is the plaintext token from the link; ``new_password``
+    becomes the new password. Length matches the registration
+    constraint.
+    """
+
+    token: str = Field(min_length=16, max_length=256)
+    new_password: str = Field(min_length=8, max_length=128)

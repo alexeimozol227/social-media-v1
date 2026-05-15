@@ -165,6 +165,26 @@ async def revoke_all_for_user(
     )
 
 
+async def bump_token_version(
+    session: AsyncSession,
+    *,
+    user: User,
+) -> None:
+    """Increment ``users.token_version`` and revoke every refresh
+    family for ``user`` in one transaction (D64).
+
+    Bumping the column invalidates every outstanding access token —
+    the ``tv`` claim no longer matches. Revoking the families
+    prevents the next ``/v1/auth/refresh`` from minting a fresh
+    access token with the new ``tv`` and silently restoring the
+    session. Used by ``password_reset.consume_reset`` and by future
+    admin force-logout.
+    """
+
+    user.token_version = (user.token_version or 0) + 1
+    await revoke_all_for_user(session, user_id=user.id)
+
+
 async def _persist(
     session: AsyncSession,
     *,
@@ -211,6 +231,7 @@ async def _revoke_family(
 
 __all__ = [
     "IssuedRefresh",
+    "bump_token_version",
     "hash_refresh_token",
     "issue_refresh",
     "revoke_all_for_user",

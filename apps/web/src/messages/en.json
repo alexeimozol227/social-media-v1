@@ -1,7 +1,7 @@
 {
   "landing": {
     "title": "social-media-v1",
-    "subtitle": "AI Operating System for Social Networks",
+    "subtitle": "AI operating system for social networks",
     "cta": "Get started"
   },
   "auth": {
@@ -11,10 +11,11 @@
       "password": "Password",
       "submit": "Sign in",
       "noAccount": "No account?",
-      "createAccount": "Create one"
+      "createAccount": "Create one",
+      "forgotPassword": "Forgot password?"
     },
     "register": {
-      "title": "Create account",
+      "title": "Sign up",
       "email": "Email",
       "password": "Password",
       "fullName": "Full name",
@@ -23,22 +24,63 @@
       "haveAccount": "Already have an account?",
       "signIn": "Sign in"
     },
+    "verifyEmail": {
+      "title": "Verify your email",
+      "description": "We sent a 6-digit code to your email. Enter it below.",
+      "code": "Code",
+      "submit": "Verify",
+      "resend": "Resend code",
+      "resentSuccess": "Code resent",
+      "verified": "Email verified",
+      "backToDashboard": "Back to dashboard"
+    },
+    "forgotPassword": {
+      "title": "Reset password",
+      "description": "If this email is registered, we'll send a reset link.",
+      "email": "Email",
+      "submit": "Send reset link",
+      "submitted": "If the email exists, a message has been sent. Check your inbox.",
+      "backToLogin": "Back to sign in"
+    },
+    "resetPassword": {
+      "title": "New password",
+      "description": "Enter a new password for your account.",
+      "newPassword": "New password",
+      "confirmPassword": "Confirm password",
+      "submit": "Save",
+      "successTitle": "Password updated",
+      "successDescription": "All active sessions have been ended. Sign in with your new password.",
+      "goToLogin": "Sign in",
+      "missingToken": "Invalid or expired link",
+      "passwordsDontMatch": "Passwords don't match"
+    },
     "errors": {
       "INVALID_CREDENTIALS": "Invalid email or password",
       "EMAIL_ALREADY_EXISTS": "An account with this email already exists",
       "TOS_NOT_ACCEPTED": "You must accept the Terms of Service",
       "LOGIN_LOCKED": "Too many failed attempts. Try again later.",
-      "INVALID_REFRESH_TOKEN": "Session expired. Please sign in again.",
-      "REFRESH_TOKEN_REPLAYED": "Session ended for security. Please sign in again.",
+      "INVALID_REFRESH_TOKEN": "Session expired. Sign in again.",
+      "REFRESH_TOKEN_REPLAYED": "Session ended for security reasons. Sign in again.",
       "VALIDATION_ERROR": "Please check your input",
-      "UNAUTHENTICATED": "Please sign in",
-      "USER_INACTIVE": "Account is not active",
-      "default": "Something went wrong. Please try again."
+      "UNAUTHENTICATED": "Authentication required",
+      "USER_INACTIVE": "Account deactivated",
+      "VERIFY_RESEND_COOLDOWN": "Wait a moment and try again",
+      "EMAIL_ALREADY_VERIFIED": "Email already verified",
+      "NO_ACTIVE_VERIFICATION": "Request a fresh code — the previous one is no longer valid",
+      "VERIFY_CODE_EXPIRED": "Code expired. Request a new one.",
+      "VERIFY_CODE_INVALID": "Invalid code",
+      "VERIFY_TOO_MANY_ATTEMPTS": "Too many attempts. Request a new code.",
+      "PASSWORD_RESET_INVALID": "Invalid link",
+      "PASSWORD_RESET_EXPIRED": "Link expired",
+      "PASSWORD_RESET_CONSUMED": "Link already used",
+      "default": "Something went wrong. Try again."
     }
   },
   "dashboard": {
     "greeting": "Hi, {email}!",
     "workspace": "Workspace: {name}",
-    "logout": "Sign out"
+    "logout": "Sign out",
+    "emailNotVerified": "Email is not verified.",
+    "verifyNow": "Verify now"
   }
 }
