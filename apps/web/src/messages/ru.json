@@ -14,6 +14,14 @@
       "createAccount": "Создать",
       "forgotPassword": "Забыли пароль?"
     },
+    "loginMfa": {
+      "title": "Двухфакторная аутентификация",
+      "description": "Введи 6-значный код из приложения-аутентификатора или один из recovery-кодов.",
+      "code": "Код",
+      "submit": "Подтвердить",
+      "recoveryHint": "Потерял доступ к приложению?",
+      "back": "Назад к входу"
+    },
     "register": {
       "title": "Регистрация",
       "email": "Email",
@@ -73,7 +81,39 @@
       "PASSWORD_RESET_INVALID": "Ссылка недействительна",
       "PASSWORD_RESET_EXPIRED": "Срок действия ссылки истёк",
       "PASSWORD_RESET_CONSUMED": "Ссылка уже использована",
+      "MFA_ALREADY_ENABLED": "Двухфакторная аутентификация уже включена",
+      "MFA_NOT_ENABLED": "Двухфакторная аутентификация не включена",
+      "MFA_ENROLLMENT_NOT_STARTED": "Начни enroll заново — старый запрос истёк",
+      "MFA_INVALID_CODE": "Неверный код. Попробуй ещё раз.",
+      "MFA_TOKEN_INVALID": "Сессия истекла. Войди заново.",
+      "MFA_RATE_LIMITED": "Слишком много неудачных кодов. Попробуй позже.",
       "default": "Произошла ошибка. Попробуйте ещё раз."
+    }
+  },
+  "settings": {
+    "security": {
+      "title": "Безопасность",
+      "back": "Назад в кабинет",
+      "loading": "Загрузка...",
+      "disabledTitle": "Двухфакторная аутентификация выключена",
+      "disabledDescription": "Включи 2FA, чтобы при входе требовался код из приложения-аутентификатора.",
+      "enableButton": "Включить 2FA",
+      "manualSecret": "Или введи вручную",
+      "codeLabel": "6-значный код",
+      "codePlaceholder": "Код из приложения",
+      "confirmButton": "Подтвердить",
+      "enabledTitle": "2FA включена",
+      "enabledDescription": "Осталось {remaining} recovery-кодов. Регенерируй, если их меньше пяти.",
+      "regenerateTitle": "Recovery-коды",
+      "regenerateDescription": "Создать новый набор. Старые коды перестанут работать.",
+      "regenerateButton": "Сгенерировать заново",
+      "disableTitle": "Отключить 2FA",
+      "disableDescription": "Требуется текущий пароль и свежий код.",
+      "currentPassword": "Текущий пароль",
+      "disableButton": "Отключить 2FA",
+      "recoveryTitle": "Сохрани эти коды",
+      "recoveryDescription": "Каждый код одноразовый. Покажем только один раз — сохрани в надёжном месте.",
+      "recoveryAck": "Я сохранил коды"
     }
   },
   "dashboard": {
@@ -81,6 +121,7 @@
     "workspace": "Рабочее пространство: {name}",
     "logout": "Выйти",
     "emailNotVerified": "Email не подтверждён.",
-    "verifyNow": "Подтвердить сейчас"
+    "verifyNow": "Подтвердить сейчас",
+    "security": "Безопасность"
   }
 }

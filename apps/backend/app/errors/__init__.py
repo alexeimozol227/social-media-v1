@@ -49,6 +49,15 @@ class ErrorCode:
     PASSWORD_RESET_EXPIRED = "PASSWORD_RESET_EXPIRED"
     PASSWORD_RESET_CONSUMED = "PASSWORD_RESET_CONSUMED"
 
+    # MFA (TOTP) — PR #4
+    MFA_ALREADY_ENABLED = "MFA_ALREADY_ENABLED"
+    MFA_NOT_ENABLED = "MFA_NOT_ENABLED"
+    MFA_ENROLLMENT_NOT_STARTED = "MFA_ENROLLMENT_NOT_STARTED"
+    MFA_INVALID_CODE = "MFA_INVALID_CODE"
+    MFA_TOKEN_INVALID = "MFA_TOKEN_INVALID"
+    MFA_RATE_LIMITED = "MFA_RATE_LIMITED"
+    MFA_REQUIRED = "MFA_REQUIRED"
+
     # Generic
     VALIDATION_ERROR = "VALIDATION_ERROR"
     NOT_FOUND = "NOT_FOUND"
@@ -187,3 +196,42 @@ class PasswordResetConsumedError(AppError):
     error_code = ErrorCode.PASSWORD_RESET_CONSUMED
     http_status = 400
     default_message = "Password reset link has already been used."
+
+
+# ---- MFA (TOTP) — PR #4 ----
+
+
+class MFAAlreadyEnabledError(AppError):
+    error_code = ErrorCode.MFA_ALREADY_ENABLED
+    http_status = 409
+    default_message = "Two-factor authentication is already enabled."
+
+
+class MFANotEnabledError(AppError):
+    error_code = ErrorCode.MFA_NOT_ENABLED
+    http_status = 409
+    default_message = "Two-factor authentication is not enabled for this account."
+
+
+class MFAEnrollmentNotStartedError(AppError):
+    error_code = ErrorCode.MFA_ENROLLMENT_NOT_STARTED
+    http_status = 400
+    default_message = "No pending two-factor enrollment; start a new one."
+
+
+class MFAInvalidCodeError(AppError):
+    error_code = ErrorCode.MFA_INVALID_CODE
+    http_status = 400
+    default_message = "Invalid authentication code."
+
+
+class MFATokenInvalidError(AppError):
+    error_code = ErrorCode.MFA_TOKEN_INVALID
+    http_status = 401
+    default_message = "Two-factor session token is invalid or expired."
+
+
+class MFARateLimitedError(AppError):
+    error_code = ErrorCode.MFA_RATE_LIMITED
+    http_status = 429
+    default_message = "Too many wrong codes. Try again later."

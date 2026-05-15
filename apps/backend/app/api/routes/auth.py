@@ -5,6 +5,9 @@ docs/06-roadmap.md §5 Сприннт 1: ``/v1/auth/*`` in kebab-case.
 
 from __future__ import annotations
 
+import uuid
+from typing import Any
+
 from fastapi import APIRouter, Depends, Request, Response, status
 from sqlalchemy import select
 
@@ -21,26 +24,47 @@ from app.core.email import EmailSender, get_email_sender
 from app.core.i18n import Locale, get_locale
 from app.core.logging import get_logger
 from app.core.redis import get_redis
-from app.core.security import create_access_token
+from app.core.security import (
+    create_access_token,
+    create_mfa_token,
+    decode_mfa_token,
+    verify_password,
+)
 from app.errors import (
+    InvalidCredentialsError,
     InvalidRefreshTokenError,
+    MFAInvalidCodeError,
+    MFANotEnabledError,
+    MFARateLimitedError,
+    MFATokenInvalidError,
     RefreshTokenReplayedError,
     VerifyResendCooldownError,
 )
 from app.models.email_verification import PURPOSE_SIGNUP
 from app.models.refresh_token import RefreshToken
-from app.models.user import User
+from app.models.user import User, UserStatus
 from app.schemas.auth import (
     AccessTokenResponse,
+    LoginMFARequest,
+    LoginMFARequiredResponse,
     LoginRequest,
     MeResponse,
+    MFADisableRequest,
+    MFAEnrollConfirmRequest,
+    MFAEnrollConfirmResponse,
+    MFAEnrollStartResponse,
+    MFARecoveryRegenerateRequest,
+    MFARecoveryRegenerateResponse,
+    MFAStatusResponse,
     RegisterRequest,
     UserPublic,
     WorkspaceSummary,
 )
 from app.services import auth as auth_service
+from app.services import email_templates
 from app.services import email_verifications as ev_service
 from app.services import refresh_tokens as refresh_service
+from app.services import totp as totp_service
 from app.services import workspaces as workspaces_service
 
 logger = get_logger(__name__)
@@ -195,15 +219,25 @@ async def register(
 
 @router.post(
     "/login",
-    response_model=AccessTokenResponse,
-    summary="Sign in with email + password",
+    response_model=AccessTokenResponse | LoginMFARequiredResponse,
+    summary="Sign in with email + password (returns mfa_required if 2FA is on)",
 )
 async def login(
     payload: LoginRequest,
     db: DbSession,
     request: Request,
     response: Response,
-) -> AccessTokenResponse:
+) -> AccessTokenResponse | LoginMFARequiredResponse:
+    """Validate ``email + password`` and either set the session cookies
+    (no MFA) or return a short-lived ``mfa_token`` the SPA exchanges
+    at ``/login/mfa`` for the cookies.
+
+    docs/04-architecture.md §18 + PR #4 plan: MFA is mandatory for
+    ``admin`` / ``support`` platform roles and optional for everyone
+    else; the route doesn't care about the role here — it only
+    branches on ``users.totp_enrolled_at``.
+    """
+
     redis = get_redis()
     user = await auth_service.authenticate(
         db,
@@ -211,6 +245,98 @@ async def login(
         password=payload.password,
         redis=redis,
     )
+
+    if totp_service.is_enrolled(user):
+        # Don't set cookies — the user is not authenticated until they
+        # also clear the second factor.
+        mfa_token = create_mfa_token(
+            subject=str(user.id),
+            token_version=user.token_version,
+        )
+        await db.commit()
+        return LoginMFARequiredResponse(
+            mfa_token=mfa_token,
+            expires_in=settings.mfa_token_ttl_seconds,
+        )
+
+    body = await _build_login_response(
+        db=db,
+        response=response,
+        request=request,
+        user=user,
+    )
+    await db.commit()
+    return body
+
+
+@router.post(
+    "/login/mfa",
+    response_model=AccessTokenResponse,
+    summary="Complete sign-in with a 2FA code (TOTP or recovery)",
+)
+async def login_mfa(
+    payload: LoginMFARequest,
+    db: DbSession,
+    request: Request,
+    response: Response,
+) -> AccessTokenResponse:
+    """Exchange a valid ``(mfa_token, code)`` pair for session cookies.
+
+    Rate-limited per ``mfa_token`` (``jti``): 5 attempts / 15 min by
+    default. Exceeding the cap returns 429 — the user has to start
+    over from the password step.
+
+    Returns the same ``AccessTokenResponse`` shape as ``/login`` so a
+    no-MFA client and an MFA client share a single happy path.
+    """
+
+    redis = get_redis()
+
+    try:
+        token_payload = decode_mfa_token(payload.mfa_token)
+    except ValueError as exc:
+        raise MFATokenInvalidError() from exc
+
+    sub: Any = token_payload.get("sub")
+    jti: Any = token_payload.get("jti")
+    if not isinstance(sub, str) or not isinstance(jti, str):
+        raise MFATokenInvalidError()
+    try:
+        user_id = uuid.UUID(sub)
+    except ValueError as exc:
+        raise MFATokenInvalidError() from exc
+
+    user = await db.get(User, user_id)
+    if user is None or user.status != UserStatus.ACTIVE:
+        raise MFATokenInvalidError()
+
+    # Pin ``tv`` — concurrent password reset / MFA disable bumps the
+    # column and instantly invalidates every outstanding mfa_token.
+    claim_tv = token_payload.get("tv", 0)
+    if not isinstance(claim_tv, int) or claim_tv != user.token_version:
+        raise MFATokenInvalidError()
+
+    if not totp_service.is_enrolled(user):
+        # The user disabled 2FA after the password step. Fail the
+        # exchange — the SPA will route them back to ``/login`` and
+        # the password-only path will succeed.
+        raise MFATokenInvalidError()
+
+    # Rate limit per-``jti`` before we attempt verification so wrong
+    # codes can't be rotated indefinitely on the same token.
+    attempts_left = await auth_service.mfa_login_attempts_left(redis, jti)
+    if attempts_left <= 0:
+        raise MFARateLimitedError(
+            retry_after_seconds=settings.mfa_login_rate_limit_window_seconds,
+        )
+
+    matched = await totp_service.verify(db=db, user=user, code=payload.code)
+    if not matched:
+        await auth_service.record_mfa_login_failure(redis, jti)
+        raise MFAInvalidCodeError()
+
+    await auth_service.clear_mfa_login_attempts(redis, jti)
+
     body = await _build_login_response(
         db=db,
         response=response,
@@ -321,3 +447,173 @@ async def me(current_user: CurrentUser, db: DbSession) -> MeResponse:
         user=UserPublic.model_validate(current_user),
         active_workspace=WorkspaceSummary.model_validate(workspace),
     )
+
+
+# ---- MFA / TOTP routes (PR #4) -------------------------------------
+
+
+@router.get(
+    "/mfa/status",
+    response_model=MFAStatusResponse,
+    summary="2FA enrolment status for the current user",
+)
+async def mfa_status(current_user: CurrentUser) -> MFAStatusResponse:
+    """SPA polls this on Settings → Security to decide which side of
+    the page to render (enable button vs. disable + regenerate)."""
+
+    return MFAStatusResponse(
+        enabled=totp_service.is_enrolled(current_user),
+        enrolled_at=current_user.totp_enrolled_at,
+        recovery_codes_remaining=len(current_user.totp_recovery_hashes or []),
+    )
+
+
+@router.post(
+    "/mfa/enroll/start",
+    response_model=MFAEnrollStartResponse,
+    summary="Begin TOTP enrolment: mint secret + provisioning URI",
+)
+async def mfa_enroll_start(current_user: CurrentUser) -> MFAEnrollStartResponse:
+    """Mint a fresh secret + ``otpauth://`` URI for QR rendering.
+
+    Nothing is persisted yet — the secret sits in Redis under a
+    5-minute TTL until the user confirms with a working code via
+    ``/mfa/enroll/confirm``. Re-calling this endpoint replaces any
+    pending enrollment for the same user.
+    """
+
+    redis = get_redis()
+    started = await totp_service.start_enrollment(user=current_user, redis=redis)
+    return MFAEnrollStartResponse(
+        secret=started.secret,
+        provisioning_uri=started.provisioning_uri,
+    )
+
+
+@router.post(
+    "/mfa/enroll/confirm",
+    response_model=MFAEnrollConfirmResponse,
+    summary="Confirm TOTP enrolment with a working code",
+)
+async def mfa_enroll_confirm(
+    payload: MFAEnrollConfirmRequest,
+    current_user: CurrentUser,
+    db: DbSession,
+    email_sender: EmailSender = Depends(get_email_sender),
+    locale: Locale = Depends(get_locale),
+) -> MFAEnrollConfirmResponse:
+    """Validate ``code`` against the pending Redis secret, persist
+    the encrypted secret + recovery hashes, and return the plaintext
+    recovery codes (one-shot — shown exactly once)."""
+
+    redis = get_redis()
+    confirmed = await totp_service.confirm_enrollment(
+        db=db,
+        user=current_user,
+        redis=redis,
+        code=payload.code,
+    )
+
+    # Best-effort courtesy email — transport failures must not block
+    # enrolment (the row is already committed).
+    try:
+        subject, body = email_templates.mfa_enrolled(lang=locale)
+        await email_sender.send(
+            to=current_user.email,
+            subject=subject,
+            body=body,
+            purpose="mfa_enrolled",
+        )
+    except Exception as exc:
+        logger.warning(
+            "auth.mfa_enrolled_email_failed",
+            user_id=str(current_user.id),
+            error=exc.__class__.__name__,
+        )
+
+    return MFAEnrollConfirmResponse(recovery_codes=list(confirmed.recovery_codes))
+
+
+@router.post(
+    "/mfa/disable",
+    status_code=status.HTTP_204_NO_CONTENT,
+    summary="Turn off 2FA for the current user",
+)
+async def mfa_disable(
+    payload: MFADisableRequest,
+    current_user: CurrentUser,
+    db: DbSession,
+    response: Response,
+    email_sender: EmailSender = Depends(get_email_sender),
+    locale: Locale = Depends(get_locale),
+) -> Response:
+    """Tear 2FA down.
+
+    Requires **both** the current password AND a fresh TOTP /
+    recovery code so neither a stolen cookie nor a stolen password
+    alone is sufficient. On success the service layer bumps
+    ``users.token_version`` (killing every outstanding access token
+    + refresh family) and we then revoke every refresh family in the
+    same commit so the next ``/refresh`` returns 401.
+    """
+
+    if not totp_service.is_enrolled(current_user):
+        raise MFANotEnabledError()
+
+    if not verify_password(payload.current_password, current_user.hashed_password):
+        raise InvalidCredentialsError()
+
+    matched = await totp_service.verify(db=db, user=current_user, code=payload.code)
+    if not matched:
+        raise MFAInvalidCodeError()
+
+    await totp_service.disable(db=db, user=current_user)
+    await refresh_service.revoke_all_for_user(db, user_id=current_user.id)
+    await db.commit()
+
+    try:
+        subject, body = email_templates.mfa_disabled(lang=locale)
+        await email_sender.send(
+            to=current_user.email,
+            subject=subject,
+            body=body,
+            purpose="mfa_disabled",
+        )
+    except Exception as exc:
+        logger.warning(
+            "auth.mfa_disabled_email_failed",
+            user_id=str(current_user.id),
+            error=exc.__class__.__name__,
+        )
+
+    _clear_auth_cookies(response)
+    response.status_code = status.HTTP_204_NO_CONTENT
+    return response
+
+
+@router.post(
+    "/mfa/recovery-codes/regenerate",
+    response_model=MFARecoveryRegenerateResponse,
+    summary="Mint a fresh batch of one-shot recovery codes",
+)
+async def mfa_regenerate_recovery(
+    payload: MFARecoveryRegenerateRequest,
+    current_user: CurrentUser,
+    db: DbSession,
+) -> MFARecoveryRegenerateResponse:
+    """Replace the stored recovery hashes with a fresh batch.
+
+    Requires a fresh TOTP code (or current recovery code) so a
+    stolen access cookie alone can't rotate the codes out from under
+    the legitimate user.
+    """
+
+    if not totp_service.is_enrolled(current_user):
+        raise MFANotEnabledError()
+
+    matched = await totp_service.verify(db=db, user=current_user, code=payload.code)
+    if not matched:
+        raise MFAInvalidCodeError()
+
+    codes = await totp_service.regenerate_recovery_codes(db=db, user=current_user)
+    return MFARecoveryRegenerateResponse(recovery_codes=list(codes))

@@ -14,6 +14,14 @@
       "createAccount": "Create one",
       "forgotPassword": "Forgot password?"
     },
+    "loginMfa": {
+      "title": "Two-factor authentication",
+      "description": "Enter the 6-digit code from your authenticator app or one of your recovery codes.",
+      "code": "Code",
+      "submit": "Verify",
+      "recoveryHint": "Lost access to your app?",
+      "back": "Back to sign in"
+    },
     "register": {
       "title": "Sign up",
       "email": "Email",
@@ -73,7 +81,39 @@
       "PASSWORD_RESET_INVALID": "Invalid link",
       "PASSWORD_RESET_EXPIRED": "Link expired",
       "PASSWORD_RESET_CONSUMED": "Link already used",
+      "MFA_ALREADY_ENABLED": "Two-factor authentication is already on",
+      "MFA_NOT_ENABLED": "Two-factor authentication is not enabled",
+      "MFA_ENROLLMENT_NOT_STARTED": "Start enrollment again — the previous request expired",
+      "MFA_INVALID_CODE": "Invalid code. Try again.",
+      "MFA_TOKEN_INVALID": "Session expired. Sign in again.",
+      "MFA_RATE_LIMITED": "Too many wrong codes. Try again later.",
       "default": "Something went wrong. Try again."
+    }
+  },
+  "settings": {
+    "security": {
+      "title": "Security",
+      "back": "Back to dashboard",
+      "loading": "Loading...",
+      "disabledTitle": "Two-factor authentication is off",
+      "disabledDescription": "Turn on 2FA so that signing in requires a code from your authenticator app.",
+      "enableButton": "Enable 2FA",
+      "manualSecret": "Or enter manually",
+      "codeLabel": "6-digit code",
+      "codePlaceholder": "Code from app",
+      "confirmButton": "Confirm",
+      "enabledTitle": "2FA is on",
+      "enabledDescription": "{remaining} recovery codes remaining. Regenerate if fewer than five.",
+      "regenerateTitle": "Recovery codes",
+      "regenerateDescription": "Generate a fresh set. The old codes will stop working.",
+      "regenerateButton": "Regenerate",
+      "disableTitle": "Disable 2FA",
+      "disableDescription": "Requires your current password and a fresh code.",
+      "currentPassword": "Current password",
+      "disableButton": "Disable 2FA",
+      "recoveryTitle": "Save these codes",
+      "recoveryDescription": "Each code can be used once. We'll show them only once — save them somewhere safe.",
+      "recoveryAck": "I saved the codes"
     }
   },
   "dashboard": {
@@ -81,6 +121,7 @@
     "workspace": "Workspace: {name}",
     "logout": "Sign out",
     "emailNotVerified": "Email is not verified.",
-    "verifyNow": "Verify now"
+    "verifyNow": "Verify now",
+    "security": "Security"
   }
 }

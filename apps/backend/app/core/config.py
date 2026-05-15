@@ -95,6 +95,43 @@ class Settings(BaseSettings):
     password_reset_ttl_minutes: int = Field(default=30)
     password_reset_cooldown_seconds: int = Field(default=60)
 
+    # ---- MFA / TOTP policy (PR #4) ----
+    # The shared TOTP secret is encrypted at rest with Fernet. Each
+    # ``key_id`` (``v1``, ``v2`` …) maps to its own master key; the
+    # active key id is prepended to the ciphertext so reads can pick
+    # the right key during rotation.
+    #
+    # In dev / CI the keys default to deterministic values derived
+    # from ``secret_key`` so contributors don't need to mint a real
+    # Fernet key; production must set ``SECRET_KEY_FERNET_V1`` (and
+    # any rotated slots) explicitly — :func:`app.core.secrets.
+    # assert_production_keys_loaded` aborts startup otherwise.
+    secret_key_fernet_v1: str = Field(default="")
+    secret_key_fernet_v2: str = Field(default="")
+
+    # TOTP issuer label shown in the authenticator app row. Visible
+    # alongside the user's email when they open Google Authenticator /
+    # 1Password / Authy.
+    totp_issuer: str = Field(default="social-media-v1")
+
+    # Enrollment "draft" TTL (Redis). The user has this long between
+    # ``/mfa/enroll/start`` (QR shown) and ``/mfa/enroll/confirm``
+    # (code typed) before they have to restart.
+    mfa_enroll_ttl_seconds: int = Field(default=5 * 60)
+
+    # ``mfa_token`` JWT TTL: the short-lived intermediate token a
+    # password-only success returns when the account has MFA enabled.
+    # The SPA exchanges it for cookies via ``/v1/auth/login/mfa``.
+    mfa_token_ttl_seconds: int = Field(default=5 * 60)
+
+    # Rate-limit on ``/v1/auth/login/mfa`` — bounded brute force on
+    # the 6-digit TOTP code (recovery codes share the same rule).
+    mfa_login_rate_limit_attempts: int = Field(default=5)
+    mfa_login_rate_limit_window_seconds: int = Field(default=15 * 60)
+
+    # How many one-shot recovery codes we mint on confirm + regenerate.
+    mfa_recovery_code_count: int = Field(default=10)
+
     @property
     def cors_origins_list(self) -> list[str]:
         return [o.strip() for o in self.cors_origins.split(",") if o.strip()]

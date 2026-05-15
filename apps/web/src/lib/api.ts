@@ -158,3 +158,36 @@ export interface MeResponse {
   user: UserPublic;
   active_workspace: WorkspaceSummary | null;
 }
+
+// ---- MFA (PR #4) ----
+
+export interface LoginMFARequiredResponse {
+  mfa_required: true;
+  mfa_token: string;
+  expires_in: number;
+}
+
+export function isMFARequiredResponse(
+  body: AccessTokenResponse | LoginMFARequiredResponse,
+): body is LoginMFARequiredResponse {
+  return (body as LoginMFARequiredResponse).mfa_required === true;
+}
+
+export interface MFAStatusResponse {
+  enabled: boolean;
+  enrolled_at: string | null;
+  recovery_codes_remaining: number;
+}
+
+export interface MFAEnrollStartResponse {
+  secret: string;
+  provisioning_uri: string;
+}
+
+export interface MFAEnrollConfirmResponse {
+  recovery_codes: string[];
+}
+
+export interface MFARecoveryRegenerateResponse {
+  recovery_codes: string[];
+}

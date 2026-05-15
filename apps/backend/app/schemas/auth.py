@@ -108,3 +108,102 @@ class ResetPasswordRequest(BaseModel):
 
     token: str = Field(min_length=16, max_length=256)
     new_password: str = Field(min_length=8, max_length=128)
+
+
+# ---- MFA / TOTP (PR #4) ----
+
+
+class LoginMFARequiredResponse(BaseModel):
+    """Body returned by ``POST /v1/auth/login`` when 2FA is on.
+
+    The SPA detects ``mfa_required: true`` and routes the user to a
+    second-step form that ``POST``s ``mfa_token`` + ``code`` to
+    ``/v1/auth/login/mfa``. No cookies are set on this response —
+    the user is not yet authenticated.
+    """
+
+    mfa_required: bool = True
+    mfa_token: str
+    expires_in: int  # seconds
+
+
+class LoginMFARequest(BaseModel):
+    """Body of ``POST /v1/auth/login/mfa``.
+
+    Accepts both 6-digit TOTP codes and 10-14 char recovery codes
+    (with or without dashes / case). The service decides which is
+    which.
+    """
+
+    mfa_token: str = Field(min_length=16, max_length=512)
+    code: str = Field(min_length=6, max_length=20)
+
+
+class MFAEnrollStartResponse(BaseModel):
+    """Body of ``POST /v1/auth/mfa/enroll/start``.
+
+    ``secret`` is the raw RFC 6238 shared secret (base32). The SPA
+    needs it for two reasons: most authenticator apps accept it as a
+    manual fallback when the QR can't be scanned, and the
+    "I can't see the QR" UX needs an obvious "type this" path.
+    Returning it once at enroll time is fine — it's already in the
+    provisioning URI; the only "secret" gain we'd get by hiding it
+    is cosmetic.
+    """
+
+    secret: str
+    provisioning_uri: str
+
+
+class MFAEnrollConfirmRequest(BaseModel):
+    """Body of ``POST /v1/auth/mfa/enroll/confirm``."""
+
+    code: str = Field(min_length=6, max_length=6, pattern=r"^\d{6}$")
+
+
+class MFAEnrollConfirmResponse(BaseModel):
+    """Body of ``POST /v1/auth/mfa/enroll/confirm``.
+
+    ``recovery_codes`` is plaintext; only returned in this one
+    response and only this one time. The SPA should encourage the
+    user to save / print them on the same screen.
+    """
+
+    recovery_codes: list[str]
+
+
+class MFADisableRequest(BaseModel):
+    """Body of ``POST /v1/auth/mfa/disable``.
+
+    Requires the user's current password AND a fresh TOTP / recovery
+    code so neither a stolen cookie nor a stolen password alone can
+    tear 2FA down.
+    """
+
+    current_password: str = Field(min_length=1, max_length=128)
+    code: str = Field(min_length=6, max_length=20)
+
+
+class MFARecoveryRegenerateRequest(BaseModel):
+    """Body of ``POST /v1/auth/mfa/recovery-codes/regenerate``.
+
+    Gated on a fresh TOTP / recovery code (no separate step-up
+    cookie). Returns a new batch and wipes the previous one.
+    """
+
+    code: str = Field(min_length=6, max_length=20)
+
+
+class MFARecoveryRegenerateResponse(BaseModel):
+    recovery_codes: list[str]
+
+
+class MFAStatusResponse(BaseModel):
+    """Body of ``GET /v1/auth/mfa/status`` — the SPA reads this to
+    decide whether to show "Включить 2FA" or "Отключить 2FA" in
+    Settings → Security.
+    """
+
+    enabled: bool
+    enrolled_at: datetime | None = None
+    recovery_codes_remaining: int = 0

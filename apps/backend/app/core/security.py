@@ -86,3 +86,55 @@ def decode_token(token: str) -> dict[str, Any]:
         return jwt.decode(token, settings.secret_key, algorithms=[settings.algorithm])
     except JWTError as exc:
         raise ValueError("invalid_token") from exc
+
+
+# ---- PR #4: short-lived MFA-token (two-step login) ----
+
+
+def create_mfa_token(
+    *,
+    subject: str,
+    token_version: int = 0,
+    expires_delta: timedelta | None = None,
+) -> str:
+    """Issue a short-lived intermediate token for the MFA login step.
+
+    Returned by ``POST /v1/auth/login`` when the user has 2FA on:
+    the response body carries ``mfa_required: true`` plus this token,
+    and the SPA exchanges it (along with the 6-digit code) at
+    ``POST /v1/auth/login/mfa`` for the normal access + refresh
+    cookies. The token has a short TTL (default 5 min), is scoped to
+    ``type='mfa'`` so it can never be replayed as an access token,
+    and pins ``tv`` so a concurrent ``token_version`` bump (password
+    reset, MFA disable from another session) instantly invalidates
+    every in-flight intermediate token.
+    """
+
+    now = datetime.now(tz=UTC)
+    ttl = expires_delta or timedelta(seconds=settings.mfa_token_ttl_seconds)
+    expire = now + ttl
+    payload: dict[str, Any] = {
+        "sub": subject,
+        "exp": expire,
+        "iat": now,
+        "jti": str(uuid.uuid4()),
+        "tv": token_version,
+        "type": "mfa",
+    }
+    return jwt.encode(payload, settings.secret_key, algorithm=settings.algorithm)
+
+
+def decode_mfa_token(token: str) -> dict[str, Any]:
+    """Decode an MFA intermediate token; raises ``ValueError`` on miss.
+
+    Enforces ``type='mfa'`` so an access or refresh token can't be
+    smuggled into the MFA-login endpoint.
+    """
+
+    try:
+        payload = jwt.decode(token, settings.secret_key, algorithms=[settings.algorithm])
+    except JWTError as exc:
+        raise ValueError("invalid_token") from exc
+    if payload.get("type") != "mfa":
+        raise ValueError("invalid_token_type")
+    return payload

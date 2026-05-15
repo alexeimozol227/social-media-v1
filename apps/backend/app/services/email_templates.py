@@ -176,9 +176,62 @@ def password_reset_done(*, lang: Lang = "ru") -> tuple[str, str]:
     return ("Пароль на social-media-v1 изменён", _RESET_DONE_RU)
 
 
+_MFA_ENROLLED_RU = (
+    "Двухфакторная аутентификация (2FA) включена.\n"
+    "\n"
+    "Теперь при входе на social-media-v1 нужно вводить код из "
+    "приложения-аутентификатора в дополнение к паролю.\n"
+    "\n"
+    "Если это сделал не ты, срочно смени пароль на social-media-v1 "
+    "и отключи 2FA в настройках безопасности.\n"
+)
+
+_MFA_ENROLLED_EN = (
+    "Two-factor authentication (2FA) was enabled.\n"
+    "\n"
+    "From now on, signing in to social-media-v1 requires a code from "
+    "your authenticator app in addition to your password.\n"
+    "\n"
+    "If this wasn't you, change your social-media-v1 password and "
+    "disable 2FA in Security settings immediately.\n"
+)
+
+
+def mfa_enrolled(*, lang: Lang = "ru") -> tuple[str, str]:
+    """Courtesy email confirming 2FA was enabled on the account."""
+
+    if lang == "en":
+        return ("Two-factor authentication enabled", _MFA_ENROLLED_EN)
+    return ("Двухфакторная аутентификация включена", _MFA_ENROLLED_RU)
+
+
+_MFA_DISABLED_RU = (
+    "Двухфакторная аутентификация (2FA) отключена.\n"
+    "\n"
+    "Если это сделал не ты, срочно смени пароль на social-media-v1.\n"
+)
+
+_MFA_DISABLED_EN = (
+    "Two-factor authentication (2FA) was disabled.\n"
+    "\n"
+    "If this wasn't you, change your social-media-v1 password "
+    "immediately.\n"
+)
+
+
+def mfa_disabled(*, lang: Lang = "ru") -> tuple[str, str]:
+    """Courtesy email confirming 2FA was disabled."""
+
+    if lang == "en":
+        return ("Two-factor authentication disabled", _MFA_DISABLED_EN)
+    return ("Двухфакторная аутентификация отключена", _MFA_DISABLED_RU)
+
+
 __all__ = [
     "Lang",
     "change_verification",
+    "mfa_disabled",
+    "mfa_enrolled",
     "password_reset",
     "password_reset_done",
     "signup_verification",
