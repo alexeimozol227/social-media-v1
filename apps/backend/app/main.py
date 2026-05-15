@@ -14,6 +14,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.api.middleware.errors import register_error_handlers
 from app.api.routes import auth as auth_routes
 from app.api.routes import email_verifications as email_verification_routes
+from app.api.routes import events as events_routes
 from app.api.routes import health as health_routes
 from app.api.routes import password_reset as password_reset_routes
 from app.core.config import settings
@@ -67,6 +68,8 @@ app.include_router(health_routes.router, tags=["health"])
 app.include_router(auth_routes.router, prefix="/v1/auth", tags=["auth"])
 app.include_router(email_verification_routes.router, prefix="/v1/auth", tags=["auth"])
 app.include_router(password_reset_routes.router, prefix="/v1/auth", tags=["auth"])
+# PR #7 (D43, docs/06 §5 Спринт 1): per-user realtime stream over WebSocket.
+app.include_router(events_routes.router, prefix="/v1/events", tags=["events"])
 
 
 @app.get("/", tags=["meta"])

@@ -122,6 +122,7 @@
     "logout": "Выйти",
     "emailNotVerified": "Email не подтверждён.",
     "verifyNow": "Подтвердить сейчас",
-    "security": "Безопасность"
+    "security": "Безопасность",
+    "welcomeToast": "Добро пожаловать, {email}! Аккаунт создан."
   }
 }

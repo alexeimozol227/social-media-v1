@@ -21,6 +21,7 @@ from app.api.deps import (
 )
 from app.core.config import settings
 from app.core.email import EmailSender, get_email_sender
+from app.core.event_bus import publish_for_user
 from app.core.i18n import Locale, get_locale
 from app.core.logging import get_logger
 from app.core.redis import get_redis
@@ -41,6 +42,7 @@ from app.errors import (
     RefreshTokenReplayedError,
     VerifyResendCooldownError,
 )
+from app.events.schemas import UserRegisteredEvent
 from app.models.email_verification import PURPOSE_SIGNUP
 from app.models.refresh_token import RefreshToken
 from app.models.user import User, UserStatus
@@ -206,6 +208,24 @@ async def register(
         metadata={"email": user.email},
     )
     await db.commit()
+
+    # PR #7 (D32 / D41 in docs/04 §8 + D43 in docs/05 §6.6):
+    # publish the first platform event so the freshly-opened
+    # dashboard tab can render the welcome toast. Best-effort —
+    # ``publish_for_user`` swallows transport errors so a Redis
+    # blip after a successful sign-up doesn't get the user a 5xx.
+    default_workspace = await workspaces_service.current_for_user(db, user)
+    await publish_for_user(
+        get_redis(),
+        user.id,
+        UserRegisteredEvent(
+            user_id=str(user.id),
+            workspace_id=str(default_workspace.id),
+            email=user.email,
+            locale=user.locale,
+            default_workspace_id=str(default_workspace.id),
+        ),
+    )
 
     # Best-effort: dispatch the first sign-up verification code.
     # Transport / template failures must not block the registration
