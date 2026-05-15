@@ -128,6 +128,12 @@ class Settings(BaseSettings):
     # spec 24 h (docs/05 §2.5).
     idempotency_key_ttl_seconds: int = Field(default=86400)
 
+    # ---- OpenTelemetry (PR #9, docs/04 §15, docs/05 §10.2) ----
+    # When empty the app uses no-op tracing — no SDK required for
+    # dev/CI. Set to a Tempo/Jaeger OTLP endpoint in production.
+    otel_exporter_otlp_endpoint: str = Field(default="")
+    otel_service_name: str = Field(default="social-media-v1-api")
+
     # Enrollment "draft" TTL (Redis). The user has this long between
     # ``/mfa/enroll/start`` (QR shown) and ``/mfa/enroll/confirm``
     # (code typed) before they have to restart.

@@ -33,6 +33,15 @@ dependencies = [
     # missing on a given platform (CI on Linux ships the wheel out of
     # the box; the fallback also bounds input/pattern length).
     "google-re2>=1.1",
+    # PR #9 (docs/04 §15, docs/05 §10.2): OpenTelemetry tracing + metrics.
+    # All OTel imports are guarded by try/except so the app works
+    # without these when OTEL_EXPORTER_OTLP_ENDPOINT is unset.
+    "opentelemetry-api>=1.24",
+    "opentelemetry-sdk>=1.24",
+    "opentelemetry-exporter-otlp-proto-grpc>=1.24",
+    "opentelemetry-instrumentation-fastapi>=0.45b0",
+    "opentelemetry-instrumentation-sqlalchemy>=0.45b0",
+    "opentelemetry-instrumentation-redis>=0.45b0",
 ]
 
 [dependency-groups]
@@ -88,7 +97,10 @@ warn_unused_configs = true
 exclude = ["alembic/versions"]
 
 [[tool.mypy.overrides]]
-module = ["passlib.*", "jose.*", "frontmatter.*", "tiktoken.*", "re2.*"]
+module = [
+    "passlib.*", "jose.*", "frontmatter.*", "tiktoken.*", "re2.*",
+    "opentelemetry.*",
+]
 ignore_missing_imports = true
 
 [tool.pytest.ini_options]
