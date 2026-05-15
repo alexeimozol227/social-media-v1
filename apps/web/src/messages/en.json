@@ -1,0 +1,44 @@
+{
+  "landing": {
+    "title": "social-media-v1",
+    "subtitle": "AI Operating System for Social Networks",
+    "cta": "Get started"
+  },
+  "auth": {
+    "login": {
+      "title": "Sign in",
+      "email": "Email",
+      "password": "Password",
+      "submit": "Sign in",
+      "noAccount": "No account?",
+      "createAccount": "Create one"
+    },
+    "register": {
+      "title": "Create account",
+      "email": "Email",
+      "password": "Password",
+      "fullName": "Full name",
+      "tosAccept": "I accept the Terms of Service and Privacy Policy",
+      "submit": "Create account",
+      "haveAccount": "Already have an account?",
+      "signIn": "Sign in"
+    },
+    "errors": {
+      "INVALID_CREDENTIALS": "Invalid email or password",
+      "EMAIL_ALREADY_EXISTS": "An account with this email already exists",
+      "TOS_NOT_ACCEPTED": "You must accept the Terms of Service",
+      "LOGIN_LOCKED": "Too many failed attempts. Try again later.",
+      "INVALID_REFRESH_TOKEN": "Session expired. Please sign in again.",
+      "REFRESH_TOKEN_REPLAYED": "Session ended for security. Please sign in again.",
+      "VALIDATION_ERROR": "Please check your input",
+      "UNAUTHENTICATED": "Please sign in",
+      "USER_INACTIVE": "Account is not active",
+      "default": "Something went wrong. Please try again."
+    }
+  },
+  "dashboard": {
+    "greeting": "Hi, {email}!",
+    "workspace": "Workspace: {name}",
+    "logout": "Sign out"
+  }
+}
