@@ -19,6 +19,7 @@ from app.api.routes import password_reset as password_reset_routes
 from app.core.config import settings
 from app.core.logging import configure_logging, get_logger
 from app.core.observability import init_sentry
+from app.skills import SkillRegistry
 
 configure_logging(settings.log_level)
 init_sentry(component="api")
@@ -26,10 +27,17 @@ logger = get_logger(__name__)
 
 
 @asynccontextmanager
-async def lifespan(_app: FastAPI) -> AsyncIterator[None]:
+async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     """Startup / shutdown hooks."""
 
     logger.info("api.startup", env=settings.environment)
+    # docs/04 §20.5 + docs/06 §5 Спринт 1: every skill is loaded and
+    # validated once at startup; any manifest error aborts the
+    # process — better to fail to boot than to serve traffic with a
+    # half-broken skill set.
+    registry = await SkillRegistry.bootstrap()
+    app.state.skill_registry = registry
+    logger.info("api.skills.loaded", count=len(registry))
     yield
     logger.info("api.shutdown")
 
