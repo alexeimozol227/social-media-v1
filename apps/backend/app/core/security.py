@@ -65,9 +65,7 @@ def create_access_token(
     """
 
     now = datetime.now(tz=UTC)
-    expire = now + (
-        expires_delta or timedelta(minutes=settings.access_token_expire_minutes)
-    )
+    expire = now + (expires_delta or timedelta(minutes=settings.access_token_expire_minutes))
     payload: dict[str, Any] = {
         "sub": subject,
         "active_workspace_id": active_workspace_id,

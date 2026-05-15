@@ -11,7 +11,8 @@
       "password": "Пароль",
       "submit": "Войти",
       "noAccount": "Нет аккаунта?",
-      "createAccount": "Создать"
+      "createAccount": "Создать",
+      "forgotPassword": "Забыли пароль?"
     },
     "register": {
       "title": "Регистрация",
@@ -23,6 +24,36 @@
       "haveAccount": "Уже есть аккаунт?",
       "signIn": "Войти"
     },
+    "verifyEmail": {
+      "title": "Подтверждение email",
+      "description": "Мы отправили 6-значный код на твой email. Введи его ниже.",
+      "code": "Код",
+      "submit": "Подтвердить",
+      "resend": "Отправить код ещё раз",
+      "resentSuccess": "Код отправлен повторно",
+      "verified": "Email подтверждён",
+      "backToDashboard": "В кабинет"
+    },
+    "forgotPassword": {
+      "title": "Восстановление пароля",
+      "description": "Если этот email зарегистрирован, мы отправим на него ссылку для сброса пароля.",
+      "email": "Email",
+      "submit": "Отправить ссылку",
+      "submitted": "Если email существует, письмо отправлено. Проверь почту.",
+      "backToLogin": "Назад к входу"
+    },
+    "resetPassword": {
+      "title": "Новый пароль",
+      "description": "Введи новый пароль для своего аккаунта.",
+      "newPassword": "Новый пароль",
+      "confirmPassword": "Повтори пароль",
+      "submit": "Сохранить",
+      "successTitle": "Пароль обновлён",
+      "successDescription": "Все активные сессии завершены. Войди с новым паролем.",
+      "goToLogin": "Войти",
+      "missingToken": "Ссылка недействительна или истекла",
+      "passwordsDontMatch": "Пароли не совпадают"
+    },
     "errors": {
       "INVALID_CREDENTIALS": "Неверный email или пароль",
       "EMAIL_ALREADY_EXISTS": "Аккаунт с таким email уже существует",
@@ -33,12 +64,23 @@
       "VALIDATION_ERROR": "Проверьте введённые данные",
       "UNAUTHENTICATED": "Требуется вход",
       "USER_INACTIVE": "Аккаунт деактивирован",
+      "VERIFY_RESEND_COOLDOWN": "Подожди немного и попробуй ещё раз",
+      "EMAIL_ALREADY_VERIFIED": "Email уже подтверждён",
+      "NO_ACTIVE_VERIFICATION": "Запроси код заново — старый недействителен",
+      "VERIFY_CODE_EXPIRED": "Срок действия кода истёк. Запроси новый.",
+      "VERIFY_CODE_INVALID": "Неверный код",
+      "VERIFY_TOO_MANY_ATTEMPTS": "Слишком много попыток. Запроси новый код.",
+      "PASSWORD_RESET_INVALID": "Ссылка недействительна",
+      "PASSWORD_RESET_EXPIRED": "Срок действия ссылки истёк",
+      "PASSWORD_RESET_CONSUMED": "Ссылка уже использована",
       "default": "Произошла ошибка. Попробуйте ещё раз."
     }
   },
   "dashboard": {
     "greeting": "Привет, {email}!",
     "workspace": "Рабочее пространство: {name}",
-    "logout": "Выйти"
+    "logout": "Выйти",
+    "emailNotVerified": "Email не подтверждён.",
+    "verifyNow": "Подтвердить сейчас"
   }
 }

@@ -81,12 +81,17 @@ export default function LoginPage() {
         >
           {t("submit")}
         </button>
-        <p className="text-center text-sm text-gray-400">
-          {t("noAccount")}{" "}
-          <Link href="/register" className="text-blue-400 hover:underline">
-            {t("createAccount")}
+        <div className="flex flex-col items-center gap-2 text-sm text-gray-400">
+          <p>
+            {t("noAccount")}{" "}
+            <Link href="/register" className="text-blue-400 hover:underline">
+              {t("createAccount")}
+            </Link>
+          </p>
+          <Link href="/forgot-password" className="text-blue-400 hover:underline">
+            {t("forgotPassword")}
           </Link>
-        </p>
+        </div>
       </form>
     </main>
   );

@@ -13,7 +13,9 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.middleware.errors import register_error_handlers
 from app.api.routes import auth as auth_routes
+from app.api.routes import email_verifications as email_verification_routes
 from app.api.routes import health as health_routes
+from app.api.routes import password_reset as password_reset_routes
 from app.core.config import settings
 from app.core.logging import configure_logging, get_logger
 from app.core.observability import init_sentry
@@ -34,9 +36,7 @@ async def lifespan(_app: FastAPI) -> AsyncIterator[None]:
 
 app = FastAPI(
     title="social-media-v1 API",
-    description=(
-        "Backend API for social-media-v1 — AI Operating System for Social Networks."
-    ),
+    description=("Backend API for social-media-v1 — AI Operating System for Social Networks."),
     version="0.0.1",
     docs_url="/docs",
     redoc_url="/redoc",
@@ -57,6 +57,8 @@ register_error_handlers(app)
 # Routers
 app.include_router(health_routes.router, tags=["health"])
 app.include_router(auth_routes.router, prefix="/v1/auth", tags=["auth"])
+app.include_router(email_verification_routes.router, prefix="/v1/auth", tags=["auth"])
+app.include_router(password_reset_routes.router, prefix="/v1/auth", tags=["auth"])
 
 
 @app.get("/", tags=["meta"])

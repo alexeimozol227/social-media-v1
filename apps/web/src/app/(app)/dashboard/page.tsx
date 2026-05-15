@@ -2,6 +2,7 @@
 
 import { ApiError, type MeResponse, apiFetch } from "@/lib/api";
 import { useTranslations } from "next-intl";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
@@ -51,6 +52,14 @@ export default function DashboardPage() {
     <main className="flex min-h-screen flex-col items-center justify-center gap-6 p-8 text-center">
       <h1 className="text-2xl font-bold">{t("greeting", { email: me.user.email })}</h1>
       <p className="text-gray-400">{t("workspace", { name: me.active_workspace?.name ?? "—" })}</p>
+      {me.user.email_verified_at === null && (
+        <div className="flex flex-col items-center gap-2 rounded bg-yellow-950 px-4 py-3 text-sm text-yellow-300">
+          <span>{t("emailNotVerified")}</span>
+          <Link href="/verify-email" className="text-blue-400 hover:underline">
+            {t("verifyNow")}
+          </Link>
+        </div>
+      )}
       <button
         type="button"
         onClick={logout}

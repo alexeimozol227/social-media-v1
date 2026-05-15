@@ -36,6 +36,19 @@ class ErrorCode:
     UNAUTHENTICATED = "UNAUTHENTICATED"
     USER_INACTIVE = "USER_INACTIVE"
 
+    # Email verification
+    VERIFY_RESEND_COOLDOWN = "VERIFY_RESEND_COOLDOWN"
+    EMAIL_ALREADY_VERIFIED = "EMAIL_ALREADY_VERIFIED"
+    NO_ACTIVE_VERIFICATION = "NO_ACTIVE_VERIFICATION"
+    VERIFY_CODE_EXPIRED = "VERIFY_CODE_EXPIRED"
+    VERIFY_CODE_INVALID = "VERIFY_CODE_INVALID"
+    VERIFY_TOO_MANY_ATTEMPTS = "VERIFY_TOO_MANY_ATTEMPTS"
+
+    # Password reset
+    PASSWORD_RESET_INVALID = "PASSWORD_RESET_INVALID"
+    PASSWORD_RESET_EXPIRED = "PASSWORD_RESET_EXPIRED"
+    PASSWORD_RESET_CONSUMED = "PASSWORD_RESET_CONSUMED"
+
     # Generic
     VALIDATION_ERROR = "VALIDATION_ERROR"
     NOT_FOUND = "NOT_FOUND"
@@ -114,3 +127,63 @@ class UserInactiveError(AppError):
     error_code = ErrorCode.USER_INACTIVE
     http_status = 403
     default_message = "User account is not active."
+
+
+# ---- Email verification ----
+
+
+class VerifyResendCooldownError(AppError):
+    error_code = ErrorCode.VERIFY_RESEND_COOLDOWN
+    http_status = 429
+    default_message = "Verification code resent too recently. Try again shortly."
+
+
+class EmailAlreadyVerifiedError(AppError):
+    error_code = ErrorCode.EMAIL_ALREADY_VERIFIED
+    http_status = 409
+    default_message = "Email is already verified."
+
+
+class NoActiveVerificationError(AppError):
+    error_code = ErrorCode.NO_ACTIVE_VERIFICATION
+    http_status = 404
+    default_message = "No active verification code; request a new one."
+
+
+class VerifyCodeExpiredError(AppError):
+    error_code = ErrorCode.VERIFY_CODE_EXPIRED
+    http_status = 400
+    default_message = "Verification code has expired."
+
+
+class VerifyCodeInvalidError(AppError):
+    error_code = ErrorCode.VERIFY_CODE_INVALID
+    http_status = 400
+    default_message = "Verification code is invalid."
+
+
+class VerifyTooManyAttemptsError(AppError):
+    error_code = ErrorCode.VERIFY_TOO_MANY_ATTEMPTS
+    http_status = 400
+    default_message = "Too many wrong attempts; request a new code."
+
+
+# ---- Password reset ----
+
+
+class PasswordResetInvalidError(AppError):
+    error_code = ErrorCode.PASSWORD_RESET_INVALID
+    http_status = 400
+    default_message = "Invalid password reset token."
+
+
+class PasswordResetExpiredError(AppError):
+    error_code = ErrorCode.PASSWORD_RESET_EXPIRED
+    http_status = 400
+    default_message = "Password reset link has expired."
+
+
+class PasswordResetConsumedError(AppError):
+    error_code = ErrorCode.PASSWORD_RESET_CONSUMED
+    http_status = 400
+    default_message = "Password reset link has already been used."

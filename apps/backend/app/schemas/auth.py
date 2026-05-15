@@ -67,3 +67,51 @@ class MeResponse(BaseModel):
 
     user: UserPublic
     active_workspace: WorkspaceSummary | None
+
+
+# ---- Email verification (PR #3) ----
+
+
+class ResendVerificationRequest(BaseModel):
+    """Body of ``POST /v1/auth/resend-verification``.
+
+    Authenticated route. The signed-in user re-requests the sign-up
+    code; ``lang`` chooses the email locale (defaults to ``ru``).
+    """
+
+    lang: str = Field(default="ru", pattern="^(ru|en)$")
+
+
+class VerifyEmailRequest(BaseModel):
+    """Body of ``POST /v1/auth/verify-email``.
+
+    Authenticated. ``code`` is the 6-digit code from the email.
+    """
+
+    code: str = Field(min_length=6, max_length=6, pattern=r"^\d{6}$")
+
+
+# ---- Password reset (PR #3) ----
+
+
+class ForgotPasswordRequest(BaseModel):
+    """Body of ``POST /v1/auth/forgot-password``.
+
+    Public route. ``lang`` is advisory — picks the email locale.
+    """
+
+    email: EmailStr
+    lang: str = Field(default="ru", pattern="^(ru|en)$")
+
+
+class ResetPasswordRequest(BaseModel):
+    """Body of ``POST /v1/auth/reset-password``.
+
+    Public route. ``token`` is the plaintext token from the link;
+    ``new_password`` becomes the new password. Min length matches
+    the registration constraint.
+    """
+
+    token: str = Field(min_length=16, max_length=256)
+    new_password: str = Field(min_length=8, max_length=128)
+    lang: str = Field(default="ru", pattern="^(ru|en)$")
