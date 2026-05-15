@@ -60,13 +60,21 @@ export default function DashboardPage() {
           </Link>
         </div>
       )}
-      <button
-        type="button"
-        onClick={logout}
-        className="rounded bg-gray-800 px-4 py-2 text-white transition hover:bg-gray-700"
-      >
-        {t("logout")}
-      </button>
+      <div className="flex items-center gap-3">
+        <Link
+          href="/settings/security"
+          className="rounded bg-gray-800 px-4 py-2 text-white transition hover:bg-gray-700"
+        >
+          {t("security")}
+        </Link>
+        <button
+          type="button"
+          onClick={logout}
+          className="rounded bg-gray-800 px-4 py-2 text-white transition hover:bg-gray-700"
+        >
+          {t("logout")}
+        </button>
+      </div>
     </main>
   );
 }

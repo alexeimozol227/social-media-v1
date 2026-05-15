@@ -86,6 +86,68 @@ async def reset_login_lock(redis: Any, email: str) -> None:
         logger.warning("auth.lockout_reset_redis_error", error=exc.__class__.__name__)
 
 
+# ---- MFA login-step rate limit (PR #4) ----
+#
+# Bounded brute force on the 6-digit TOTP step: each ``mfa_token``
+# the user holds gets ``mfa_login_rate_limit_attempts`` (default 5)
+# tries within ``mfa_login_rate_limit_window_seconds`` (default 15
+# min). The key is the JWT ``jti`` so a fresh login resets the
+# counter; ``user_id`` would let a leaked password keep retrying the
+# code forever.
+
+
+def _mfa_login_attempts_key(jti: str) -> str:
+    return f"auth:mfa:attempts:{jti}"
+
+
+async def mfa_login_attempts_left(redis: Any | None, jti: str) -> int:
+    """Return how many attempts the holder of ``jti`` has remaining.
+
+    Returns the threshold if Redis is down (best effort: better to
+    let the user in than to 5xx them at the second factor) or if no
+    attempts have been recorded yet.
+    """
+
+    if redis is None:
+        return settings.mfa_login_rate_limit_attempts
+    try:
+        raw = await redis.get(_mfa_login_attempts_key(jti))
+    except Exception as exc:
+        logger.warning("auth.mfa_attempts_get_redis_error", error=exc.__class__.__name__)
+        return settings.mfa_login_rate_limit_attempts
+    used = int(raw) if raw is not None else 0
+    return max(settings.mfa_login_rate_limit_attempts - used, 0)
+
+
+async def record_mfa_login_failure(redis: Any | None, jti: str) -> int:
+    """Increment the per-``jti`` failure counter; return attempts left.
+
+    Sets the TTL on the first failure so the bucket auto-expires
+    after :attr:`Settings.mfa_login_rate_limit_window_seconds`.
+    """
+
+    if redis is None:
+        return settings.mfa_login_rate_limit_attempts
+    key = _mfa_login_attempts_key(jti)
+    try:
+        used = await redis.incr(key)
+        if used == 1:
+            await redis.expire(key, settings.mfa_login_rate_limit_window_seconds)
+    except Exception as exc:
+        logger.warning("auth.mfa_attempts_record_redis_error", error=exc.__class__.__name__)
+        return settings.mfa_login_rate_limit_attempts
+    return max(settings.mfa_login_rate_limit_attempts - int(used), 0)
+
+
+async def clear_mfa_login_attempts(redis: Any | None, jti: str) -> None:
+    if redis is None:
+        return
+    try:
+        await redis.delete(_mfa_login_attempts_key(jti))
+    except Exception as exc:
+        logger.warning("auth.mfa_attempts_clear_redis_error", error=exc.__class__.__name__)
+
+
 async def get_user_by_email(session: AsyncSession, email: str) -> User | None:
     result = await session.execute(select(User).where(User.email == email.lower()))
     return result.scalar_one_or_none()

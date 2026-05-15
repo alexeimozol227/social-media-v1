@@ -1,10 +1,24 @@
 "use client";
 
-import { type AccessTokenResponse, ApiError, apiFetch } from "@/lib/api";
+import {
+  type AccessTokenResponse,
+  ApiError,
+  type LoginMFARequiredResponse,
+  apiFetch,
+  isMFARequiredResponse,
+} from "@/lib/api";
 import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { type FormEvent, useState } from "react";
+
+/** Key used to hand the short-lived ``mfa_token`` to ``/login/mfa``.
+ *
+ * ``sessionStorage`` is intentional: it dies with the tab, so a
+ * leftover token on a public computer can't be replayed by the next
+ * user. The token already self-destructs after 5 min on the server
+ * — the sessionStorage TTL is just defence-in-depth. */
+export const MFA_TOKEN_STORAGE_KEY = "sm.mfa_token";
 
 export default function LoginPage() {
   const t = useTranslations("auth.login");
@@ -20,10 +34,18 @@ export default function LoginPage() {
     setSubmitting(true);
     setError(null);
     try {
-      await apiFetch<AccessTokenResponse>("/v1/auth/login", {
-        method: "POST",
-        json: { email, password },
-      });
+      const body = await apiFetch<AccessTokenResponse | LoginMFARequiredResponse>(
+        "/v1/auth/login",
+        {
+          method: "POST",
+          json: { email, password },
+        },
+      );
+      if (isMFARequiredResponse(body)) {
+        sessionStorage.setItem(MFA_TOKEN_STORAGE_KEY, body.mfa_token);
+        router.push("/login/mfa");
+        return;
+      }
       router.push("/dashboard");
     } catch (err) {
       if (err instanceof ApiError) {

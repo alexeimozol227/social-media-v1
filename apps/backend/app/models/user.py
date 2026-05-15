@@ -9,8 +9,8 @@ from __future__ import annotations
 import uuid
 from datetime import datetime
 
-from sqlalchemy import CheckConstraint, DateTime, ForeignKey, Integer, String, Text
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy import JSON, CheckConstraint, DateTime, ForeignKey, Integer, String, Text
+from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.db.base import Base, SoftDeleteMixin, TimestampMixin, UUIDPrimaryKeyMixin
@@ -139,6 +139,36 @@ class User(UUIDPrimaryKeyMixin, TimestampMixin, SoftDeleteMixin, Base):
         nullable=False,
         default=0,
         server_default="0",
+    )
+
+    # PR #4: TOTP 2FA columns. ``totp_secret_enc`` carries the Fernet
+    # ciphertext of the RFC 6238 shared secret (the active ``key_id``
+    # is embedded in the value, e.g. ``"v1:..."``);
+    # ``totp_enrolled_at`` is the canonical "is 2FA on" signal — read
+    # paths that ask "is this user enrolled?" check this column, not
+    # the secret. ``totp_recovery_hashes`` is a JSONB array of
+    # SHA-256 hex digests of the one-shot codes; consumed entries are
+    # removed from the array. ``totp_last_step_up_at`` records the
+    # most recent successful TOTP / recovery verification (server-side
+    # audit hook). On disable we clear every column AND bump
+    # ``token_version`` so any cookie minted under the old secret is
+    # rejected on the next request.
+    #
+    # The docs (``04-architecture.md §11`` + reference PR-T9) put
+    # MFA state on ``users`` rather than a separate table — simpler
+    # read paths, no JOIN to decide whether to short-circuit login.
+    totp_secret_enc: Mapped[str | None] = mapped_column(Text, nullable=True)
+    totp_enrolled_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True),
+        nullable=True,
+    )
+    totp_recovery_hashes: Mapped[list[str] | None] = mapped_column(
+        JSONB().with_variant(JSON(), "sqlite"),
+        nullable=True,
+    )
+    totp_last_step_up_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True),
+        nullable=True,
     )
 
     def __repr__(self) -> str:
