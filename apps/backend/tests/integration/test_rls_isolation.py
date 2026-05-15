@@ -110,9 +110,7 @@ async def pg_engine():
     await engine.dispose()
 
 
-async def _bootstrap_user_and_workspace(
-    engine, *, email: str
-) -> tuple[uuid.UUID, uuid.UUID]:
+async def _bootstrap_user_and_workspace(engine, *, email: str) -> tuple[uuid.UUID, uuid.UUID]:
     """INSERT a user + workspace + owner-membership + default brand.
 
     The bootstrap runs as the connection's owner role (superuser on
@@ -171,10 +169,18 @@ async def _set_rls_guc(
     """Install the per-request GUCs the FastAPI deps install in prod."""
 
     await conn.execute(
-        text(f"SET LOCAL app.current_user_id = '{user_id}'" if user_id else "SET LOCAL app.current_user_id = ''"),
+        text(
+            f"SET LOCAL app.current_user_id = '{user_id}'"
+            if user_id
+            else "SET LOCAL app.current_user_id = ''"
+        ),
     )
     await conn.execute(
-        text(f"SET LOCAL app.current_tenant_id = '{tenant_id}'" if tenant_id else "SET LOCAL app.current_tenant_id = ''"),
+        text(
+            f"SET LOCAL app.current_tenant_id = '{tenant_id}'"
+            if tenant_id
+            else "SET LOCAL app.current_tenant_id = ''"
+        ),
     )
     await conn.execute(text(f"SET LOCAL app.platform_role = '{role}'"))
 

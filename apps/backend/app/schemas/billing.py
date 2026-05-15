@@ -10,6 +10,7 @@ from pydantic import BaseModel, ConfigDict, Field
 
 # ---- Plan ----
 
+
 class PlanRead(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
@@ -32,6 +33,7 @@ class PlanRead(BaseModel):
 
 # ---- PlanPrice ----
 
+
 class PlanPriceRead(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
@@ -48,6 +50,7 @@ class PlanWithPrices(PlanRead):
 
 
 # ---- Invoice ----
+
 
 class InvoiceRead(BaseModel):
     model_config = ConfigDict(from_attributes=True)

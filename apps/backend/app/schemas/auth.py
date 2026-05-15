@@ -62,11 +62,28 @@ class AccessTokenResponse(BaseModel):
     expires_in: int  # seconds
 
 
+class MembershipSummary(BaseModel):
+    """One ``workspace_members`` row, projected for the SPA.
+
+    Served on ``GET /v1/auth/me`` so the frontend can render role-
+    aware UI (kebab on a post depending on ``role``) without a second
+    round-trip. Sourced from the Redis ``user:{id}:memberships``
+    cache (D64 in docs/04 §18.6); a cache miss falls back to a single
+    ``SELECT`` and re-primes the entry, so the response is always
+    authoritative even when Redis is cold.
+    """
+
+    workspace_id: uuid.UUID
+    role: str
+    brand_ids: list[uuid.UUID] | None = None
+
+
 class MeResponse(BaseModel):
-    """Body of GET /v1/auth/me — current user + active workspace."""
+    """Body of GET /v1/auth/me — current user + active workspace + memberships."""
 
     user: UserPublic
     active_workspace: WorkspaceSummary | None
+    memberships: list[MembershipSummary] = Field(default_factory=list)
 
 
 # ---- Email verification (PR #3) ----

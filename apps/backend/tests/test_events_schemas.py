@@ -14,6 +14,7 @@ import pytest
 from pydantic import ValidationError
 
 from app.events.schemas import (
+    AuthRefreshRequiredEvent,
     BaseEvent,
     EventEnvelope,
     UserRegisteredEvent,
@@ -134,6 +135,40 @@ class TestEventEnvelopeDiscriminator:
         assert parsed.email == ev.email
         # Timestamps roundtrip via ISO-8601 — compare aware-utc.
         assert parsed.timestamp.tzinfo is not None
+
+
+class TestAuthRefreshRequiredEvent:
+    """D64 / docs/05 §4.5: role-mutation invariant event."""
+
+    def test_pins_event_type_and_agent_source(self) -> None:
+        ev = AuthRefreshRequiredEvent(
+            user_id=_new_uuid_str(),
+            workspace_id=_new_uuid_str(),
+            reason="role_changed",
+        )
+        assert ev.event_type == "auth.refresh_required"
+        assert ev.agent_source == "platform.auth"
+        assert ev.reason == "role_changed"
+
+    def test_reason_required(self) -> None:
+        with pytest.raises(ValidationError):
+            AuthRefreshRequiredEvent(
+                user_id=_new_uuid_str(),
+                workspace_id=_new_uuid_str(),
+            )
+
+    def test_discriminator_picks_correct_subclass(self) -> None:
+        parsed = parse_event(
+            {
+                "event_type": "auth.refresh_required",
+                "agent_source": "platform.auth",
+                "user_id": _new_uuid_str(),
+                "workspace_id": _new_uuid_str(),
+                "reason": "invite_revoked",
+            },
+        )
+        assert isinstance(parsed, AuthRefreshRequiredEvent)
+        assert parsed.reason == "invite_revoked"
 
 
 class TestBaseEventFieldShape:

@@ -15,11 +15,13 @@ from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.redis import get_redis
 from app.db.rls import set_rls_context
 from app.models.brand import Brand
 from app.models.user import User
 from app.models.workspace import Workspace, WorkspaceType
 from app.models.workspace_member import WorkspaceMember, WorkspaceMemberRole
+from app.services import memberships_cache
 
 logger = structlog.get_logger(__name__)
 
@@ -104,6 +106,17 @@ async def ensure_default(session: AsyncSession, user: User) -> Workspace:
     session.add(brand)
 
     await session.flush()
+    # D64: bust the membership cache so the next /me / authenticated
+    # request rebuilds it with the freshly inserted owner row instead
+    # of replaying a pre-bootstrap empty entry from a previous request.
+    try:
+        await memberships_cache.invalidate(get_redis(), user.id)
+    except Exception as exc:  # pragma: no cover - logged for ops
+        logger.warning(
+            "workspaces.default_created.cache_invalidate_failed",
+            user_id=str(user.id),
+            error=exc.__class__.__name__,
+        )
     logger.info(
         "workspaces.default_created",
         user_id=str(user.id),

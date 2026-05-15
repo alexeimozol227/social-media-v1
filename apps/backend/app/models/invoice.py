@@ -33,7 +33,10 @@ class Invoice(Base):
     )
 
     id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, nullable=False,
+        UUID(as_uuid=True),
+        primary_key=True,
+        default=uuid.uuid4,
+        nullable=False,
     )
     workspace_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True),
@@ -49,23 +52,31 @@ class Invoice(Base):
     amount: Mapped[Decimal] = mapped_column(Numeric(10, 2), nullable=False)
     currency: Mapped[str] = mapped_column(String(3), nullable=False)
     reference_amount_usd: Mapped[Decimal | None] = mapped_column(
-        Numeric(10, 2), nullable=True,
+        Numeric(10, 2),
+        nullable=True,
     )
     exchange_rate: Mapped[Decimal | None] = mapped_column(
-        Numeric(10, 6), nullable=True,
+        Numeric(10, 6),
+        nullable=True,
     )
 
     period_start: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), nullable=False,
+        DateTime(timezone=True),
+        nullable=False,
     )
     period_end: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), nullable=False,
+        DateTime(timezone=True),
+        nullable=False,
     )
 
     status: Mapped[str] = mapped_column(
-        String(16), nullable=False, default="draft",
+        String(16),
+        nullable=False,
+        default="draft",
     )
 
     created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), server_default=func.now(), nullable=False,
+        DateTime(timezone=True),
+        server_default=func.now(),
+        nullable=False,
     )

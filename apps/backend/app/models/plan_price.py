@@ -26,7 +26,9 @@ class PlanPrice(Base):
     __table_args__ = (
         Index(
             "ix_plan_prices_lookup",
-            "plan_id", "currency", "period",
+            "plan_id",
+            "currency",
+            "period",
         ),
     )
 
@@ -37,10 +39,14 @@ class PlanPrice(Base):
         nullable=False,
     )
     currency: Mapped[str] = mapped_column(
-        String(3), primary_key=True, nullable=False,
+        String(3),
+        primary_key=True,
+        nullable=False,
     )
     period: Mapped[str] = mapped_column(
-        String(10), primary_key=True, nullable=False,
+        String(10),
+        primary_key=True,
+        nullable=False,
     )
     effective_from: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
@@ -49,8 +55,10 @@ class PlanPrice(Base):
         nullable=False,
     )
     effective_to: Mapped[datetime | None] = mapped_column(
-        DateTime(timezone=True), nullable=True,
+        DateTime(timezone=True),
+        nullable=True,
     )
     amount: Mapped[int] = mapped_column(
-        Numeric(10, 2), nullable=False,
+        Numeric(10, 2),
+        nullable=False,
     )

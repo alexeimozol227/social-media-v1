@@ -9,6 +9,7 @@ from app.models.password_reset import PasswordReset
 from app.models.plan import Plan
 from app.models.plan_price import PlanPrice
 from app.models.refresh_token import RefreshToken
+from app.models.tenant_limit_override import TenantLimitOverride
 from app.models.user import User, UserStatus
 from app.models.workspace import Workspace, WorkspaceType
 from app.models.workspace_member import WorkspaceMember, WorkspaceMemberRole
@@ -24,6 +25,7 @@ __all__ = [
     "Plan",
     "PlanPrice",
     "RefreshToken",
+    "TenantLimitOverride",
     "User",
     "UserStatus",
     "Workspace",

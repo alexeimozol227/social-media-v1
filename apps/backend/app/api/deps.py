@@ -17,11 +17,13 @@ from fastapi import Depends, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.feature_flags import is_enabled
+from app.core.redis import get_redis
 from app.core.security import decode_token
 from app.db.rls import set_rls_context
 from app.db.session import get_db
 from app.errors import FeatureDisabledError, UnauthenticatedError
 from app.models.user import User, UserStatus
+from app.services import memberships_cache
 from app.services import workspaces as workspaces_service
 
 # Cookie names — namespaced for social-media-v1.
@@ -97,6 +99,23 @@ async def get_current_user(
     if active_workspace_id is None:
         workspace = await workspaces_service.current_for_user(db, user)
         active_workspace_id = workspace.id
+
+    # D64 (docs/04 §18.6 + docs/05 §6.6): read memberships out of Redis
+    # rather than the DB. Cache miss falls back to a single SELECT and
+    # re-primes the entry — see ``memberships_cache`` for the contract.
+    # We then verify the token's ``active_workspace_id`` claim still
+    # corresponds to an active membership so a revoked invite is
+    # rejected within the cache TTL even before the WS-push refresh
+    # lands. Owner-of-record is always considered a member (R2
+    # bootstrap path) so the bootstrap on a brand-new sign-up is never
+    # mis-rejected.
+    redis = get_redis()
+    memberships = await memberships_cache.get_memberships(redis, db, user.id)
+    membership_ws_ids = {m.get("workspace_id") for m in memberships}
+    if str(active_workspace_id) not in membership_ws_ids:
+        owner_ws = await workspaces_service.current_for_user(db, user)
+        if owner_ws.id != active_workspace_id:
+            raise UnauthenticatedError()
 
     await set_rls_context(
         db,

@@ -15,6 +15,7 @@ from httpx import AsyncClient
 
 # -- helper: register + login to get an access token ----
 
+
 async def _register_and_login(client: AsyncClient) -> str:
     """Create a user, log in, and return the Bearer token."""
     await client.post(

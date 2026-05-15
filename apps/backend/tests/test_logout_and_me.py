@@ -57,6 +57,12 @@ async def test_me_with_bearer_returns_user_and_workspace(client: AsyncClient) ->
     assert body["user"]["email"] == "alice@example.com"
     assert body["active_workspace"]["slug"] == "default"
     assert body["active_workspace"]["type"] == "solo"
+    # D64: /me hands the SPA the user's memberships from the Redis cache
+    # so role-aware UI doesn't need a second round-trip.
+    assert isinstance(body["memberships"], list)
+    assert len(body["memberships"]) == 1
+    assert body["memberships"][0]["workspace_id"] == body["active_workspace"]["id"]
+    assert body["memberships"][0]["role"] == "owner"
 
 
 @pytest.mark.asyncio

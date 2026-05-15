@@ -1,0 +1,74 @@
+# docs/06-roadmap.md §5 Сприннт 1 + план PR #2:
+#
+# Pre-commit hooks gate every commit and every CI run so the
+# i18n / RLS / timestamptz / system-prompt contracts can't slip in.
+#
+# Install once per dev machine::
+#
+#   pip install pre-commit
+#   pre-commit install
+#
+# To run all hooks against the whole tree (CI does this)::
+#
+#   pre-commit run --all-files
+
+repos:
+  - repo: local
+    hooks:
+      - id: ruff
+        name: ruff (lint apps/backend)
+        language: system
+        entry: uv run --directory apps/backend ruff check .
+        types: [python]
+        pass_filenames: false
+        files: ^apps/backend/
+
+      - id: ruff-format
+        name: ruff format (apps/backend)
+        language: system
+        entry: uv run --directory apps/backend ruff format --check .
+        types: [python]
+        pass_filenames: false
+        files: ^apps/backend/
+
+      - id: biome
+        name: biome check (apps/web)
+        language: system
+        entry: pnpm --dir apps/web lint
+        files: ^apps/web/.*\.(ts|tsx|js|jsx|json)$
+        pass_filenames: false
+
+      - id: timestamptz
+        name: check_timestamptz (no TIMESTAMP WITHOUT TIME ZONE)
+        language: system
+        entry: python scripts/check_timestamptz.py
+        files: ^apps/backend/(alembic/versions|app/models)/.*\.(py|sql)$
+        pass_filenames: false
+
+      - id: lint-set-local
+        name: lint_set_local (PgBouncer transaction-pool safety)
+        language: system
+        entry: python apps/backend/tools/lint_set_local.py
+        files: ^apps/backend/.*\.py$
+        pass_filenames: false
+
+      - id: check-system-prompt-lang
+        name: check_system_prompt_lang (SKILL.md must be English, D63)
+        language: system
+        entry: uv run --directory apps/backend python tools/check_system_prompt_lang.py
+        files: ^apps/backend/skills/.*\.md$
+        pass_filenames: false
+
+      - id: validate-skills
+        name: validate_skills (manifest + when_to_use DSL)
+        language: system
+        entry: uv run --directory apps/backend python tools/validate_skills.py
+        files: ^apps/backend/skills/.*\.md$
+        pass_filenames: false
+
+      - id: i18n-audit
+        name: i18n_audit (ru.json ⇔ en.json parity + Cyrillic hardcode)
+        language: system
+        entry: pnpm --dir apps/web -s i18n:audit
+        files: ^apps/web/src/.*\.(tsx|json)$
+        pass_filenames: false
