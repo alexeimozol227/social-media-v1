@@ -122,6 +122,7 @@
     "logout": "Sign out",
     "emailNotVerified": "Email is not verified.",
     "verifyNow": "Verify now",
-    "security": "Security"
+    "security": "Security",
+    "welcomeToast": "Welcome, {email}! Your account has been created."
   }
 }

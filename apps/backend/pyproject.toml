@@ -71,8 +71,9 @@ ignore = [
     "E501",
     "B008",
     # Project is bilingual (RU primary, EN secondary). Cyrillic letters
-    # inside Russian copy / comments are intentional, not look-alikes.
+    # inside Russian copy / comments / docstrings are intentional, not look-alikes.
     "RUF001",
+    "RUF002",
     "RUF003",
 ]
 
