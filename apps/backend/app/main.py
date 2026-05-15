@@ -22,6 +22,7 @@ from app.core.config import settings
 from app.core.feature_flags import get_flag_client, shutdown_flags
 from app.core.logging import configure_logging, get_logger
 from app.core.observability import init_sentry
+from app.core.telemetry import setup_telemetry, shutdown_telemetry
 from app.skills import SkillRegistry
 
 configure_logging(settings.log_level)
@@ -34,6 +35,8 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     """Startup / shutdown hooks."""
 
     logger.info("api.startup", env=settings.environment)
+    # PR #9 (docs/04 §15, docs/05 §10.2): OpenTelemetry tracing + metrics.
+    setup_telemetry()
     # docs/04 §20.5 + docs/06 §5 Спринт 1: every skill is loaded and
     # validated once at startup; any manifest error aborts the
     # process — better to fail to boot than to serve traffic with a
@@ -47,6 +50,7 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     logger.info("api.feature_flags.ready")
     yield
     await shutdown_flags()
+    shutdown_telemetry()
     logger.info("api.shutdown")
 
 
