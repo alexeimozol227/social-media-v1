@@ -1,0 +1,90 @@
+"""Password hashing and JWT helpers.
+
+Source of truth: ``docs/05-tech-stack.md §3.5`` (self-written auth),
+``docs/04-architecture.md`` D28 / D36 / D64 / §18.6, and
+``docs/06-roadmap.md §5 Спринт 1``.
+
+We use bcrypt via passlib for password hashing (drop-in from the
+reference project). The access token is a short-lived JWT (15 min)
+carrying only the strict claims listed in D64 — every richer claim
+(memberships, brand list) is fetched from Redis-cached state.
+"""
+
+from __future__ import annotations
+
+import uuid
+from datetime import UTC, datetime, timedelta
+from typing import Any
+
+from jose import JWTError, jwt
+from passlib.context import CryptContext
+
+from app.core.config import settings
+
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
+
+def hash_password(plain: str) -> str:
+    """Hash a plaintext password with bcrypt + per-hash salt."""
+
+    return pwd_context.hash(plain)
+
+
+def verify_password(plain: str, hashed: str) -> bool:
+    """Constant-time verify ``plain`` against an already-stored ``hashed``."""
+
+    return pwd_context.verify(plain, hashed)
+
+
+def create_access_token(
+    *,
+    subject: str,
+    active_workspace_id: str | None,
+    platform_role: str,
+    token_version: int = 0,
+    expires_delta: timedelta | None = None,
+) -> str:
+    """Issue a signed access token.
+
+    Claims (D64, ``docs/04-architecture.md §18.6``):
+
+    * ``sub`` — user UUID as string.
+    * ``active_workspace_id`` — current workspace UUID as string (or
+      None if the user has no workspaces — should not happen post-
+      sign-up since every account owns at least one).
+    * ``platform_role`` — coarse-grained role on the platform itself
+      (``user`` / ``admin`` / ``support`` / ``moderator``).
+    * ``exp`` / ``iat`` / ``jti`` — standard lifecycle / audit.
+    * ``tv`` — token version mirror; bumping ``users.token_version``
+      revokes every in-flight access token in one write.
+    * ``type='access'`` — guards against a refresh-token replay
+      being decoded as an access token.
+
+    Memberships and brand-ids are **never** put in the JWT; they live
+    in Redis with TTL 300 s (per D64).
+    """
+
+    now = datetime.now(tz=UTC)
+    expire = now + (
+        expires_delta or timedelta(minutes=settings.access_token_expire_minutes)
+    )
+    payload: dict[str, Any] = {
+        "sub": subject,
+        "active_workspace_id": active_workspace_id,
+        "platform_role": platform_role,
+        "exp": expire,
+        "iat": now,
+        "jti": str(uuid.uuid4()),
+        "tv": token_version,
+        "type": "access",
+    }
+    return jwt.encode(payload, settings.secret_key, algorithm=settings.algorithm)
+
+
+def decode_token(token: str) -> dict[str, Any]:
+    """Decode + verify signature/expiry; raises ``ValueError`` on failure."""
+
+    try:
+        return jwt.decode(token, settings.secret_key, algorithms=[settings.algorithm])
+    except JWTError as exc:
+        raise ValueError("invalid_token") from exc
