@@ -31,6 +31,7 @@ from app.core.security import (
     decode_mfa_token,
     verify_password,
 )
+from app.db.rls import set_rls_context
 from app.errors import (
     InvalidCredentialsError,
     InvalidRefreshTokenError,
@@ -153,7 +154,25 @@ async def _build_login_response(
 
     import secrets
 
+    # PR #11: install RLS GUCs **before** any tenant-scoped query.
+    # ``workspaces`` is strict-RLS; the SELECT in ``current_for_user``
+    # passes via ``owner_id = current_user_id`` once we pin
+    # ``app.current_user_id``. We re-pin once we know the workspace
+    # so the refresh-token INSERT + subsequent reads see
+    # ``current_tenant_id`` too.
+    await set_rls_context(
+        db,
+        user_id=user.id,
+        tenant_id=None,
+        platform_role=user.platform_role,
+    )
     workspace = await workspaces_service.current_for_user(db, user)
+    await set_rls_context(
+        db,
+        user_id=user.id,
+        tenant_id=workspace.id,
+        platform_role=user.platform_role,
+    )
 
     ua = request.headers.get("user-agent")
     user_agent = ua[:512] if ua else None
@@ -501,7 +520,22 @@ async def refresh(
 
     import secrets as _secrets
 
+    # PR #11: ``rotate_refresh`` ran with GUC unset (opt-in policy on
+    # refresh_tokens). Now that we know the user, pin GUCs for any
+    # subsequent tenant-scoped reads (``workspaces`` is strict-RLS).
+    await set_rls_context(
+        db,
+        user_id=user.id,
+        tenant_id=None,
+        platform_role=user.platform_role,
+    )
     workspace = await workspaces_service.current_for_user(db, user)
+    await set_rls_context(
+        db,
+        user_id=user.id,
+        tenant_id=workspace.id,
+        platform_role=user.platform_role,
+    )
     access = create_access_token(
         subject=str(user.id),
         active_workspace_id=str(workspace.id),
