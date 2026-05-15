@@ -14,10 +14,11 @@ Operators (from docs/04 §20.4):
 * ``gt`` / ``gte`` / ``lt`` / ``lte`` — numeric comparison
 * ``exists`` — field is present and not ``None``
 * ``not_empty`` — field truthy (``""`` / ``[]`` / ``None`` → false)
-* ``matches`` — regex match (``re`` stdlib; the docs call for
-  ``google-re2`` and we'll swap once it ships pre-built wheels for
-  3.12 on CI, but the substitution is mechanical because the operator
-  enforces a length-bound and a soft timeout on the call site)
+* ``matches`` — regex match. Per docs/04 §20.4 + docs/05 §3.4 we
+  prefer the linear-time RE2 engine (``google-re2``) to neutralise
+  catastrophic-backtracking ReDoS; if the wheel is not available on a
+  given platform we fall back to stdlib ``re`` with bounded input /
+  pattern length (still safe in practice but slower-case).
 * ``contains_any`` — sequence-field shares any element with a literal
   list
 
@@ -47,6 +48,15 @@ import re
 from collections.abc import Iterable
 from dataclasses import dataclass
 from typing import Any, Literal
+
+try:
+    # docs/04 §20.4 + docs/05 §3.4: linear-time regex engine, the
+    # canonical defence against ReDoS. We import lazily so the module
+    # still loads on platforms without a google-re2 wheel — see
+    # ``_match`` / ``_validate_pattern`` for the fallback.
+    import re2
+except ImportError:  # pragma: no cover - exercised on wheel-less platforms
+    re2 = None
 
 from app.errors import SkillValidationFailedError
 
@@ -291,9 +301,15 @@ def _match(value: Any, pattern: Any) -> bool:
     if not isinstance(value, str) or not isinstance(pattern, str):
         return False
     if len(value) > MATCHES_MAX_INPUT_LEN:
-        # docs/04 §20.4: bounded input keeps stdlib ``re`` safe even
-        # if the manifest later ships a heavier pattern.
+        # docs/04 §20.4: bounded input keeps the fallback ``re`` engine
+        # safe even if the manifest later ships a heavier pattern.
         value = value[:MATCHES_MAX_INPUT_LEN]
+    if re2 is not None:
+        # Linear-time engine — cannot catastrophically backtrack.
+        try:
+            return re2.search(pattern, value) is not None
+        except re2.error:
+            return False
     try:
         return re.search(pattern, value) is not None
     except re.error:
@@ -307,6 +323,19 @@ def _validate_pattern(pattern: Any) -> None:
         raise SkillValidationFailedError(
             f"matches: pattern exceeds {MATCHES_MAX_PATTERN_LEN} chars",
         )
+    # Validate against the RE2 engine when available so a pattern that
+    # only stdlib ``re`` accepts (e.g. backreferences) is rejected at
+    # manifest-load time — RE2 deliberately rejects features that admit
+    # exponential backtracking. The stdlib check is a safety net for
+    # wheel-less platforms.
+    if re2 is not None:
+        try:
+            re2.compile(pattern)
+            return
+        except re2.error as exc:
+            raise SkillValidationFailedError(
+                f"matches: invalid regex (RE2): {exc}",
+            ) from exc
     try:
         re.compile(pattern)
     except re.error as exc:

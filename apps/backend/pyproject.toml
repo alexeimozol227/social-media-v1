@@ -27,6 +27,12 @@ dependencies = [
     "pydantic-yaml>=1.4",
     "python-frontmatter>=1.1",
     "tiktoken>=0.7",
+    # docs/04 §20.4 + docs/03 §4 + docs/05 §3.4: ``matches`` operator
+    # must use google-re2 for ReDoS-safety. We import ``re2`` lazily in
+    # ``app.skills.dsl`` and fall back to stdlib ``re`` if the wheel is
+    # missing on a given platform (CI on Linux ships the wheel out of
+    # the box; the fallback also bounds input/pattern length).
+    "google-re2>=1.1",
 ]
 
 [dependency-groups]
@@ -81,7 +87,7 @@ warn_unused_configs = true
 exclude = ["alembic/versions"]
 
 [[tool.mypy.overrides]]
-module = ["passlib.*", "jose.*", "frontmatter.*", "tiktoken.*"]
+module = ["passlib.*", "jose.*", "frontmatter.*", "tiktoken.*", "re2.*"]
 ignore_missing_imports = true
 
 [tool.pytest.ini_options]

@@ -59,6 +59,9 @@ jobs:
       - name: Validate skills (D68/D69/D70 from docs/04 §20)
         run: uv run python tools/validate_skills.py
 
+      - name: Check SKILL.md bodies are English (D63 from docs/04 §18.2.1)
+        run: uv run python tools/check_system_prompt_lang.py
+
       - name: Mypy
         run: uv run mypy app/
 
