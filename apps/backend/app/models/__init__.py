@@ -3,6 +3,7 @@
 from app.models.audit_event import AuditEvent, AuditSeverity
 from app.models.brand import Brand
 from app.models.email_verification import EmailVerification
+from app.models.idempotency_key import IdempotencyKey
 from app.models.password_reset import PasswordReset
 from app.models.refresh_token import RefreshToken
 from app.models.user import User, UserStatus
@@ -14,6 +15,7 @@ __all__ = [
     "AuditSeverity",
     "Brand",
     "EmailVerification",
+    "IdempotencyKey",
     "PasswordReset",
     "RefreshToken",
     "User",

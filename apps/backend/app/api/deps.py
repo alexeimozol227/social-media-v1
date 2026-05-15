@@ -1,4 +1,4 @@
-"""FastAPI dependencies: DB session, current user, RLS context.
+"""FastAPI dependencies: DB session, current user, RLS context, feature gates.
 
 The access token is accepted from either the ``sm_access`` HttpOnly
 cookie (browser sessions) or an explicit ``Authorization: Bearer
@@ -10,15 +10,17 @@ accidentally act as the dev's session.
 from __future__ import annotations
 
 import uuid
+from collections.abc import Callable
 from typing import Annotated
 
 from fastapi import Depends, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.feature_flags import is_enabled
 from app.core.security import decode_token
 from app.db.rls import set_rls_context
 from app.db.session import get_db
-from app.errors import UnauthenticatedError
+from app.errors import FeatureDisabledError, UnauthenticatedError
 from app.models.user import User, UserStatus
 from app.services import workspaces as workspaces_service
 
@@ -106,3 +108,28 @@ async def get_current_user(
 
 
 CurrentUser = Annotated[User, Depends(get_current_user)]
+
+
+# ---- Feature-flag gate dependency (PR #8, D42 + П10) ----
+
+
+def require_feature(flag_name: str) -> Callable[[], None]:
+    """Return a dependency that raises 403 if *flag_name* is off.
+
+    Usage::
+
+        @router.post("/v1/brands/{brand_id}/auto-publish")
+        async def auto_publish(
+            ...,
+            _flag: None = Depends(require_feature(ENABLE_AUTO_PUBLISH)),
+        ):
+            ...
+    """
+
+    def _check() -> None:
+        if not is_enabled(flag_name):
+            raise FeatureDisabledError(
+                message=f"Feature '{flag_name}' is currently disabled.",
+            )
+
+    return _check
