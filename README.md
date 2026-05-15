@@ -15,6 +15,8 @@ AI Operating System for Social Networks — платформа, где авто�
 | 05 | [05-tech-stack.md](./docs/05-tech-stack.md) | Технологический стек: FastAPI, Postgres, Redis, Celery, Next.js |
 | 06 | [06-roadmap.md](./docs/06-roadmap.md) | Roadmap: Фазы 0–6 (MVP) + post-MVP (v1.0 → v3.0) |
 | 07 | [07-monetization.md](./docs/07-monetization.md) | Тарифы (Solo / Pro / Network), unit-economics |
+| — | [plans/](./docs/plans/) | Планы по фазам / спринтам |
+| — | [reports/](./docs/reports/) | Простыми словами «что было реализовано» по каждому плану |
 
 ## Монорепо
 
