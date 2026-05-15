@@ -65,6 +65,12 @@ class ErrorCode:
     SKILL_BUDGET_EXCEEDED = "SKILL_BUDGET_EXCEEDED"
     SKILL_COMPILATION_TIMEOUT = "SKILL_COMPILATION_TIMEOUT"
 
+    # Idempotency — PR #8 (П13 in docs/04).
+    IDEMPOTENCY_KEY_TOO_LONG = "IDEMPOTENCY_KEY_TOO_LONG"
+
+    # Feature flags — PR #8 (D42 in docs/04).
+    FEATURE_DISABLED = "FEATURE_DISABLED"
+
     # Generic
     VALIDATION_ERROR = "VALIDATION_ERROR"
     NOT_FOUND = "NOT_FOUND"
@@ -275,3 +281,12 @@ class SkillCompilationTimeoutError(AppError):
     error_code = ErrorCode.SKILL_COMPILATION_TIMEOUT
     http_status = 504
     default_message = "Skill compilation took too long."
+
+
+# ---- Feature flags / Idempotency — PR #8 (D42, П13 in docs/04) ----
+
+
+class FeatureDisabledError(AppError):
+    error_code = ErrorCode.FEATURE_DISABLED
+    http_status = 403
+    default_message = "This feature is currently disabled."

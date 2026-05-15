@@ -12,12 +12,14 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.middleware.errors import register_error_handlers
+from app.api.middleware.idempotency import IdempotencyMiddleware
 from app.api.routes import auth as auth_routes
 from app.api.routes import email_verifications as email_verification_routes
 from app.api.routes import events as events_routes
 from app.api.routes import health as health_routes
 from app.api.routes import password_reset as password_reset_routes
 from app.core.config import settings
+from app.core.feature_flags import get_flag_client, shutdown_flags
 from app.core.logging import configure_logging, get_logger
 from app.core.observability import init_sentry
 from app.skills import SkillRegistry
@@ -39,7 +41,12 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     registry = await SkillRegistry.bootstrap()
     app.state.skill_registry = registry
     logger.info("api.skills.loaded", count=len(registry))
+    # PR #8 (D42): initialize feature-flag client (Unleash or in-memory).
+    flag_client = await get_flag_client()
+    app.state.flag_client = flag_client
+    logger.info("api.feature_flags.ready")
     yield
+    await shutdown_flags()
     logger.info("api.shutdown")
 
 
@@ -62,6 +69,10 @@ app.add_middleware(
 )
 
 register_error_handlers(app)
+
+# PR #8 (П13): idempotency middleware — caches 2xx responses for
+# mutating requests that carry ``Idempotency-Key``.
+app.add_middleware(IdempotencyMiddleware)
 
 # Routers
 app.include_router(health_routes.router, tags=["health"])

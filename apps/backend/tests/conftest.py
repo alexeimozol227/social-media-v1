@@ -35,6 +35,7 @@ from app.models import (  # noqa: F401
     AuditEvent,
     Brand,
     EmailVerification,
+    IdempotencyKey,
     PasswordReset,
     RefreshToken,
     User,

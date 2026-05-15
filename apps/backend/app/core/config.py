@@ -114,6 +114,20 @@ class Settings(BaseSettings):
     # 1Password / Authy.
     totp_issuer: str = Field(default="social-media-v1")
 
+    # ---- Feature flags / Unleash (PR #8, D42 in docs/04) ----
+    # When empty the app falls back to an in-memory default map,
+    # so local dev / CI don't require a running Unleash server.
+    unleash_url: str = Field(default="")
+    unleash_api_key: str = Field(default="")
+    unleash_app_name: str = Field(default="social-media-v1")
+    unleash_instance_id: str = Field(default="dev")
+    unleash_refresh_interval: int = Field(default=15)
+
+    # ---- Idempotency middleware (PR #8, П13 in docs/04) ----
+    # TTL for idempotency keys stored in Redis (seconds). The docs
+    # spec 24 h (docs/05 §2.5).
+    idempotency_key_ttl_seconds: int = Field(default=86400)
+
     # Enrollment "draft" TTL (Redis). The user has this long between
     # ``/mfa/enroll/start`` (QR shown) and ``/mfa/enroll/confirm``
     # (code typed) before they have to restart.
