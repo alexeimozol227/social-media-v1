@@ -1,7 +1,7 @@
 """add TOTP 2FA columns to users
 
 Revision ID: 0003_user_totp
-Revises: 0002_email_verifications_password_resets
+Revises: 0002_email_pwd_resets
 Create Date: 2026-05-15
 
 PR #4. Adds the four columns the TOTP flow needs:
@@ -36,7 +36,7 @@ from sqlalchemy.dialects import postgresql
 
 # revision identifiers, used by Alembic.
 revision: str = "0003_user_totp"
-down_revision: str | None = "0002_email_verifications_password_resets"
+down_revision: str | None = "0002_email_pwd_resets"
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
 

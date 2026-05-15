@@ -58,6 +58,13 @@ class ErrorCode:
     MFA_RATE_LIMITED = "MFA_RATE_LIMITED"
     MFA_REQUIRED = "MFA_REQUIRED"
 
+    # Skill infrastructure — PR #6 (D68 / D69 / D70 in docs/04 §20).
+    SKILL_NOT_FOUND = "SKILL_NOT_FOUND"
+    SKILL_VALIDATION_FAILED = "SKILL_VALIDATION_FAILED"
+    SKILL_OVERRIDE_FORBIDDEN = "SKILL_OVERRIDE_FORBIDDEN"
+    SKILL_BUDGET_EXCEEDED = "SKILL_BUDGET_EXCEEDED"
+    SKILL_COMPILATION_TIMEOUT = "SKILL_COMPILATION_TIMEOUT"
+
     # Generic
     VALIDATION_ERROR = "VALIDATION_ERROR"
     NOT_FOUND = "NOT_FOUND"
@@ -235,3 +242,36 @@ class MFARateLimitedError(AppError):
     error_code = ErrorCode.MFA_RATE_LIMITED
     http_status = 429
     default_message = "Too many wrong codes. Try again later."
+
+
+# ---- Skill infrastructure — PR #6 (docs/04 §20.8) ----
+
+
+class SkillNotFoundError(AppError):
+    error_code = ErrorCode.SKILL_NOT_FOUND
+    http_status = 404
+    default_message = "Skill not found."
+
+
+class SkillValidationFailedError(AppError):
+    error_code = ErrorCode.SKILL_VALIDATION_FAILED
+    http_status = 422
+    default_message = "Skill manifest validation failed."
+
+
+class SkillOverrideForbiddenError(AppError):
+    error_code = ErrorCode.SKILL_OVERRIDE_FORBIDDEN
+    http_status = 403
+    default_message = "Overriding this skill is not allowed."
+
+
+class SkillBudgetExceededError(AppError):
+    error_code = ErrorCode.SKILL_BUDGET_EXCEEDED
+    http_status = 422
+    default_message = "Compiled prompt exceeds the configured token budget."
+
+
+class SkillCompilationTimeoutError(AppError):
+    error_code = ErrorCode.SKILL_COMPILATION_TIMEOUT
+    http_status = 504
+    default_message = "Skill compilation took too long."

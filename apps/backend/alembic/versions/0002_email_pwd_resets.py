@@ -1,6 +1,6 @@
 """email_verifications + password_resets
 
-Revision ID: 0002_email_verifications_password_resets
+Revision ID: 0002_email_pwd_resets
 Revises: 0001_initial
 Create Date: 2026-05-15
 
@@ -21,7 +21,7 @@ import sqlalchemy as sa
 from alembic import op
 from sqlalchemy.dialects import postgresql
 
-revision: str = "0002_email_verifications_password_resets"
+revision: str = "0002_email_pwd_resets"
 down_revision: str | None = "0001_initial"
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None

@@ -10,8 +10,8 @@ from __future__ import annotations
 
 import uuid
 
-from sqlalchemy import ForeignKey, String
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy import JSON, ForeignKey, String
+from sqlalchemy.dialects.postgresql import ARRAY, UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.db.base import Base, SoftDeleteMixin, TimestampMixin, UUIDPrimaryKeyMixin
@@ -37,6 +37,18 @@ class Brand(UUIDPrimaryKeyMixin, TimestampMixin, SoftDeleteMixin, Base):
         nullable=False,
         default="Europe/Minsk",
         server_default="Europe/Minsk",
+    )
+    # docs/04-architecture.md §20.6 D70 — Level 1 customization:
+    # the brand owner can opt out of non-safety skills (skills tagged
+    # ``safety`` / ``system`` are filtered at compile-time and cannot
+    # be disabled even if their name appears in this array).
+    #
+    # ``TEXT[]`` on Postgres, ``JSON`` on SQLite (tests).
+    disabled_global_skills: Mapped[list[str]] = mapped_column(
+        JSON().with_variant(ARRAY(String()), "postgresql"),
+        nullable=False,
+        default=list,
+        server_default="[]",
     )
 
     def __repr__(self) -> str:
