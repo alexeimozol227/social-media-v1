@@ -114,6 +114,44 @@
       "recoveryTitle": "Сохрани эти коды",
       "recoveryDescription": "Каждый код одноразовый. Покажем только один раз — сохрани в надёжном месте.",
       "recoveryAck": "Я сохранил коды"
+    },
+    "brands": {
+      "title": "Бренды",
+      "back": "Назад в кабинет",
+      "loading": "Загрузка…",
+      "loadError": "Не удалось загрузить список брендов.",
+      "quotaUsage": "Брендов: {used} из {max}",
+      "quotaPlan": "Тариф: {plan}",
+      "quotaOverrideActive": "(спец. лимит активен)",
+      "addTitle": "Добавить бренд",
+      "addName": "Название",
+      "addLanguage": "Язык контента",
+      "addLanguageRu": "Русский",
+      "addLanguageEn": "Английский",
+      "addTimezone": "Часовой пояс",
+      "addIsDefault": "Сделать активным по умолчанию",
+      "addSubmit": "Создать",
+      "addQuotaBlocked": "Достигнут лимит брендов по тарифу. Обнови тариф или попроси администратора расширить лимит.",
+      "addRequired": "Заполни название.",
+      "tableTitle": "Бренды рабочего пространства",
+      "table": {
+        "name": "Название",
+        "default": "По умолчанию",
+        "language": "Язык",
+        "timezone": "Часовой пояс",
+        "createdAt": "Создан",
+        "actions": "Действия",
+        "edit": "Изменить",
+        "delete": "Удалить",
+        "makeDefault": "Сделать по умолчанию",
+        "save": "Сохранить",
+        "cancel": "Отмена"
+      },
+      "deleteConfirm": "Удалить бренд {name}?",
+      "deleteError": "Не удалось удалить бренд.",
+      "updateError": "Не удалось обновить бренд.",
+      "createError": "Не удалось создать бренд.",
+      "makeDefaultError": "Не удалось переключить активный бренд."
     }
   },
   "dashboard": {
@@ -124,7 +162,22 @@
     "verifyNow": "Подтвердить сейчас",
     "security": "Безопасность",
     "channels": "Каналы",
-    "welcomeToast": "Добро пожаловать, {email}! Аккаунт создан."
+    "brands": "Бренды",
+    "welcomeToast": "Добро пожаловать, {email}! Аккаунт создан.",
+    "brandHeader": "Бренд {name}",
+    "noActiveBrand": "Выбери бренд в переключателе, чтобы увидеть последние посты.",
+    "quotaSummary": "Бренды: {used}/{max} · Каналов на бренд: {channels} · Конкурентов: {competitors}",
+    "recentPosts": {
+      "title": "Последние посты",
+      "loading": "Загрузка постов…",
+      "loadError": "Не удалось загрузить превью постов.",
+      "noActiveChannel": "К бренду пока не подключён канал.",
+      "noActiveChannelCta": "Подключить канал",
+      "noPostsYet": "У канала {title} пока нет постов. Подожди живой ингест или запусти бэкфилл.",
+      "viewsCount": "Просмотров: {count}",
+      "withMedia": "С медиа",
+      "postedAt": "Опубликован {at}"
+    }
   },
   "brandSwitcher": {
     "label": "Бренд",
