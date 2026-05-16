@@ -162,9 +162,56 @@ class AuthRefreshRequiredEvent(BaseEvent):
     )
 
 
+class ChannelConnectedEvent(BaseEvent):
+    """A brand just connected a social channel (PR #14).
+
+    docs/plans/phase1-sprint2-plan.md §"i18n / event bus":
+    published right after the connect-channel transaction commits.
+    PR #14 has no subscriber yet — the WS-toast on the channels
+    dashboard lands in PR #19. We still publish so the contract is
+    in place from day one.
+    """
+
+    event_type: Literal["channel.connected"] = "channel.connected"
+    agent_source: Literal["platform.api"] = "platform.api"
+
+    channel_id: str = Field(description="Global Channel Registry UUID.")
+    workspace_channel_id: str = Field(
+        description="workspace_channels row UUID; lets the consumer"
+        " look up the brand-scoped binding directly.",
+    )
+    platform: str = Field(description="Channel platform (``telegram`` on MVP).")
+    title: str | None = Field(
+        default=None,
+        description="Channel display name at connect time (snapshot).",
+    )
+    username: str | None = Field(
+        default=None,
+        description="``@handle`` without the leading ``@``; None for private channels.",
+    )
+
+
+class ChannelDetachedEvent(BaseEvent):
+    """A brand soft-detached a previously-connected channel (PR #14).
+
+    Mirrors :class:`ChannelConnectedEvent`. The audit trail and post
+    history stay intact; the row in ``workspace_channels`` just gets
+    ``disconnected_at = now()``.
+    """
+
+    event_type: Literal["channel.detached"] = "channel.detached"
+    agent_source: Literal["platform.api"] = "platform.api"
+
+    channel_id: str = Field(description="Global Channel Registry UUID.")
+    workspace_channel_id: str = Field(
+        description="workspace_channels row UUID that was detached.",
+    )
+    platform: str = Field(description="Channel platform (``telegram`` on MVP).")
+
+
 # Discriminated union — every new event-type subclass goes here.
 Event = Annotated[
-    UserRegisteredEvent | AuthRefreshRequiredEvent,
+    UserRegisteredEvent | AuthRefreshRequiredEvent | ChannelConnectedEvent | ChannelDetachedEvent,
     Field(discriminator="event_type"),
 ]
 

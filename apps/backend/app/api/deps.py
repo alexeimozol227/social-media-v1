@@ -21,8 +21,15 @@ from app.core.redis import get_redis
 from app.core.security import decode_token
 from app.db.rls import set_rls_context
 from app.db.session import get_db
-from app.errors import FeatureDisabledError, UnauthenticatedError
+from app.errors import (
+    ActiveBrandRequiredError,
+    BrandNotInWorkspaceError,
+    FeatureDisabledError,
+    UnauthenticatedError,
+)
+from app.models.brand import Brand
 from app.models.user import User, UserStatus
+from app.services import brands as brands_service
 from app.services import memberships_cache
 from app.services import workspaces as workspaces_service
 
@@ -127,6 +134,94 @@ async def get_current_user(
 
 
 CurrentUser = Annotated[User, Depends(get_current_user)]
+
+
+# ---- Active brand dependency (PR #14, docs/plans/phase1-sprint2-plan.md) ----
+
+# Header name the SPA uses to override the JWT ``active_brand_id``
+# claim per-request. The brand-switcher dropdown writes it on every
+# fetch so the user can flip brands without re-issuing a token.
+ACTIVE_BRAND_HEADER = "X-Active-Brand-Id"
+
+
+def _read_active_brand_header(request: Request) -> uuid.UUID | None:
+    raw = request.headers.get(ACTIVE_BRAND_HEADER)
+    if not raw:
+        return None
+    try:
+        return uuid.UUID(raw)
+    except (ValueError, TypeError):
+        # An ill-formed header is treated like "absent" — the JWT
+        # claim wins. Returning 400 here would brick the SPA on the
+        # first malformed write to localStorage.
+        return None
+
+
+async def get_active_brand(
+    request: Request,
+    user: CurrentUser,
+    db: DbSession,
+) -> Brand:
+    """Resolve the currently active brand for the request.
+
+    Resolution order (docs/plans/phase1-sprint2-plan.md
+    §"Бэкенд — активный бренд"):
+
+    1. ``X-Active-Brand-Id`` header — explicit SPA override.
+    2. ``active_brand_id`` claim from the access token.
+    3. The workspace's default brand (``brands.is_default = TRUE``).
+
+    The brand must belong to the workspace whose id is already
+    pinned as ``app.current_tenant_id`` on the SQL session by
+    :func:`get_current_user`; otherwise raises
+    :class:`BrandNotInWorkspaceError` (403). If no brand can be
+    resolved at all (workspace has zero brands — should never
+    happen post sign-up) raises
+    :class:`ActiveBrandRequiredError`.
+    """
+
+    token = _read_access_token(request)
+    # ``get_current_user`` already validated the token; this lookup
+    # is purely to read the ``active_brand_id`` claim. We tolerate
+    # the same failure modes as ``get_current_user`` — the request
+    # would already have been rejected before reaching this dep.
+    claim_brand_id: uuid.UUID | None = None
+    if token:
+        try:
+            payload = decode_token(token)
+        except ValueError:
+            payload = {}
+        raw_claim = payload.get("active_brand_id")
+        if isinstance(raw_claim, str):
+            try:
+                claim_brand_id = uuid.UUID(raw_claim)
+            except (ValueError, TypeError):
+                claim_brand_id = None
+
+    candidate = _read_active_brand_header(request) or claim_brand_id
+    workspace = await workspaces_service.current_for_user(db, user)
+
+    if candidate is not None:
+        brand = await brands_service.get_in_workspace(
+            db,
+            workspace_id=workspace.id,
+            brand_id=candidate,
+        )
+        if brand is None:
+            raise BrandNotInWorkspaceError()
+        return brand
+
+    # Fall back to the workspace default. Should always succeed for
+    # workspaces that finished sign-up bootstrap; if it doesn't,
+    # surface a 400 so the SPA can prompt the user to create a
+    # brand instead of silently picking an arbitrary one.
+    default = await brands_service.default_for_workspace(db, workspace.id)
+    if default is None:
+        raise ActiveBrandRequiredError()
+    return default
+
+
+ActiveBrand = Annotated[Brand, Depends(get_active_brand)]
 
 
 # ---- Feature-flag gate dependency (PR #8, D42 + П10) ----

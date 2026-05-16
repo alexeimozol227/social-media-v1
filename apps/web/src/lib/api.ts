@@ -12,11 +12,14 @@
  * English emails from the backend.
  */
 
+import { getActiveBrandId } from "@/lib/active-brand-store";
+
 export const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8000";
 
 const SUPPORTED_LOCALES = new Set(["ru", "en"]);
 const DEFAULT_LOCALE = "ru";
 const LOCALE_COOKIE = "NEXT_LOCALE";
+const ACTIVE_BRAND_HEADER = "X-Active-Brand-Id";
 
 /** Read the active UI locale on the client side.
  *
@@ -88,6 +91,10 @@ export async function apiFetch<T>(path: string, opts: RequestInitOpts = {}): Pro
     // UI-selected locale, NOT the browser default — see the file
     // header for the rationale.
     merged["Accept-Language"] = locale;
+  }
+  const activeBrandId = getActiveBrandId();
+  if (activeBrandId) {
+    merged[ACTIVE_BRAND_HEADER] = activeBrandId;
   }
   if (headers) {
     for (const [k, v] of Object.entries(headers as Record<string, string | undefined>)) {
@@ -190,4 +197,29 @@ export interface MFAEnrollConfirmResponse {
 
 export interface MFARecoveryRegenerateResponse {
   recovery_codes: string[];
+}
+
+// ---- Channels (PR #14) ----
+
+export interface ChannelView {
+  id: string;
+  channel_id: string;
+  platform: string;
+  external_id: number;
+  username: string | null;
+  title: string | null;
+  role: string;
+  bot_admin_rights: Record<string, unknown>;
+  connected_at: string;
+  disconnected_at: string | null;
+}
+
+export interface ChannelListResponse {
+  items: ChannelView[];
+  total: number;
+}
+
+export interface ConnectChannelRequest {
+  platform?: "telegram";
+  identifier: string | number;
 }

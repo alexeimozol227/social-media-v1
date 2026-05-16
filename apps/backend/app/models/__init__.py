@@ -2,6 +2,15 @@
 
 from app.models.audit_event import AuditEvent, AuditSeverity
 from app.models.brand import Brand
+from app.models.channel import (
+    Channel,
+    ChannelPlatform,
+    ChannelPlatformValues,
+    ChannelPost,
+    WorkspaceChannel,
+    WorkspaceChannelRole,
+    WorkspaceChannelRoleValues,
+)
 from app.models.email_verification import EmailVerification
 from app.models.idempotency_key import IdempotencyKey
 from app.models.invoice import Invoice
@@ -18,6 +27,10 @@ __all__ = [
     "AuditEvent",
     "AuditSeverity",
     "Brand",
+    "Channel",
+    "ChannelPlatform",
+    "ChannelPlatformValues",
+    "ChannelPost",
     "EmailVerification",
     "IdempotencyKey",
     "Invoice",
@@ -29,6 +42,9 @@ __all__ = [
     "User",
     "UserStatus",
     "Workspace",
+    "WorkspaceChannel",
+    "WorkspaceChannelRole",
+    "WorkspaceChannelRoleValues",
     "WorkspaceMember",
     "WorkspaceMemberRole",
     "WorkspaceType",

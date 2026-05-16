@@ -34,6 +34,8 @@ from app.db.session import get_db
 from app.models import (  # noqa: F401
     AuditEvent,
     Brand,
+    Channel,
+    ChannelPost,
     EmailVerification,
     IdempotencyKey,
     Invoice,
@@ -44,6 +46,7 @@ from app.models import (  # noqa: F401
     TenantLimitOverride,
     User,
     Workspace,
+    WorkspaceChannel,
     WorkspaceMember,
 )
 
