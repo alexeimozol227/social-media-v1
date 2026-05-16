@@ -9,13 +9,7 @@
 
 import { BrandSwitcher } from "@/components/brand-switcher";
 import { useActiveBrandStore } from "@/lib/active-brand-store";
-import {
-  ApiError,
-  type ChannelListResponse,
-  type ChannelView,
-  type TelegramBotInfo,
-  apiFetch,
-} from "@/lib/api";
+import { ApiError, type ChannelListResponse, type ChannelView, apiFetch } from "@/lib/api";
 import { useTranslations } from "next-intl";
 import { useCallback, useEffect, useState } from "react";
 
@@ -156,28 +150,6 @@ function ConnectWizard({ activeBrandId, onConnected }: ConnectWizardProps) {
   const [identifier, setIdentifier] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [botInfo, setBotInfo] = useState<TelegramBotInfo | null>(null);
-  const [botError, setBotError] = useState<string | null>(null);
-
-  // Fetch the configured Telegram bot identity once per wizard mount so
-  // the "promote this bot to admin" step can render a concrete handle
-  // instead of a generic placeholder. We tolerate a 503 — the wizard
-  // still works, just without the deep link CTA.
-  useEffect(() => {
-    let cancelled = false;
-    apiFetch<TelegramBotInfo>("/v1/integrations/telegram/bot-info")
-      .then((info) => {
-        if (!cancelled) setBotInfo(info);
-      })
-      .catch((err) => {
-        if (cancelled) return;
-        const msg = err instanceof ApiError ? err.message : t("botInfoError");
-        setBotError(msg);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [t]);
 
   function reset() {
     setStep("input");
@@ -220,27 +192,6 @@ function ConnectWizard({ activeBrandId, onConnected }: ConnectWizardProps) {
         <li className={step === "done" ? "text-white" : ""}>{t("step3")}</li>
       </ol>
 
-      {botInfo ? (
-        <div className="mb-3 rounded border border-blue-900 bg-blue-950/40 p-3 text-sm text-blue-100">
-          <p className="mb-1">{t("botHintIntro")}</p>
-          <p>
-            <span className="font-mono text-white">@{botInfo.username}</span>{" "}
-            <a
-              href={botInfo.deep_link}
-              target="_blank"
-              rel="noreferrer noopener"
-              className="ml-2 underline hover:text-white"
-            >
-              {t("botHintOpen")}
-            </a>
-          </p>
-        </div>
-      ) : botError ? (
-        <p className="mb-3 rounded border border-yellow-900 bg-yellow-950/40 p-3 text-sm text-yellow-200">
-          {botError}
-        </p>
-      ) : null}
-
       {step === "input" && (
         <div className="flex flex-col gap-2">
           <input
@@ -250,14 +201,6 @@ function ConnectWizard({ activeBrandId, onConnected }: ConnectWizardProps) {
             placeholder={t("identifierPlaceholder")}
             className="rounded border border-gray-700 bg-gray-900 px-3 py-2 text-white"
           />
-          <details className="rounded border border-gray-800 bg-gray-950/40 p-2 text-xs text-gray-300">
-            <summary className="cursor-pointer text-gray-200">{t("identifierHelpTitle")}</summary>
-            <ul className="mt-2 list-inside list-disc space-y-1 text-gray-400">
-              <li>{t("identifierHelpPublic")}</li>
-              <li>{t("identifierHelpPrivate")}</li>
-              <li>{t("identifierHelpInvite")}</li>
-            </ul>
-          </details>
           <button
             type="button"
             onClick={() => setStep("verify")}
@@ -271,14 +214,7 @@ function ConnectWizard({ activeBrandId, onConnected }: ConnectWizardProps) {
 
       {step === "verify" && (
         <div className="flex flex-col gap-2">
-          <p className="text-sm text-gray-300">
-            {botInfo
-              ? t("promotePromptWithBot", {
-                  target: identifier,
-                  bot: `@${botInfo.username}`,
-                })
-              : t("promotePrompt", { target: identifier })}
-          </p>
+          <p className="text-sm text-gray-300">{t("promotePrompt", { target: identifier })}</p>
           <div className="flex gap-2">
             <button
               type="button"

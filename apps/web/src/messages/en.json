@@ -124,58 +124,7 @@
     "verifyNow": "Verify now",
     "security": "Security",
     "channels": "Channels",
-    "account": "Account",
     "welcomeToast": "Welcome, {email}! Your account has been created."
-  },
-  "account": {
-    "title": "Account",
-    "back": "Back to dashboard",
-    "password": {
-      "title": "Change password",
-      "current": "Current password",
-      "new": "New password",
-      "confirm": "Confirm new password",
-      "submit": "Update password",
-      "submitting": "Updating…",
-      "mismatch": "New passwords don't match.",
-      "successHint": "Password updated. All other sessions were ended.",
-      "genericError": "Could not change the password."
-    },
-    "email": {
-      "title": "Change email",
-      "current": "Current password",
-      "newEmail": "New email",
-      "sendCode": "Send verification code",
-      "sending": "Sending…",
-      "codeSent": "We've sent a 6-digit code to {email}. Enter it below.",
-      "codePlaceholder": "123456",
-      "back": "Back",
-      "confirm": "Confirm",
-      "confirming": "Confirming…",
-      "successHint": "Email updated. The next login will use the new address.",
-      "genericError": "Could not change the email."
-    },
-    "sessions": {
-      "title": "Active sessions",
-      "loading": "Loading…",
-      "empty": "No active sessions besides this one.",
-      "loadError": "Could not load sessions.",
-      "revokeError": "Could not revoke the session.",
-      "revokeConfirm": "Revoke this session?",
-      "revokeOthers": "Sign out other devices",
-      "revokeOthersConfirm": "Sign out every other device?",
-      "table": {
-        "device": "Device",
-        "ip": "IP",
-        "issued": "Signed in",
-        "expires": "Expires",
-        "actions": "Actions",
-        "revoke": "Revoke",
-        "current": "Current session",
-        "unknownUa": "Unknown device",
-        "unknownIp": "—"
-      }
-    }
   },
   "brandSwitcher": {
     "label": "Brand",
@@ -193,14 +142,10 @@
     "detachConfirm": "Detach {target}?",
     "wizard": {
       "title": "Connect a Telegram channel",
-      "step1": "Enter @username (public) or numeric chat id (private, -100…)",
+      "step1": "Enter @username or numeric chat id",
       "step2": "Add the bot as administrator with the \"Post messages\" right",
       "step3": "Channel is connected",
-      "identifierPlaceholder": "@my_channel  ·  -1003983437401  ·  https://t.me/my_channel",
-      "identifierHelpTitle": "Which identifier do I use?",
-      "identifierHelpPublic": "Public channels: @username or https://t.me/<username>.",
-      "identifierHelpPrivate": "Private groups / channels: numeric chat id starting with -100… (e.g. -1003983437401). The t.me/<title> URL won't work — it shows the title but isn't a public handle. To find the chat id, add the bot to the chat, then forward any message from the chat to @JsonDumpBot or @userinfobot — they'll reply with the numeric id.",
-      "identifierHelpInvite": "Invite links (t.me/+… or t.me/joinchat/…) can't be resolved by the Bot API. Once the bot is in the chat, switch to the numeric chat id.",
+      "identifierPlaceholder": "@my_channel or -100123…",
       "next": "Next",
       "back": "Back",
       "verify": "Verify & connect",
@@ -208,12 +153,8 @@
       "done": "Channel connected successfully.",
       "another": "Connect another",
       "noActiveBrand": "Pick an active brand first.",
-      "identifierRequired": "Channel @username or chat id is required.",
-      "promotePrompt": "Promote our bot to administrator in {target} with at least the \"Post messages\" right, then click \"Verify & connect\".",
-      "promotePromptWithBot": "Promote {bot} to administrator in {target} with at least the \"Post messages\" right, then click \"Verify & connect\".",
-      "botHintIntro": "Make this bot a channel administrator with the \"Post messages\" right:",
-      "botHintOpen": "Open in Telegram",
-      "botInfoError": "Could not load bot info. Channel verification may still work, but the admin promotion step won't show a deep link."
+      "identifierRequired": "Channel @username or id is required.",
+      "promotePrompt": "Promote our bot to administrator in {target} with at least the \"Post messages\" right, then click \"Verify & connect\"."
     },
     "table": {
       "platform": "Platform",
