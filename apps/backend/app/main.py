@@ -19,6 +19,7 @@ from app.api.routes import channels as channel_routes
 from app.api.routes import email_verifications as email_verification_routes
 from app.api.routes import events as events_routes
 from app.api.routes import health as health_routes
+from app.api.routes import integrations as integrations_routes
 from app.api.routes import password_reset as password_reset_routes
 from app.core.config import settings
 from app.core.feature_flags import get_flag_client, shutdown_flags
@@ -92,6 +93,10 @@ app.include_router(events_routes.router, prefix="/v1/events", tags=["events"])
 # without a router-level prefix.
 app.include_router(brand_routes.router, tags=["brands"])
 app.include_router(channel_routes.router, tags=["channels"])
+# PR #16 (docs/plans/phase1-sprint2-plan.md): live Telegram webhook ingest.
+# The router registers an absolute path (``/v1/integrations/telegram/webhook``)
+# so it's mounted without a router-level prefix.
+app.include_router(integrations_routes.router, tags=["integrations"])
 
 
 @app.get("/", tags=["meta"])

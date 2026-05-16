@@ -85,6 +85,9 @@ class ErrorCode:
     CHANNEL_BACKFILL_LIMIT_EXCEEDED = "CHANNEL_BACKFILL_LIMIT_EXCEEDED"
     CHANNEL_BACKFILL_NOT_CONFIGURED = "CHANNEL_BACKFILL_NOT_CONFIGURED"
 
+    # Live ingest webhook — PR #16.
+    TELEGRAM_WEBHOOK_UNAUTHORIZED = "TELEGRAM_WEBHOOK_UNAUTHORIZED"
+
     # Generic
     VALIDATION_ERROR = "VALIDATION_ERROR"
     NOT_FOUND = "NOT_FOUND"
@@ -394,3 +397,20 @@ class ChannelBackfillNotConfiguredError(AppError):
     default_message = (
         "History backfill is not configured for this channel. Contact support to enable it."
     )
+
+
+# ---- Live ingest webhook — PR #16 ----
+
+
+class TelegramWebhookUnauthorizedError(AppError):
+    """Telegram webhook request failed the ``X-Telegram-Bot-API-Secret-Token`` check.
+
+    Returned when the header is missing, doesn't match
+    ``settings.telegram_webhook_secret``, or the server-side secret
+    is empty (a misconfigured deployment is treated as ``forbid all``
+    so a forgotten env var can't accidentally expose the endpoint).
+    """
+
+    error_code = ErrorCode.TELEGRAM_WEBHOOK_UNAUTHORIZED
+    http_status = 401
+    default_message = "Telegram webhook request is not authorised."

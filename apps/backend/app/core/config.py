@@ -171,6 +171,15 @@ class Settings(BaseSettings):
     telegram_backfill_default_limit: int = Field(default=100)
     telegram_backfill_max_limit: int = Field(default=500)
 
+    # ---- Live ingest webhook (PR #16, docs/plans/phase1-sprint2-plan.md) ----
+    # The webhook endpoint validates ``X-Telegram-Bot-API-Secret-Token``
+    # via ``hmac.compare_digest`` against ``telegram_webhook_secret``;
+    # mismatch / empty config → 401 ``TELEGRAM_WEBHOOK_UNAUTHORIZED``.
+    # The path is configurable so dev / staging / production bots can
+    # share a single binary while each pointing TG at a distinct route.
+    telegram_webhook_secret: str = Field(default="")
+    telegram_webhook_path: str = Field(default="/v1/integrations/telegram/webhook")
+
     # ---- Celery (PR #15, docs/05-tech-stack.md §2.4) ----
     # Redis is reused as broker + result backend; the Celery worker
     # subscribes on a dedicated logical DB (``/1``) so its queue traffic
