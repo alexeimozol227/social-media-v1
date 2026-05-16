@@ -329,12 +329,7 @@ class ActiveBrandRequiredError(AppError):
 class ChannelNotFoundError(AppError):
     error_code = ErrorCode.CHANNEL_NOT_FOUND
     http_status = 404
-    default_message = (
-        "Channel not found on the platform. For public channels use @username;"
-        " for private groups / channels use the numeric chat id (-100…)."
-        " Make sure the bot has been added to the chat first — getChat can't"
-        " resolve a private group the bot isn't a member of."
-    )
+    default_message = "Channel not found on the platform."
 
 
 class ChannelAlreadyConnectedError(AppError):

@@ -250,14 +250,6 @@ function ConnectWizard({ activeBrandId, onConnected }: ConnectWizardProps) {
             placeholder={t("identifierPlaceholder")}
             className="rounded border border-gray-700 bg-gray-900 px-3 py-2 text-white"
           />
-          <details className="rounded border border-gray-800 bg-gray-950/40 p-2 text-xs text-gray-300">
-            <summary className="cursor-pointer text-gray-200">{t("identifierHelpTitle")}</summary>
-            <ul className="mt-2 list-inside list-disc space-y-1 text-gray-400">
-              <li>{t("identifierHelpPublic")}</li>
-              <li>{t("identifierHelpPrivate")}</li>
-              <li>{t("identifierHelpInvite")}</li>
-            </ul>
-          </details>
           <button
             type="button"
             onClick={() => setStep("verify")}
