@@ -63,6 +63,13 @@ dependencies = [
     # SQLite for tests, so this dependency is only required at
     # runtime when the dialect is Postgres.
     "pgvector>=0.3.0",
+    # PR #18 (docs/plans/phase1-sprint2-plan.md): Fernet encryption
+    # for the user-bot session pool (api_id / api_hash / session_string
+    # stored encrypted at rest). The user-bot crawler itself (Pyrogram)
+    # is wired in Sprint 3 alongside the BrandMemory ingestor — PR #18
+    # only ships the contract + skeleton, so ``pyrogram`` is NOT a
+    # production dependency yet.
+    "cryptography>=42.0",
 ]
 
 [dependency-groups]

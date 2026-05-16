@@ -93,6 +93,11 @@ class ErrorCode:
     LLM_BUDGET_EXCEEDED = "LLM_BUDGET_EXCEEDED"
     LLM_PROVIDER_ERROR = "LLM_PROVIDER_ERROR"
 
+    # Competitor channels / user-bot — PR #18.
+    COMPETITOR_NOT_PUBLIC = "COMPETITOR_NOT_PUBLIC"
+    COMPETITOR_ALREADY_CONNECTED = "COMPETITOR_ALREADY_CONNECTED"
+    USERBOT_NO_AVAILABLE_SESSION = "USERBOT_NO_AVAILABLE_SESSION"
+
     # Generic
     VALIDATION_ERROR = "VALIDATION_ERROR"
     NOT_FOUND = "NOT_FOUND"
@@ -419,3 +424,51 @@ class TelegramWebhookUnauthorizedError(AppError):
     error_code = ErrorCode.TELEGRAM_WEBHOOK_UNAUTHORIZED
     http_status = 401
     default_message = "Telegram webhook request is not authorised."
+
+
+# ---- Competitor channels / user-bot — PR #18 ----
+
+
+class CompetitorNotPublicError(AppError):
+    """Caller tried to connect a competitor channel that isn't public.
+
+    The user-bot path only crawls public ``@username`` channels — a
+    private channel would require the user-bot to be invited as a
+    member, which is out of scope for MVP. Surfaces as 409 so the
+    SPA renders a contextual inline hint.
+    """
+
+    error_code = ErrorCode.COMPETITOR_NOT_PUBLIC
+    http_status = 409
+    default_message = (
+        "Competitor channels must be public (have an @username). "
+        "Private channels can't be connected to the Inspiration Board."
+    )
+
+
+class CompetitorAlreadyConnectedError(AppError):
+    """Caller tried to connect a competitor channel that's already bound.
+
+    Mirrors :class:`ChannelAlreadyConnectedError` but is kept as a
+    distinct subclass so the SPA can render a different inline
+    message for the competitor flow (the recovery action is
+    "Открыть карточку конкурента", not "Open channel settings").
+    """
+
+    error_code = ErrorCode.COMPETITOR_ALREADY_CONNECTED
+    http_status = 409
+    default_message = "This competitor channel is already connected to the brand."
+
+
+class UserBotNoAvailableSessionError(AppError):
+    """The user-bot pool returned no eligible session.
+
+    Either every session is in cooldown (FloodWait), every session is
+    being used by another worker (``SKIP LOCKED`` race), or the
+    operator hasn't registered any sessions yet. Surfaces as 503 so
+    the caller retries with backoff.
+    """
+
+    error_code = ErrorCode.USERBOT_NO_AVAILABLE_SESSION
+    http_status = 503
+    default_message = "No user-bot sessions are currently available. Try again in a few minutes."

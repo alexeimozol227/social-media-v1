@@ -43,6 +43,7 @@ def _build() -> Celery:
         include=[
             "app.workers.tasks.channel_backfill",
             "app.workers.tasks.embed_channel_post",
+            "app.workers.tasks.userbot_healthcheck",
         ],
     )
 
