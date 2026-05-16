@@ -127,7 +127,14 @@ export async function apiFetch<T>(path: string, opts: RequestInitOpts = {}): Pro
       retryAfter: body.retry_after_seconds,
     });
   }
-  if (res.status === 204) {
+  // Empty-body 2xx: ``204 No Content`` and ``202 Accepted`` (the
+  // backend ``/v1/auth/forgot-password`` + ``/v1/auth/resend-verification``
+  // both reply 202 with ``Content-Length: 0``). Calling ``res.json()``
+  // on an empty body throws ``SyntaxError``, which the caller would
+  // surface as a generic "что-то пошло не так" toast even though the
+  // server actually succeeded — see the screenshot on the original
+  // bug report.
+  if (res.status === 204 || res.headers.get("Content-Length") === "0") {
     return undefined as T;
   }
   return (await res.json()) as T;
