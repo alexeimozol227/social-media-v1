@@ -82,7 +82,7 @@ export default function DashboardPage() {
           href="/dashboard/channels"
           className="rounded bg-gray-800 px-4 py-2 text-white transition hover:bg-gray-700"
         >
-          Channels
+          {t("channels")}
         </Link>
         <Link
           href="/settings/security"

@@ -123,6 +123,50 @@
     "emailNotVerified": "Email is not verified.",
     "verifyNow": "Verify now",
     "security": "Security",
+    "channels": "Channels",
     "welcomeToast": "Welcome, {email}! Your account has been created."
+  },
+  "brandSwitcher": {
+    "label": "Brand",
+    "defaultBadge": " (default)"
+  },
+  "channels": {
+    "title": "Channels",
+    "connectedHeader": "Connected channels",
+    "empty": "No channels connected yet.",
+    "loading": "Loading…",
+    "loadError": "Failed to load channels.",
+    "detachError": "Failed to detach the channel.",
+    "verifyError": "Failed to re-verify the channel.",
+    "verifyOk": "Bot still has post permission.",
+    "detachConfirm": "Detach {target}?",
+    "wizard": {
+      "title": "Connect a Telegram channel",
+      "step1": "Enter @username or numeric chat id",
+      "step2": "Add the bot as administrator with the \"Post messages\" right",
+      "step3": "Channel is connected",
+      "identifierPlaceholder": "@my_channel or -100123…",
+      "next": "Next",
+      "back": "Back",
+      "verify": "Verify & connect",
+      "verifying": "Verifying…",
+      "done": "Channel connected successfully.",
+      "another": "Connect another",
+      "noActiveBrand": "Pick an active brand first.",
+      "identifierRequired": "Channel @username or id is required.",
+      "promotePrompt": "Promote our bot to administrator in {target} with at least the \"Post messages\" right, then click \"Verify & connect\"."
+    },
+    "table": {
+      "platform": "Platform",
+      "title": "Title",
+      "username": "Username",
+      "role": "Role",
+      "connectedAt": "Connected at",
+      "actions": "Actions",
+      "verify": "Verify",
+      "detach": "Detach",
+      "channelIdFallback": "id {id}",
+      "noTitle": "—"
+    }
   }
 }

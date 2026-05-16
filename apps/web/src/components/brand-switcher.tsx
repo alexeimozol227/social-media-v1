@@ -9,9 +9,11 @@
 
 import { type BrandSummary, useActiveBrandStore } from "@/lib/active-brand-store";
 import { apiFetch } from "@/lib/api";
+import { useTranslations } from "next-intl";
 import { useEffect } from "react";
 
 export function BrandSwitcher() {
+  const t = useTranslations("brandSwitcher");
   const { activeBrandId, brands, hydrate, setBrand } = useActiveBrandStore();
 
   useEffect(() => {
@@ -37,7 +39,7 @@ export function BrandSwitcher() {
 
   return (
     <label className="flex items-center gap-2 text-sm">
-      <span className="text-gray-400">Brand</span>
+      <span className="text-gray-400">{t("label")}</span>
       <select
         data-testid="brand-switcher"
         className="rounded border border-gray-700 bg-gray-900 px-2 py-1 text-white"
@@ -47,7 +49,7 @@ export function BrandSwitcher() {
         {brands.map((b) => (
           <option key={b.id} value={b.id}>
             {b.name}
-            {b.is_default ? " (default)" : ""}
+            {b.is_default ? t("defaultBadge") : ""}
           </option>
         ))}
       </select>
