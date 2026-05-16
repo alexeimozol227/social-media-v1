@@ -62,33 +62,7 @@
       "missingToken": "Ссылка недействительна или истекла",
       "passwordsDontMatch": "Пароли не совпадают"
     },
-    "errors": {
-      "INVALID_CREDENTIALS": "Неверный email или пароль",
-      "EMAIL_ALREADY_EXISTS": "Аккаунт с таким email уже существует",
-      "TOS_NOT_ACCEPTED": "Необходимо принять Условия использования",
-      "LOGIN_LOCKED": "Слишком много неудачных попыток. Попробуйте позже.",
-      "INVALID_REFRESH_TOKEN": "Сессия истекла. Войдите снова.",
-      "REFRESH_TOKEN_REPLAYED": "Сессия завершена в целях безопасности. Войдите снова.",
-      "VALIDATION_ERROR": "Проверьте введённые данные",
-      "UNAUTHENTICATED": "Требуется вход",
-      "USER_INACTIVE": "Аккаунт деактивирован",
-      "VERIFY_RESEND_COOLDOWN": "Подожди немного и попробуй ещё раз",
-      "EMAIL_ALREADY_VERIFIED": "Email уже подтверждён",
-      "NO_ACTIVE_VERIFICATION": "Запроси код заново — старый недействителен",
-      "VERIFY_CODE_EXPIRED": "Срок действия кода истёк. Запроси новый.",
-      "VERIFY_CODE_INVALID": "Неверный код",
-      "VERIFY_TOO_MANY_ATTEMPTS": "Слишком много попыток. Запроси новый код.",
-      "PASSWORD_RESET_INVALID": "Ссылка недействительна",
-      "PASSWORD_RESET_EXPIRED": "Срок действия ссылки истёк",
-      "PASSWORD_RESET_CONSUMED": "Ссылка уже использована",
-      "MFA_ALREADY_ENABLED": "Двухфакторная аутентификация уже включена",
-      "MFA_NOT_ENABLED": "Двухфакторная аутентификация не включена",
-      "MFA_ENROLLMENT_NOT_STARTED": "Начни enroll заново — старый запрос истёк",
-      "MFA_INVALID_CODE": "Неверный код. Попробуй ещё раз.",
-      "MFA_TOKEN_INVALID": "Сессия истекла. Войди заново.",
-      "MFA_RATE_LIMITED": "Слишком много неудачных кодов. Попробуй позже.",
-      "default": "Произошла ошибка. Попробуйте ещё раз."
-    }
+    "errorFallback": "Произошла ошибка. Попробуйте ещё раз."
   },
   "settings": {
     "security": {

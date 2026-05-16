@@ -22,7 +22,7 @@ export const MFA_TOKEN_STORAGE_KEY = "sm.mfa_token";
 
 export default function LoginPage() {
   const t = useTranslations("auth.login");
-  const tErrors = useTranslations("auth.errors");
+  const tAuth = useTranslations("auth");
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -48,19 +48,9 @@ export default function LoginPage() {
       }
       router.push("/dashboard");
     } catch (err) {
-      if (err instanceof ApiError) {
-        const key = err.errorCode;
-        // next-intl raises if the message key is missing; fall back
-        // to the generic error string when the server emits a new
-        // code we don't have a translation for yet.
-        try {
-          setError(tErrors(key));
-        } catch {
-          setError(tErrors("default"));
-        }
-      } else {
-        setError(tErrors("default"));
-      }
+      // Backend localises the message via Accept-Language; fall back
+      // to a generic string for network / non-API errors.
+      setError(err instanceof ApiError ? err.message : tAuth("errorFallback"));
     } finally {
       setSubmitting(false);
     }

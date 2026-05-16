@@ -8,7 +8,7 @@ import { type FormEvent, Suspense, useState } from "react";
 
 function ResetPasswordInner() {
   const t = useTranslations("auth.resetPassword");
-  const tErrors = useTranslations("auth.errors");
+  const tAuth = useTranslations("auth");
   const searchParams = useSearchParams();
   const token = searchParams?.get("token") ?? "";
 
@@ -33,15 +33,9 @@ function ResetPasswordInner() {
       });
       setSuccess(true);
     } catch (err) {
-      if (err instanceof ApiError) {
-        try {
-          setError(tErrors(err.errorCode));
-        } catch {
-          setError(tErrors("default"));
-        }
-      } else {
-        setError(tErrors("default"));
-      }
+      // Backend localises the message via Accept-Language; fall back
+      // to a generic string for network / non-API errors.
+      setError(err instanceof ApiError ? err.message : tAuth("errorFallback"));
     } finally {
       setSubmitting(false);
     }

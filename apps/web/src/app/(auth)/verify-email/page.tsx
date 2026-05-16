@@ -8,7 +8,7 @@ import { type FormEvent, useState } from "react";
 
 export default function VerifyEmailPage() {
   const t = useTranslations("auth.verifyEmail");
-  const tErrors = useTranslations("auth.errors");
+  const tAuth = useTranslations("auth");
   const router = useRouter();
   const [code, setCode] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -29,7 +29,7 @@ export default function VerifyEmailPage() {
       setVerified(true);
       setTimeout(() => router.push("/dashboard"), 1500);
     } catch (err) {
-      setError(formatError(err, tErrors));
+      setError(formatError(err, tAuth));
     } finally {
       setSubmitting(false);
     }
@@ -45,7 +45,7 @@ export default function VerifyEmailPage() {
       });
       setInfo(t("resentSuccess"));
     } catch (err) {
-      setError(formatError(err, tErrors));
+      setError(formatError(err, tAuth));
     } finally {
       setSubmitting(false);
     }
@@ -109,16 +109,11 @@ export default function VerifyEmailPage() {
   );
 }
 
-function formatError(
-  err: unknown,
-  tErrors: ReturnType<typeof useTranslations<"auth.errors">>,
-): string {
+function formatError(err: unknown, tAuth: ReturnType<typeof useTranslations<"auth">>): string {
+  // Backend localises err.message via Accept-Language; fall back to
+  // a generic string for network / non-API errors.
   if (err instanceof ApiError) {
-    try {
-      return tErrors(err.errorCode);
-    } catch {
-      return tErrors("default");
-    }
+    return err.message;
   }
-  return tErrors("default");
+  return tAuth("errorFallback");
 }

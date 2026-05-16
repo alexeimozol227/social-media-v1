@@ -17,7 +17,7 @@ import { MFA_TOKEN_STORAGE_KEY } from "../page";
  */
 export default function LoginMFAPage() {
   const t = useTranslations("auth.loginMfa");
-  const tErrors = useTranslations("auth.errors");
+  const tAuth = useTranslations("auth");
   const router = useRouter();
   const [code, setCode] = useState("");
   const [mfaToken, setMfaToken] = useState<string | null>(null);
@@ -49,15 +49,14 @@ export default function LoginMFAPage() {
     } catch (err) {
       if (err instanceof ApiError) {
         if (err.errorCode === "MFA_TOKEN_INVALID") {
+          // Token is gone server-side — wipe sessionStorage so a
+          // refresh doesn't loop us back through MFA.
           sessionStorage.removeItem(MFA_TOKEN_STORAGE_KEY);
         }
-        try {
-          setError(tErrors(err.errorCode));
-        } catch {
-          setError(tErrors("default"));
-        }
+        // Backend localises err.message via Accept-Language.
+        setError(err.message);
       } else {
-        setError(tErrors("default"));
+        setError(tAuth("errorFallback"));
       }
     } finally {
       setSubmitting(false);

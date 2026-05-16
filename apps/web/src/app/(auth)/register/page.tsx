@@ -8,7 +8,7 @@ import { type FormEvent, useState } from "react";
 
 export default function RegisterPage() {
   const t = useTranslations("auth.register");
-  const tErrors = useTranslations("auth.errors");
+  const tAuth = useTranslations("auth");
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -38,15 +38,9 @@ export default function RegisterPage() {
       });
       router.push("/dashboard");
     } catch (err) {
-      if (err instanceof ApiError) {
-        try {
-          setError(tErrors(err.errorCode));
-        } catch {
-          setError(tErrors("default"));
-        }
-      } else {
-        setError(tErrors("default"));
-      }
+      // Backend localises err.message via Accept-Language; fall back
+      // to a generic string for network / non-API errors.
+      setError(err instanceof ApiError ? err.message : tAuth("errorFallback"));
     } finally {
       setSubmitting(false);
     }
