@@ -79,6 +79,12 @@ export default function DashboardPage() {
       )}
       <div className="flex items-center gap-3">
         <Link
+          href="/dashboard/channels"
+          className="rounded bg-gray-800 px-4 py-2 text-white transition hover:bg-gray-700"
+        >
+          Channels
+        </Link>
+        <Link
           href="/settings/security"
           className="rounded bg-gray-800 px-4 py-2 text-white transition hover:bg-gray-700"
         >

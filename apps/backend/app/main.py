@@ -14,6 +14,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.api.middleware.errors import register_error_handlers
 from app.api.middleware.idempotency import IdempotencyMiddleware
 from app.api.routes import auth as auth_routes
+from app.api.routes import brands as brand_routes
+from app.api.routes import channels as channel_routes
 from app.api.routes import email_verifications as email_verification_routes
 from app.api.routes import events as events_routes
 from app.api.routes import health as health_routes
@@ -85,6 +87,11 @@ app.include_router(email_verification_routes.router, prefix="/v1/auth", tags=["a
 app.include_router(password_reset_routes.router, prefix="/v1/auth", tags=["auth"])
 # PR #7 (D43, docs/06 §5 Спринт 1): per-user realtime stream over WebSocket.
 app.include_router(events_routes.router, prefix="/v1/events", tags=["events"])
+# PR #14 (docs/plans/phase1-sprint2-plan.md): channel registry + brand switcher.
+# Both routers register absolute paths (``/v1/...``) so they're mounted
+# without a router-level prefix.
+app.include_router(brand_routes.router, tags=["brands"])
+app.include_router(channel_routes.router, tags=["channels"])
 
 
 @app.get("/", tags=["meta"])

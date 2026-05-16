@@ -71,6 +71,16 @@ class ErrorCode:
     # Feature flags — PR #8 (D42 in docs/04).
     FEATURE_DISABLED = "FEATURE_DISABLED"
 
+    # Brands / channels — PR #14 (docs/plans/phase1-sprint2-plan.md).
+    BRAND_NOT_IN_WORKSPACE = "BRAND_NOT_IN_WORKSPACE"
+    ACTIVE_BRAND_REQUIRED = "ACTIVE_BRAND_REQUIRED"
+    CHANNEL_NOT_FOUND = "CHANNEL_NOT_FOUND"
+    CHANNEL_ALREADY_CONNECTED = "CHANNEL_ALREADY_CONNECTED"
+    CHANNEL_NOT_CONNECTED = "CHANNEL_NOT_CONNECTED"
+    BOT_NOT_ADMIN = "BOT_NOT_ADMIN"
+    BOT_MISSING_POST_PERMISSION = "BOT_MISSING_POST_PERMISSION"
+    TELEGRAM_API_ERROR = "TELEGRAM_API_ERROR"
+
     # Generic
     VALIDATION_ERROR = "VALIDATION_ERROR"
     NOT_FOUND = "NOT_FOUND"
@@ -290,3 +300,59 @@ class FeatureDisabledError(AppError):
     error_code = ErrorCode.FEATURE_DISABLED
     http_status = 403
     default_message = "This feature is currently disabled."
+
+
+# ---- Brands / channels — PR #14 ----
+
+
+class BrandNotInWorkspaceError(AppError):
+    error_code = ErrorCode.BRAND_NOT_IN_WORKSPACE
+    http_status = 403
+    default_message = "Brand does not belong to the active workspace."
+
+
+class ActiveBrandRequiredError(AppError):
+    error_code = ErrorCode.ACTIVE_BRAND_REQUIRED
+    http_status = 400
+    default_message = (
+        "No active brand could be resolved. Pass an explicit brand id in the URL or "
+        "send the X-Active-Brand-Id header."
+    )
+
+
+class ChannelNotFoundError(AppError):
+    error_code = ErrorCode.CHANNEL_NOT_FOUND
+    http_status = 404
+    default_message = "Channel not found on the platform."
+
+
+class ChannelAlreadyConnectedError(AppError):
+    error_code = ErrorCode.CHANNEL_ALREADY_CONNECTED
+    http_status = 409
+    default_message = "This channel is already connected to the brand."
+
+
+class ChannelNotConnectedError(AppError):
+    error_code = ErrorCode.CHANNEL_NOT_CONNECTED
+    http_status = 409
+    default_message = "This channel is not connected to the brand."
+
+
+class BotNotAdminError(AppError):
+    error_code = ErrorCode.BOT_NOT_ADMIN
+    http_status = 409
+    default_message = (
+        "The bot is not an administrator in this channel. Add it as an admin and retry."
+    )
+
+
+class BotMissingPostPermissionError(AppError):
+    error_code = ErrorCode.BOT_MISSING_POST_PERMISSION
+    http_status = 409
+    default_message = "The bot is an administrator but doesn't have permission to post messages."
+
+
+class TelegramAPIError(AppError):
+    error_code = ErrorCode.TELEGRAM_API_ERROR
+    http_status = 502
+    default_message = "Telegram Bot API call failed; please retry."

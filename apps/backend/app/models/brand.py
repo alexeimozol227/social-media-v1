@@ -10,7 +10,7 @@ from __future__ import annotations
 
 import uuid
 
-from sqlalchemy import JSON, ForeignKey, String
+from sqlalchemy import JSON, Boolean, ForeignKey, Index, String, text
 from sqlalchemy.dialects.postgresql import ARRAY, UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -19,6 +19,20 @@ from app.db.base import Base, SoftDeleteMixin, TimestampMixin, UUIDPrimaryKeyMix
 
 class Brand(UUIDPrimaryKeyMixin, TimestampMixin, SoftDeleteMixin, Base):
     __tablename__ = "brands"
+    __table_args__ = (
+        # docs/plans/phase1-sprint2-plan.md (PR #14): at most one
+        # ``is_default=true`` brand per workspace. Partial unique
+        # index supported by both Postgres and SQLite — see
+        # migration ``0010_channels_registry`` for the ``WHERE``
+        # clause variants on each dialect.
+        Index(
+            "ux_brands_workspace_default",
+            "workspace_id",
+            unique=True,
+            postgresql_where=text("is_default IS TRUE"),
+            sqlite_where=text("is_default = 1"),
+        ),
+    )
 
     workspace_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True),
@@ -49,6 +63,16 @@ class Brand(UUIDPrimaryKeyMixin, TimestampMixin, SoftDeleteMixin, Base):
         nullable=False,
         default=list,
         server_default="[]",
+    )
+    # docs/plans/phase1-sprint2-plan.md (PR #14): the brand that
+    # ``GET /v1/brands/{id}/channels`` falls through to when no
+    # explicit brand id is supplied. Created during sign-up
+    # bootstrap (``services.workspaces.ensure_default``).
+    is_default: Mapped[bool] = mapped_column(
+        Boolean(),
+        nullable=False,
+        default=False,
+        server_default="false",
     )
 
     def __repr__(self) -> str:

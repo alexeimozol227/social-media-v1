@@ -12,7 +12,10 @@ it to :data:`Event`.
 from __future__ import annotations
 
 from app.events.schemas import (
+    AuthRefreshRequiredEvent,
     BaseEvent,
+    ChannelConnectedEvent,
+    ChannelDetachedEvent,
     Event,
     EventEnvelope,
     UserRegisteredEvent,
@@ -20,7 +23,10 @@ from app.events.schemas import (
 )
 
 __all__ = [
+    "AuthRefreshRequiredEvent",
     "BaseEvent",
+    "ChannelConnectedEvent",
+    "ChannelDetachedEvent",
     "Event",
     "EventEnvelope",
     "UserRegisteredEvent",

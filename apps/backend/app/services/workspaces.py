@@ -102,6 +102,11 @@ async def ensure_default(session: AsyncSession, user: User) -> Workspace:
         name=DEFAULT_BRAND_NAME,
         content_language="ru",
         timezone=user.timezone,
+        # PR #14: every workspace has exactly one default brand —
+        # used by the connect-channel UI when no ``brand_id`` is
+        # explicit, and enforced at the DB level by the partial
+        # unique index ``ux_brands_workspace_default``.
+        is_default=True,
     )
     session.add(brand)
 

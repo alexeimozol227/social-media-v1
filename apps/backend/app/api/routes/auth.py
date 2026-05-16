@@ -67,6 +67,7 @@ from app.schemas.auth import (
 )
 from app.services import audit as audit_service
 from app.services import auth as auth_service
+from app.services import brands as brands_service
 from app.services import email_templates, memberships_cache
 from app.services import email_verifications as ev_service
 from app.services import refresh_tokens as refresh_service
@@ -174,6 +175,7 @@ async def _build_login_response(
         tenant_id=workspace.id,
         platform_role=user.platform_role,
     )
+    default_brand = await brands_service.default_for_workspace(db, workspace.id)
 
     ua = request.headers.get("user-agent")
     user_agent = ua[:512] if ua else None
@@ -188,6 +190,7 @@ async def _build_login_response(
     access = create_access_token(
         subject=str(user.id),
         active_workspace_id=str(workspace.id),
+        active_brand_id=str(default_brand.id) if default_brand is not None else None,
         platform_role=user.platform_role,
         token_version=user.token_version,
     )
@@ -537,9 +540,11 @@ async def refresh(
         tenant_id=workspace.id,
         platform_role=user.platform_role,
     )
+    default_brand = await brands_service.default_for_workspace(db, workspace.id)
     access = create_access_token(
         subject=str(user.id),
         active_workspace_id=str(workspace.id),
+        active_brand_id=str(default_brand.id) if default_brand is not None else None,
         platform_role=user.platform_role,
         token_version=user.token_version,
     )

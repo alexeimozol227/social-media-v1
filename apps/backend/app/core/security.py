@@ -42,6 +42,7 @@ def create_access_token(
     active_workspace_id: str | None,
     platform_role: str,
     token_version: int = 0,
+    active_brand_id: str | None = None,
     expires_delta: timedelta | None = None,
 ) -> str:
     """Issue a signed access token.
@@ -52,6 +53,13 @@ def create_access_token(
     * ``active_workspace_id`` — current workspace UUID as string (or
       None if the user has no workspaces — should not happen post-
       sign-up since every account owns at least one).
+    * ``active_brand_id`` — current brand UUID. Added in PR #14
+      (docs/plans/phase1-sprint2-plan.md §"Бэкенд — активный
+      бренд"); resolves at login to the workspace's default brand
+      so the connect-channel API has a target without an extra
+      round-trip. The SPA may override per-request via the
+      ``X-Active-Brand-Id`` header (multi-brand UI in Sprint 9
+      keeps the same access token across switches).
     * ``platform_role`` — coarse-grained role on the platform itself
       (``user`` / ``admin`` / ``support`` / ``moderator``).
     * ``exp`` / ``iat`` / ``jti`` — standard lifecycle / audit.
@@ -69,6 +77,7 @@ def create_access_token(
     payload: dict[str, Any] = {
         "sub": subject,
         "active_workspace_id": active_workspace_id,
+        "active_brand_id": active_brand_id,
         "platform_role": platform_role,
         "exp": expire,
         "iat": now,

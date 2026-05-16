@@ -42,6 +42,13 @@ dependencies = [
     "opentelemetry-instrumentation-fastapi>=0.45b0",
     "opentelemetry-instrumentation-sqlalchemy>=0.45b0",
     "opentelemetry-instrumentation-redis>=0.45b0",
+    # PR #14 (docs/plans/phase1-sprint2-plan.md): Telegram Bot API
+    # client. We only use the REST-call surface (``get_chat`` /
+    # ``get_chat_member`` / ``get_chat_administrators``) in PR #14;
+    # the Dispatcher / webhook plumbing lands in PR #16. The wrapper
+    # imports aiogram lazily so unit tests that use
+    # ``MockTelegramBotClient`` don't need the wheel.
+    "aiogram>=3.13.0",
 ]
 
 [dependency-groups]

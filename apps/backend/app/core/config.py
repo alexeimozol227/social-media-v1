@@ -152,6 +152,16 @@ class Settings(BaseSettings):
     # How many one-shot recovery codes we mint on confirm + regenerate.
     mfa_recovery_code_count: int = Field(default=10)
 
+    # ---- Telegram Bot API (PR #14, docs/plans/phase1-sprint2-plan.md) ----
+    # Production bot token. Empty in dev/CI — the adapter falls back
+    # to ``MockTelegramBotClient`` so unit tests don't need a real
+    # ``@BotFather`` token. ``telegram_bot_token_dev`` is a separate
+    # token for the dev bot @ ``staging.t.me/<bot>`` so local
+    # development doesn't share the production bot's webhook.
+    telegram_bot_token: str = Field(default="")
+    telegram_bot_token_dev: str = Field(default="")
+    telegram_bot_username: str = Field(default="")
+
     @property
     def cors_origins_list(self) -> list[str]:
         return [o.strip() for o in self.cors_origins.split(",") if o.strip()]
