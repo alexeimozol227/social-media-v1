@@ -223,3 +223,69 @@ export interface ConnectChannelRequest {
   platform?: "telegram";
   identifier: string | number;
 }
+
+// ---- Brands (PR #19) ----
+
+export interface BrandView {
+  id: string;
+  workspace_id: string;
+  name: string;
+  content_language: string;
+  timezone: string;
+  is_default: boolean;
+  created_at: string;
+}
+
+export interface BrandQuotaView {
+  plan_id: string;
+  plan_code: string | null;
+  plan_name: string | null;
+  max_brands: number;
+  used_brands: number;
+  max_posts_per_month: number;
+  max_channels_per_brand: number;
+  max_competitors: number;
+  override_active: boolean;
+}
+
+export interface CreateBrandRequest {
+  name: string;
+  content_language?: string;
+  timezone?: string;
+  is_default?: boolean;
+}
+
+export interface UpdateBrandRequest {
+  name?: string;
+  content_language?: string;
+  timezone?: string;
+}
+
+// ---- Brand Dashboard v0 (PR #19) ----
+
+export type BrandDashboardStatus = "ok" | "no_active_channel" | "no_posts_yet";
+
+export interface BrandDashboardChannelView {
+  id: string;
+  channel_id: string;
+  title: string | null;
+  username: string | null;
+  role: string;
+  subscribers_count: number | null;
+  connected_at: string;
+}
+
+export interface BrandDashboardPostPreview {
+  id: string;
+  tg_message_id: number;
+  text_preview: string | null;
+  has_media: boolean;
+  posted_at: string;
+  views_count: number | null;
+}
+
+export interface BrandDashboardView {
+  status: BrandDashboardStatus;
+  channel: BrandDashboardChannelView | null;
+  recent_posts: BrandDashboardPostPreview[];
+}

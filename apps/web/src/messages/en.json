@@ -114,6 +114,44 @@
       "recoveryTitle": "Save these codes",
       "recoveryDescription": "Each code can be used once. We'll show them only once — save them somewhere safe.",
       "recoveryAck": "I saved the codes"
+    },
+    "brands": {
+      "title": "Brands",
+      "back": "Back to dashboard",
+      "loading": "Loading…",
+      "loadError": "Failed to load brands.",
+      "quotaUsage": "Brands: {used} of {max}",
+      "quotaPlan": "Plan: {plan}",
+      "quotaOverrideActive": "(custom override active)",
+      "addTitle": "Add brand",
+      "addName": "Name",
+      "addLanguage": "Content language",
+      "addLanguageRu": "Russian",
+      "addLanguageEn": "English",
+      "addTimezone": "Timezone",
+      "addIsDefault": "Make this the active default",
+      "addSubmit": "Create",
+      "addQuotaBlocked": "Plan brand limit reached. Upgrade your plan or ask an admin to lift the cap.",
+      "addRequired": "Name is required.",
+      "tableTitle": "Workspace brands",
+      "table": {
+        "name": "Name",
+        "default": "Default",
+        "language": "Language",
+        "timezone": "Timezone",
+        "createdAt": "Created",
+        "actions": "Actions",
+        "edit": "Edit",
+        "delete": "Delete",
+        "makeDefault": "Make default",
+        "save": "Save",
+        "cancel": "Cancel"
+      },
+      "deleteConfirm": "Delete brand {name}?",
+      "deleteError": "Failed to delete brand.",
+      "updateError": "Failed to update brand.",
+      "createError": "Failed to create brand.",
+      "makeDefaultError": "Failed to switch the active brand."
     }
   },
   "dashboard": {
@@ -124,7 +162,22 @@
     "verifyNow": "Verify now",
     "security": "Security",
     "channels": "Channels",
-    "welcomeToast": "Welcome, {email}! Your account has been created."
+    "brands": "Brands",
+    "welcomeToast": "Welcome, {email}! Your account has been created.",
+    "brandHeader": "Brand {name}",
+    "noActiveBrand": "Pick a brand in the switcher to see the latest posts.",
+    "quotaSummary": "Brands: {used}/{max} · Channels per brand: {channels} · Competitors: {competitors}",
+    "recentPosts": {
+      "title": "Recent posts",
+      "loading": "Loading posts…",
+      "loadError": "Failed to load post previews.",
+      "noActiveChannel": "No channel is connected to this brand yet.",
+      "noActiveChannelCta": "Connect a channel",
+      "noPostsYet": "Channel {title} has no posts yet. Wait for live ingest or run a backfill.",
+      "viewsCount": "Views: {count}",
+      "withMedia": "With media",
+      "postedAt": "Posted {at}"
+    }
   },
   "brandSwitcher": {
     "label": "Brand",
