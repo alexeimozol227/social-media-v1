@@ -1,11 +1,13 @@
 """Thin Telegram Bot API wrapper around ``aiogram 3.x``.
 
 docs/05-tech-stack.md §5.1 + docs/plans/phase1-sprint2-plan.md
-(PR #14):
+(PR #14 + PR #15):
 
-* :class:`TelegramBotClient` — Protocol exposing the three REST
-  calls PR #14 needs (``get_chat`` / ``get_chat_member`` /
-  ``get_chat_administrators``). PR #16 will extend this with the
+* :class:`TelegramBotClient` — Protocol exposing the REST calls
+  the service layer needs: ``get_chat`` / ``get_chat_member`` /
+  ``get_chat_administrators`` (PR #14) plus
+  ``get_chat_member_count`` / ``fetch_channel_history`` for the
+  history backfill (PR #15). PR #16 extends the protocol with the
   webhook / Dispatcher surface.
 * :class:`AiogramTelegramBotClient` — real implementation. Lazily
   imports ``aiogram`` so unit tests using
@@ -14,14 +16,15 @@ docs/05-tech-stack.md §5.1 + docs/plans/phase1-sprint2-plan.md
 
 The wrapper deliberately surfaces only the data we care about
 (channel title / username / description / subscribers count + bot
-admin rights) so the service layer doesn't have to know aiogram's
-typed-dict shape.
+admin rights + post snapshots) so the service layer doesn't have
+to know aiogram's typed-dict shape.
 """
 
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING, Protocol, runtime_checkable
+from datetime import datetime
+from typing import TYPE_CHECKING, Any, Protocol, runtime_checkable
 
 if TYPE_CHECKING:  # pragma: no cover - typing only
     from aiogram import Bot
@@ -85,6 +88,52 @@ class ChatMemberInfo:
     can_delete_messages: bool = False
 
 
+@dataclass(frozen=True, slots=True)
+class ChannelPostSnapshot:
+    """Adapter-facing projection of one channel post (PR #15).
+
+    Mirrors the columns we persist on :class:`app.models.channel.
+    ChannelPost`. Created by :meth:`TelegramBotClient.fetch_channel_history`
+    and consumed by :mod:`app.services.channel_history`. The dataclass
+    is intentionally shallow — the dedup unique constraint is
+    ``(channel_id, tg_message_id)`` and the rest of the fields are
+    nullable on the model.
+    """
+
+    tg_message_id: int
+    """TG ``message_id`` — UNIQUE per channel, paired with
+    ``channel_id`` for the dedup index."""
+
+    posted_at: datetime
+    """``Message.date`` — UTC timestamp the post was published."""
+
+    text: str | None = None
+    """``Message.text`` / ``Message.caption`` — flattened body."""
+
+    entities: list[dict[str, Any]] | None = None
+    """TG ``MessageEntity[]`` list — preserves MarkdownV2 structure
+    so the moderation pipeline (Sprint 3) can rebuild it."""
+
+    has_media: bool = False
+    """``True`` if the original post carried photo / video / document
+    / audio / voice / animation media."""
+
+    media_summary: dict[str, Any] | None = None
+    """Compact descriptor of the media payload (kind + sizes) for
+    the dashboard preview. Full media stays in TG; we don't copy it."""
+
+    views_count: int | None = None
+    """Channel post views — only populated for ``Message.views``;
+    not exposed for forwarded messages, so the Bot API path leaves
+    this ``None``. The user-bot path (PR #18) fills it in."""
+
+    reactions_count: int | None = None
+    """Sum of all reaction counts (``Message.reactions``)."""
+
+    forwards_count: int | None = None
+    """``Message.forward_count`` if available."""
+
+
 # ---------------------------------------------------------------------------
 # Errors
 # ---------------------------------------------------------------------------
@@ -114,11 +163,14 @@ class TelegramChannelNotFoundError(Exception):
 
 @runtime_checkable
 class TelegramBotClient(Protocol):
-    """Public Bot API surface PR #14 needs.
+    """Public Bot API surface used by the channel + history pipelines.
 
-    PR #16 will extend this with ``set_webhook`` / dispatcher
-    plumbing; PR #15 adds ``get_chat_member_count`` + a paginated
-    history-fetch method.
+    PR #14 added ``get_chat`` / ``get_chat_member`` /
+    ``get_chat_administrators``; PR #15 adds
+    ``get_chat_member_count`` (refreshes ``subscribers_count`` on the
+    global Channel row) and :meth:`fetch_channel_history` (paginated
+    history backfill). PR #16 will extend this with ``set_webhook`` /
+    dispatcher plumbing.
     """
 
     async def get_chat(self, identifier: str | int) -> ChannelInfo:
@@ -134,6 +186,31 @@ class TelegramBotClient(Protocol):
 
     async def get_chat_administrators(self, chat_id: int) -> list[ChatMemberInfo]:
         """Return every administrator of ``chat_id`` (including the creator)."""
+
+    async def get_chat_member_count(self, chat_id: int) -> int:
+        """Return ``Chat.member_count`` (subscribers) for ``chat_id``.
+
+        Used by the backfill task to refresh ``Channel.subscribers_count``
+        before each ingest run. Same error contract as :meth:`get_chat`.
+        """
+
+    async def fetch_channel_history(
+        self,
+        chat_id: int,
+        *,
+        limit: int,
+        from_message_id: int | None = None,
+    ) -> list[ChannelPostSnapshot]:
+        """Fetch up to ``limit`` posts from ``chat_id`` (PR #15).
+
+        Returns posts ordered newest-first. ``from_message_id`` is the
+        upper bound (exclusive) — pass ``None`` for the latest window.
+        Implementations MAY return fewer than ``limit`` snapshots if
+        the channel is shorter than the window, the bot is rate-limited,
+        or some message_ids are unreachable via the Bot API. The service
+        layer treats the returned set as the source-of-truth for one
+        backfill run and dedups on ``(channel_id, tg_message_id)``.
+        """
 
     async def get_me_id(self) -> int:
         """Return the bot's own ``user_id`` (used to look itself up)."""
@@ -220,6 +297,49 @@ class AiogramTelegramBotClient:
             raise TelegramTransportError(str(exc)) from exc
         return [_member_to_info(m) for m in admins]
 
+    async def get_chat_member_count(self, chat_id: int) -> int:
+        from aiogram.exceptions import (
+            TelegramBadRequest,
+            TelegramNetworkError,
+            TelegramRetryAfter,
+        )
+
+        try:
+            return int(await self._bot.get_chat_member_count(chat_id))
+        except TelegramBadRequest as exc:
+            raise TelegramChannelNotFoundError(str(exc)) from exc
+        except (TelegramNetworkError, TelegramRetryAfter) as exc:
+            raise TelegramTransportError(str(exc)) from exc
+
+    async def fetch_channel_history(
+        self,
+        chat_id: int,
+        *,
+        limit: int,
+        from_message_id: int | None = None,
+    ) -> list[ChannelPostSnapshot]:
+        """Bot-API history fetch — currently a no-op (PR #15).
+
+        Telegram's Bot API does not expose a ``getChatHistory`` method.
+        Real history scraping happens through the MTProto user-bot in
+        PR #18 (Pyrogram ``get_chat_history``) and the live ingest
+        webhook in PR #16. PR #15 ships the infrastructure (Celery
+        task, dedup, audit, API trigger, event publisher) and leaves
+        this method as a typed stub that returns an empty list so the
+        pipeline is fully exercised end-to-end without raising.
+        """
+
+        from app.core.logging import get_logger
+
+        _logger = get_logger(__name__)
+        _logger.info(
+            "telegram_bot.fetch_channel_history.stub",
+            chat_id=chat_id,
+            limit=limit,
+            from_message_id=from_message_id,
+        )
+        return []
+
     async def get_me_id(self) -> int:
         if self._me_id is not None:
             return self._me_id
@@ -285,6 +405,8 @@ class MockTelegramBotClient:
     channels_by_username: dict[str, ChannelInfo] = field(default_factory=dict)
     channels_by_id: dict[int, ChannelInfo] = field(default_factory=dict)
     members_by_chat: dict[int, list[ChatMemberInfo]] = field(default_factory=dict)
+    member_count_by_chat: dict[int, int] = field(default_factory=dict)
+    history_by_chat: dict[int, list[ChannelPostSnapshot]] = field(default_factory=dict)
     me_id: int = 42
     raise_not_found: bool = False
     raise_transport_error: bool = False
@@ -322,6 +444,39 @@ class MockTelegramBotClient:
         if self.raise_transport_error:
             raise TelegramTransportError("mock transport error")
         return list(self.members_by_chat.get(chat_id, []))
+
+    async def get_chat_member_count(self, chat_id: int) -> int:
+        self.call_log.append(("get_chat_member_count", (chat_id,)))
+        if self.raise_transport_error:
+            raise TelegramTransportError("mock transport error")
+        if chat_id not in self.member_count_by_chat:
+            raise TelegramChannelNotFoundError(
+                f"chat {chat_id!r} not in mock member_count_by_chat",
+            )
+        return self.member_count_by_chat[chat_id]
+
+    async def fetch_channel_history(
+        self,
+        chat_id: int,
+        *,
+        limit: int,
+        from_message_id: int | None = None,
+    ) -> list[ChannelPostSnapshot]:
+        self.call_log.append(
+            (
+                "fetch_channel_history",
+                (chat_id, limit, from_message_id),
+            )
+        )
+        if self.raise_transport_error:
+            raise TelegramTransportError("mock transport error")
+        history = self.history_by_chat.get(chat_id, [])
+        # Newest-first ordering matches the production contract
+        # (TG returns ``message_id`` desc when paginating backwards).
+        ordered = sorted(history, key=lambda p: p.tg_message_id, reverse=True)
+        if from_message_id is not None:
+            ordered = [p for p in ordered if p.tg_message_id < from_message_id]
+        return ordered[:limit]
 
     async def get_me_id(self) -> int:
         return self.me_id
@@ -373,6 +528,7 @@ def get_telegram_bot_client() -> TelegramBotClient:
 __all__ = [
     "AiogramTelegramBotClient",
     "ChannelInfo",
+    "ChannelPostSnapshot",
     "ChatMemberInfo",
     "MockTelegramBotClient",
     "TelegramBotClient",

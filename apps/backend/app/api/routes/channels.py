@@ -1,4 +1,4 @@
-"""Channel routes (PR #14).
+"""Channel routes (PR #14 + PR #15).
 
 Mounted under ``/v1/brands/{brand_id}/channels``. Endpoints:
 
@@ -6,6 +6,7 @@ Mounted under ``/v1/brands/{brand_id}/channels``. Endpoints:
 * ``GET    /v1/brands/{brand_id}/channels``               — list connected channels
 * ``DELETE /v1/brands/{brand_id}/channels/{channel_id}``  — soft-detach a channel
 * ``POST   /v1/brands/{brand_id}/channels/{channel_id}/verify`` — re-run admin check
+* ``POST   /v1/brands/{brand_id}/channels/{channel_id}/backfill`` — kick off Celery history backfill (PR #15)
 
 ``brand_id`` is parsed from the path; we still validate the
 ``X-Active-Brand-Id`` header / JWT claim because the same brand
@@ -26,19 +27,24 @@ from app.api.deps import (
     CurrentUser,
     DbSession,
 )
+from app.core.config import settings
 from app.core.event_bus import publish_for_user
 from app.core.redis import get_redis
 from app.errors import (
     BrandNotInWorkspaceError,
+    ChannelBackfillLimitExceededError,
     ChannelNotConnectedError,
     ChannelNotFoundError,
 )
 from app.events.schemas import (
+    ChannelBackfillStartedEvent,
     ChannelConnectedEvent,
     ChannelDetachedEvent,
 )
 from app.models.channel import Channel, WorkspaceChannel
 from app.schemas.channels import (
+    BackfillChannelRequest,
+    BackfillChannelResponse,
     ChannelListResponse,
     ChannelView,
     ConnectChannelRequest,
@@ -318,6 +324,116 @@ async def verify_channel(
     )
     await db.commit()
     return _to_view(binding, channel)
+
+
+@router.post(
+    "/v1/brands/{brand_id}/channels/{channel_id}/backfill",
+    response_model=BackfillChannelResponse,
+    status_code=status.HTTP_202_ACCEPTED,
+    summary="Trigger an async history backfill for a connected channel (PR #15)",
+)
+async def trigger_backfill(
+    payload: BackfillChannelRequest,
+    db: DbSession,
+    user: CurrentUser,
+    active_brand: ActiveBrand,
+    request: Request,
+    brand_id: uuid.UUID = Path(...),
+    channel_id: uuid.UUID = Path(...),
+) -> BackfillChannelResponse:
+    """Enqueue a Celery task to backfill the channel's post history.
+
+    Flow (docs/plans/phase1-sprint2-plan.md PR #15):
+
+    1. Validate the path ``brand_id`` matches the active brand.
+    2. Resolve + verify the binding is still active (404 / 409 otherwise).
+    3. Clamp ``payload.limit`` against ``settings.telegram_backfill_max_limit``.
+    4. Enqueue the Celery task with the resolved ids.
+    5. Audit + ``channel.backfill_started`` event + commit.
+    6. Return 202 with the task id so the SPA can correlate
+       :class:`ChannelBackfillCompletedEvent` on the WS channel.
+    """
+
+    await _ensure_brand_matches(
+        db,
+        workspace_id=active_brand.workspace_id,
+        path_brand_id=brand_id,
+        active_brand_id=active_brand.id,
+    )
+
+    if payload.limit > settings.telegram_backfill_max_limit:
+        raise ChannelBackfillLimitExceededError(
+            details={
+                "max_limit": settings.telegram_backfill_max_limit,
+                "requested": payload.limit,
+            },
+        )
+
+    found = await channels_service.get_binding(
+        db,
+        workspace_id=active_brand.workspace_id,
+        brand_id=active_brand.id,
+        workspace_channel_id=channel_id,
+    )
+    if found is None:
+        raise ChannelNotFoundError()
+    binding, channel = found
+    if binding.disconnected_at is not None:
+        raise ChannelNotConnectedError()
+
+    # Lazy-import the task so the import graph stays light for the
+    # ``GET`` / ``DELETE`` routes that don't need Celery.
+    from app.workers.tasks.channel_backfill import backfill_channel_history_task
+
+    async_result = backfill_channel_history_task.apply_async(
+        kwargs={
+            "user_id": str(user.id),
+            "workspace_id": str(active_brand.workspace_id),
+            "brand_id": str(active_brand.id),
+            "workspace_channel_id": str(binding.id),
+            "limit": payload.limit,
+            "from_message_id": payload.from_message_id,
+        },
+    )
+    task_id = str(async_result.id) if async_result.id else "unknown"
+
+    await audit_service.record(
+        db,
+        event_type="channel.backfill_requested",
+        severity="info",
+        user_id=user.id,
+        workspace_id=active_brand.workspace_id,
+        request=request,
+        metadata={
+            "brand_id": str(active_brand.id),
+            "channel_id": str(channel.id),
+            "workspace_channel_id": str(binding.id),
+            "platform": channel.platform,
+            "task_id": task_id,
+            "limit": payload.limit,
+            "from_message_id": payload.from_message_id,
+        },
+    )
+    await db.commit()
+
+    await publish_for_user(
+        get_redis(),
+        user.id,
+        ChannelBackfillStartedEvent(
+            workspace_id=str(active_brand.workspace_id),
+            brand_id=str(active_brand.id),
+            user_id=str(user.id),
+            channel_id=str(channel.id),
+            workspace_channel_id=str(binding.id),
+            task_id=task_id,
+            requested_limit=payload.limit,
+        ),
+    )
+    return BackfillChannelResponse(
+        task_id=task_id,
+        workspace_channel_id=binding.id,
+        requested_limit=payload.limit,
+    )
 
 
 __all__ = ["router"]

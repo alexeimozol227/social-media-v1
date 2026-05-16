@@ -1,4 +1,4 @@
-.PHONY: help install install-backend install-web dev dev-backend dev-web migrate test test-backend test-web lint lint-backend lint-web typecheck typecheck-backend typecheck-web build build-web docker-up docker-down docker-logs
+.PHONY: help install install-backend install-web dev dev-backend dev-web dev-worker migrate test test-backend test-web lint lint-backend lint-web typecheck typecheck-backend typecheck-web build build-web docker-up docker-down docker-logs
 
 help:
 	@echo "social-media-v1 — make targets"
@@ -10,6 +10,7 @@ help:
 	@echo "  make dev             docker-up + uvicorn + next dev (foreground)"
 	@echo "  make dev-backend     Run only the FastAPI server"
 	@echo "  make dev-web         Run only the Next.js dev server"
+	@echo "  make dev-worker      Run only the Celery worker (PR #15 history backfill)"
 	@echo "  make test            Run pytest (backend) + frontend tests"
 	@echo "  make lint            Run ruff (backend) + biome (web)"
 	@echo "  make typecheck       Run mypy (backend) + tsc (web)"
@@ -40,6 +41,14 @@ dev-backend:
 
 dev-web:
 	cd apps/web && pnpm dev
+
+# docs/plans/phase1-sprint2-plan.md PR #15: run the Celery worker that
+# executes ``channel.backfill_history`` (and future agent tasks).
+# Requires Redis on ``CELERY_BROKER_URL`` / ``CELERY_RESULT_BACKEND``;
+# ``make docker-up`` brings that up automatically. Concurrency=2 keeps
+# the dev loop responsive without saturating the Bot API rate limit.
+dev-worker:
+	cd apps/backend && uv run celery -A app.workers.celery_app worker -l info --concurrency=2
 
 dev:
 	$(MAKE) docker-up

@@ -209,9 +209,109 @@ class ChannelDetachedEvent(BaseEvent):
     platform: str = Field(description="Channel platform (``telegram`` on MVP).")
 
 
+class ChannelBackfillStartedEvent(BaseEvent):
+    """User-triggered history backfill has been accepted (PR #15).
+
+    Emitted by the API handler right after the Celery task is enqueued.
+    The dashboard renders a transient "fetching history…" state in
+    response so the user sees acknowledgment within one tick rather
+    than waiting for the worker's first ingest batch.
+    """
+
+    event_type: Literal["channel.backfill_started"] = "channel.backfill_started"
+    agent_source: Literal["platform.api"] = "platform.api"
+
+    channel_id: str = Field(description="Global Channel Registry UUID.")
+    workspace_channel_id: str = Field(
+        description="workspace_channels row UUID the backfill targets.",
+    )
+    task_id: str = Field(description="Celery task id; lets the SPA correlate completion.")
+    requested_limit: int = Field(
+        description="Per-request post limit the API forwarded to the worker.",
+    )
+
+
+class ChannelBackfillCompletedEvent(BaseEvent):
+    """Backfill Celery task finished one ingest run (PR #15).
+
+    Emitted at the end of the worker run regardless of outcome. The
+    ``status`` field is ``"ok"`` for happy-path runs and a free-form
+    failure slug otherwise (``"transport_error"`` / ``"not_connected"``
+    / ``"adapter_unsupported"``). The SPA replaces the transient
+    spinner with a toast on receipt.
+    """
+
+    event_type: Literal["channel.backfill_completed"] = "channel.backfill_completed"
+    agent_source: Literal["agent.publisher"] = "agent.publisher"
+
+    channel_id: str = Field(description="Global Channel Registry UUID.")
+    workspace_channel_id: str = Field(
+        description="workspace_channels row UUID the backfill targeted.",
+    )
+    task_id: str = Field(description="Celery task id (mirrors ``ChannelBackfillStartedEvent``).")
+    status: str = Field(
+        description=(
+            "``ok`` for happy-path runs, free-form slug for failures "
+            "(``transport_error`` / ``not_connected`` / "
+            "``adapter_unsupported`` / ``no_history``)."
+        ),
+    )
+    fetched_count: int = Field(
+        default=0,
+        description="Snapshots the adapter returned (pre-dedup).",
+    )
+    inserted_count: int = Field(
+        default=0,
+        description="New channel_posts rows written (post-dedup).",
+    )
+    duplicate_count: int = Field(
+        default=0,
+        description="Snapshots skipped because the (channel_id, tg_message_id) row already existed.",
+    )
+
+
+class ChannelPostReceivedEvent(BaseEvent):
+    """One post was ingested into ``channel_posts`` (PR #15).
+
+    Published per-post by the backfill task and (in PR #16) by the
+    webhook ingestor. Downstream subscribers (Brand Memory updater,
+    embeddings job, analyst summarizer) react asynchronously. We keep
+    the payload small — only the routing keys and minimal metadata —
+    so consumers fetch the full row from the DB if they need it.
+    """
+
+    event_type: Literal["channel.post_received"] = "channel.post_received"
+    agent_source: Literal["agent.publisher"] = "agent.publisher"
+
+    channel_id: str = Field(description="Global Channel Registry UUID.")
+    workspace_channel_id: str = Field(
+        description="workspace_channels row UUID the post belongs to.",
+    )
+    channel_post_id: str = Field(description="channel_posts row UUID.")
+    tg_message_id: int = Field(description="Telegram ``message_id`` (dedup key).")
+    posted_at: datetime = Field(description="UTC timestamp the post was published.")
+    has_media: bool = Field(
+        default=False,
+        description="True if the original post carried media.",
+    )
+    ingest_source: str = Field(
+        description=(
+            "Origin of the ingest event (``backfill`` / ``webhook`` / "
+            "``userbot``). The Brand Memory updater treats backfilled "
+            "posts as historical and live posts as fresh signal."
+        ),
+    )
+
+
 # Discriminated union — every new event-type subclass goes here.
 Event = Annotated[
-    UserRegisteredEvent | AuthRefreshRequiredEvent | ChannelConnectedEvent | ChannelDetachedEvent,
+    UserRegisteredEvent
+    | AuthRefreshRequiredEvent
+    | ChannelConnectedEvent
+    | ChannelDetachedEvent
+    | ChannelBackfillStartedEvent
+    | ChannelBackfillCompletedEvent
+    | ChannelPostReceivedEvent,
     Field(discriminator="event_type"),
 ]
 

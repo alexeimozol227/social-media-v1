@@ -27,7 +27,11 @@ def get_redis() -> Any:
 
     global _redis
     if _redis is None:
-        _redis = from_url(settings.redis_url, encoding="utf-8", decode_responses=True)
+        _redis = from_url(  # type: ignore[no-untyped-call]
+            settings.redis_url,
+            encoding="utf-8",
+            decode_responses=True,
+        )
     return _redis
 
 
