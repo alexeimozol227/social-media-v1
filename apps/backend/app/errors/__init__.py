@@ -98,6 +98,12 @@ class ErrorCode:
     COMPETITOR_ALREADY_CONNECTED = "COMPETITOR_ALREADY_CONNECTED"
     USERBOT_NO_AVAILABLE_SESSION = "USERBOT_NO_AVAILABLE_SESSION"
 
+    # Brand settings CRUD — PR #19.
+    BRAND_QUOTA_EXCEEDED = "BRAND_QUOTA_EXCEEDED"
+    BRAND_DELETE_DEFAULT_BLOCKED = "BRAND_DELETE_DEFAULT_BLOCKED"
+    BRAND_DELETE_LAST_BLOCKED = "BRAND_DELETE_LAST_BLOCKED"
+    BRAND_NAME_REQUIRED = "BRAND_NAME_REQUIRED"
+
     # Generic
     VALIDATION_ERROR = "VALIDATION_ERROR"
     NOT_FOUND = "NOT_FOUND"
@@ -472,3 +478,70 @@ class UserBotNoAvailableSessionError(AppError):
     error_code = ErrorCode.USERBOT_NO_AVAILABLE_SESSION
     http_status = 503
     default_message = "No user-bot sessions are currently available. Try again in a few minutes."
+
+
+# ---- Brand settings CRUD — PR #19 ----
+
+
+class BrandQuotaExceededError(AppError):
+    """Caller tried to create a brand past the plan's ``max_brands`` ceiling.
+
+    Surfaces as HTTP 402 (Payment Required) so the SPA can render a
+    "Upgrade your plan" CTA instead of a generic toast.
+    ``suggested_action='upgrade_plan'`` gives the SPA an explicit hook
+    to deep-link into the billing UI.
+    """
+
+    error_code = ErrorCode.BRAND_QUOTA_EXCEEDED
+    http_status = 402
+    default_message = (
+        "You've reached the maximum number of brands allowed by your plan. "
+        "Upgrade your plan to add more brands."
+    )
+
+
+class BrandDeleteDefaultBlockedError(AppError):
+    """Caller tried to delete the workspace's default brand while other brands exist.
+
+    Each workspace must always have exactly one default brand
+    (enforced by the partial unique index
+    ``ux_brands_workspace_default``). The UI flow is:
+    "make another brand default first, then delete this one".
+    """
+
+    error_code = ErrorCode.BRAND_DELETE_DEFAULT_BLOCKED
+    http_status = 409
+    default_message = (
+        "Cannot delete the default brand while other brands exist. "
+        "Set another brand as default first, then retry."
+    )
+
+
+class BrandDeleteLastBlockedError(AppError):
+    """Caller tried to delete the workspace's last brand.
+
+    Every workspace must have at least one brand (the connect-channel
+    flow + dashboard pivot on a brand id). When the user truly wants
+    to "start over" they must create a new brand first.
+    """
+
+    error_code = ErrorCode.BRAND_DELETE_LAST_BLOCKED
+    http_status = 409
+    default_message = (
+        "Cannot delete the last remaining brand in the workspace. "
+        "Create another brand first, then retry."
+    )
+
+
+class BrandNameRequiredError(AppError):
+    """Caller sent a blank ``name`` field on create / update.
+
+    Pydantic already returns 422 on an empty / whitespace name, but
+    the typed error lets the SPA render a contextual inline hint
+    instead of falling through to the generic ``VALIDATION_ERROR``
+    branch.
+    """
+
+    error_code = ErrorCode.BRAND_NAME_REQUIRED
+    http_status = 422
+    default_message = "Brand name is required and must not be blank."

@@ -348,6 +348,82 @@ class CompetitorDetachedEvent(BaseEvent):
     platform: str = Field(description="Channel platform (``telegram`` on MVP).")
 
 
+class BrandCreatedEvent(BaseEvent):
+    """A new brand was just inserted into the workspace (PR #19).
+
+    Emitted by ``POST /v1/brands`` after the row is committed. The
+    SPA subscribes on the per-user channel and prepends the brand
+    to the switcher dropdown so a second tab sees the new brand
+    without a manual reload.
+    """
+
+    event_type: Literal["brand.created"] = "brand.created"
+    agent_source: Literal["platform.api"] = "platform.api"
+
+    name: str = Field(description="Human-readable brand name at create time.")
+    content_language: str = Field(description="Brand content language (``ru``/``en``).")
+    timezone: str = Field(description="Brand IANA timezone.")
+    is_default: bool = Field(description="True when the new brand is the workspace's default.")
+
+
+class BrandUpdatedEvent(BaseEvent):
+    """A brand's metadata was patched (PR #19).
+
+    ``changed_fields`` carries the keys that actually changed so a
+    subscriber can ignore no-op repaints — the route handler builds
+    the list from :func:`app.services.brands.update_brand`'s return
+    value (only fields whose value differs from the previous row
+    are listed).
+    """
+
+    event_type: Literal["brand.updated"] = "brand.updated"
+    agent_source: Literal["platform.api"] = "platform.api"
+
+    changed_fields: list[str] = Field(
+        description=(
+            "Subset of ``['name', 'content_language', 'timezone']`` that "
+            "actually changed in this PATCH."
+        ),
+    )
+    name: str = Field(description="Brand name after the PATCH.")
+    content_language: str = Field(description="Brand content language after the PATCH.")
+    timezone: str = Field(description="Brand timezone after the PATCH.")
+
+
+class BrandDefaultChangedEvent(BaseEvent):
+    """The workspace's default brand was swapped (PR #19).
+
+    Emitted by ``POST /v1/brands/{id}/default``. Consumers (header
+    brand-switcher, dashboard) react by re-fetching
+    ``GET /v1/users/me/brands`` so the radio-flag flips in sync
+    across every open tab.
+    """
+
+    event_type: Literal["brand.default_changed"] = "brand.default_changed"
+    agent_source: Literal["platform.api"] = "platform.api"
+
+    previous_default_brand_id: str | None = Field(
+        default=None,
+        description=(
+            "Brand UUID that was the default before this call. ``None`` for "
+            "workspaces that didn't have a default yet (legacy backfill path)."
+        ),
+    )
+
+
+class BrandDeletedEvent(BaseEvent):
+    """A brand was soft-deleted (PR #19).
+
+    Emitted by ``DELETE /v1/brands/{id}``. Consumers drop the
+    brand from the switcher dropdown; the SPA's active-brand store
+    re-resolves to the workspace's new default if the deleted
+    brand was the active one.
+    """
+
+    event_type: Literal["brand.deleted"] = "brand.deleted"
+    agent_source: Literal["platform.api"] = "platform.api"
+
+
 class ChannelPostEditedEvent(BaseEvent):
     """A previously-ingested channel post was edited on Telegram (PR #16).
 
@@ -398,7 +474,11 @@ Event = Annotated[
     | ChannelPostReceivedEvent
     | ChannelPostEditedEvent
     | CompetitorConnectedEvent
-    | CompetitorDetachedEvent,
+    | CompetitorDetachedEvent
+    | BrandCreatedEvent
+    | BrandUpdatedEvent
+    | BrandDefaultChangedEvent
+    | BrandDeletedEvent,
     Field(discriminator="event_type"),
 ]
 
