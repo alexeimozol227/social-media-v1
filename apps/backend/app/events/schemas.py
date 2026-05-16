@@ -271,13 +271,14 @@ class ChannelBackfillCompletedEvent(BaseEvent):
 
 
 class ChannelPostReceivedEvent(BaseEvent):
-    """One post was ingested into ``channel_posts`` (PR #15).
+    """One post was ingested into ``channel_posts`` (PR #15 + PR #16).
 
-    Published per-post by the backfill task and (in PR #16) by the
-    webhook ingestor. Downstream subscribers (Brand Memory updater,
-    embeddings job, analyst summarizer) react asynchronously. We keep
-    the payload small — only the routing keys and minimal metadata —
-    so consumers fetch the full row from the DB if they need it.
+    Published per-post by the backfill task (``ingest_source="backfill"``)
+    and by the live webhook ingestor (``ingest_source="webhook"``).
+    Downstream subscribers (Brand Memory updater, embeddings job,
+    analyst summarizer) react asynchronously. We keep the payload
+    small — only the routing keys and minimal metadata — so consumers
+    fetch the full row from the DB if they need it.
     """
 
     event_type: Literal["channel.post_received"] = "channel.post_received"
@@ -303,6 +304,46 @@ class ChannelPostReceivedEvent(BaseEvent):
     )
 
 
+class ChannelPostEditedEvent(BaseEvent):
+    """A previously-ingested channel post was edited on Telegram (PR #16).
+
+    Emitted by the webhook ingestor when an ``edited_channel_post``
+    update lands for a known ``(channel_id, tg_message_id)`` pair.
+    The corresponding row in ``channel_posts`` is upserted with the
+    new ``text`` / ``entities`` / ``media_summary`` / ``views_count``
+    before the event is published, so consumers that re-read the row
+    see the latest revision.
+
+    Live edits are rare in the typical channel lifecycle (typos /
+    legal corrections) but matter for the Brand Memory updater: a
+    rewritten post invalidates the previous embedding and forces a
+    re-summarize pass.
+    """
+
+    event_type: Literal["channel.post_edited"] = "channel.post_edited"
+    agent_source: Literal["agent.publisher"] = "agent.publisher"
+
+    channel_id: str = Field(description="Global Channel Registry UUID.")
+    workspace_channel_id: str = Field(
+        description="workspace_channels row UUID the post belongs to.",
+    )
+    channel_post_id: str = Field(description="channel_posts row UUID (unchanged across edits).")
+    tg_message_id: int = Field(description="Telegram ``message_id`` (dedup key, unchanged).")
+    posted_at: datetime = Field(
+        description="UTC timestamp the post was originally published (unchanged).",
+    )
+    edited_at: datetime = Field(
+        description=(
+            "UTC timestamp of the most recent edit — equals "
+            "``Message.edit_date`` from the Bot API."
+        ),
+    )
+    has_media: bool = Field(
+        default=False,
+        description="True if the (possibly-edited) post now carries media.",
+    )
+
+
 # Discriminated union — every new event-type subclass goes here.
 Event = Annotated[
     UserRegisteredEvent
@@ -311,7 +352,8 @@ Event = Annotated[
     | ChannelDetachedEvent
     | ChannelBackfillStartedEvent
     | ChannelBackfillCompletedEvent
-    | ChannelPostReceivedEvent,
+    | ChannelPostReceivedEvent
+    | ChannelPostEditedEvent,
     Field(discriminator="event_type"),
 ]
 

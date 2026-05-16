@@ -89,6 +89,44 @@ class ChatMemberInfo:
 
 
 @dataclass(frozen=True, slots=True)
+class WebhookInfo:
+    """Result of :meth:`TelegramBotClient.get_webhook_info` (PR #16).
+
+    Mirrors the Bot API ``WebhookInfo`` object trimmed down to the
+    fields we display in the admin panel / use for health checks.
+    The full upstream object also exposes ``last_error_date`` and
+    ``last_error_message`` for debugging; we surface them so a
+    delivery storm shows up in observability without an extra round
+    trip.
+    """
+
+    url: str
+    """Currently-configured webhook URL. Empty string when no webhook
+    is set (the bot is in long-polling mode)."""
+
+    has_custom_certificate: bool = False
+    """True when the bot was registered with a self-signed cert
+    (we use Telegram's public TLS chain, so this is always False
+    in production)."""
+
+    pending_update_count: int = 0
+    """Updates queued on the TG side. A non-zero value after a fresh
+    ``set_webhook`` call means TG is still draining the previous
+    long-polling backlog."""
+
+    last_error_date: datetime | None = None
+    """UTC timestamp of the last delivery failure, if any."""
+
+    last_error_message: str | None = None
+    """Free-form error string from Telegram; surfaced as-is."""
+
+    allowed_updates: tuple[str, ...] = ()
+    """Update kinds Telegram will forward — we always pin this to
+    ``("channel_post", "edited_channel_post")`` for the channel ingest
+    pipeline."""
+
+
+@dataclass(frozen=True, slots=True)
 class ChannelPostSnapshot:
     """Adapter-facing projection of one channel post (PR #15).
 
@@ -214,6 +252,34 @@ class TelegramBotClient(Protocol):
 
     async def get_me_id(self) -> int:
         """Return the bot's own ``user_id`` (used to look itself up)."""
+
+    async def set_webhook(
+        self,
+        url: str,
+        *,
+        secret_token: str,
+        allowed_updates: tuple[str, ...] = ("channel_post", "edited_channel_post"),
+        drop_pending_updates: bool = False,
+    ) -> bool:
+        """Register ``url`` as the webhook target (PR #16).
+
+        ``secret_token`` is forwarded as the ``X-Telegram-Bot-API-
+        Secret-Token`` header on every webhook delivery — the value
+        the API endpoint will check via :func:`hmac.compare_digest`.
+        Returns ``True`` on success; transport failures map to
+        :class:`TelegramTransportError`.
+        """
+
+    async def delete_webhook(self, *, drop_pending_updates: bool = False) -> bool:
+        """Remove the registered webhook (PR #16).
+
+        ``drop_pending_updates=True`` tells Telegram to drop the
+        delivery backlog instead of replaying it once a new webhook
+        is registered. Returns ``True`` on success.
+        """
+
+    async def get_webhook_info(self) -> WebhookInfo:
+        """Read the bot's current webhook configuration (PR #16)."""
 
     async def close(self) -> None:
         """Release any HTTP connection pool the client holds."""
@@ -347,6 +413,79 @@ class AiogramTelegramBotClient:
         self._me_id = me.id
         return self._me_id
 
+    async def set_webhook(
+        self,
+        url: str,
+        *,
+        secret_token: str,
+        allowed_updates: tuple[str, ...] = ("channel_post", "edited_channel_post"),
+        drop_pending_updates: bool = False,
+    ) -> bool:
+        from aiogram.exceptions import TelegramBadRequest, TelegramNetworkError, TelegramRetryAfter
+
+        try:
+            return bool(
+                await self._bot.set_webhook(
+                    url=url,
+                    secret_token=secret_token,
+                    allowed_updates=list(allowed_updates),
+                    drop_pending_updates=drop_pending_updates,
+                ),
+            )
+        except TelegramBadRequest as exc:
+            # Mirror the get_chat 400 path — a bad URL is a config
+            # issue, not a transient transport failure; we still
+            # surface it as a transport error so the caller chooses
+            # how to react (typed 502 vs. crash).
+            raise TelegramTransportError(str(exc)) from exc
+        except (TelegramNetworkError, TelegramRetryAfter) as exc:
+            raise TelegramTransportError(str(exc)) from exc
+
+    async def delete_webhook(self, *, drop_pending_updates: bool = False) -> bool:
+        from aiogram.exceptions import TelegramBadRequest, TelegramNetworkError, TelegramRetryAfter
+
+        try:
+            return bool(
+                await self._bot.delete_webhook(drop_pending_updates=drop_pending_updates),
+            )
+        except TelegramBadRequest as exc:
+            raise TelegramTransportError(str(exc)) from exc
+        except (TelegramNetworkError, TelegramRetryAfter) as exc:
+            raise TelegramTransportError(str(exc)) from exc
+
+    async def get_webhook_info(self) -> WebhookInfo:
+        from datetime import UTC
+
+        from aiogram.exceptions import TelegramBadRequest, TelegramNetworkError, TelegramRetryAfter
+
+        try:
+            info = await self._bot.get_webhook_info()
+        except TelegramBadRequest as exc:
+            raise TelegramTransportError(str(exc)) from exc
+        except (TelegramNetworkError, TelegramRetryAfter) as exc:
+            raise TelegramTransportError(str(exc)) from exc
+
+        last_error_date = None
+        raw_date = getattr(info, "last_error_date", None)
+        if raw_date is not None:
+            # aiogram returns datetime; the Bot API ships unix seconds.
+            # Normalise to UTC-aware datetime regardless of the source.
+            if isinstance(raw_date, datetime):
+                last_error_date = (
+                    raw_date if raw_date.tzinfo is not None else raw_date.replace(tzinfo=UTC)
+                )
+            else:
+                last_error_date = datetime.fromtimestamp(int(raw_date), tz=UTC)
+
+        return WebhookInfo(
+            url=str(getattr(info, "url", "") or ""),
+            has_custom_certificate=bool(getattr(info, "has_custom_certificate", False)),
+            pending_update_count=int(getattr(info, "pending_update_count", 0) or 0),
+            last_error_date=last_error_date,
+            last_error_message=getattr(info, "last_error_message", None),
+            allowed_updates=tuple(getattr(info, "allowed_updates", None) or ()),
+        )
+
     async def close(self) -> None:
         await self._bot.session.close()
 
@@ -407,6 +546,7 @@ class MockTelegramBotClient:
     members_by_chat: dict[int, list[ChatMemberInfo]] = field(default_factory=dict)
     member_count_by_chat: dict[int, int] = field(default_factory=dict)
     history_by_chat: dict[int, list[ChannelPostSnapshot]] = field(default_factory=dict)
+    webhook_info: WebhookInfo = field(default_factory=lambda: WebhookInfo(url=""))
     me_id: int = 42
     raise_not_found: bool = False
     raise_transport_error: bool = False
@@ -481,6 +621,42 @@ class MockTelegramBotClient:
     async def get_me_id(self) -> int:
         return self.me_id
 
+    async def set_webhook(
+        self,
+        url: str,
+        *,
+        secret_token: str,
+        allowed_updates: tuple[str, ...] = ("channel_post", "edited_channel_post"),
+        drop_pending_updates: bool = False,
+    ) -> bool:
+        self.call_log.append(
+            (
+                "set_webhook",
+                (url, secret_token, tuple(allowed_updates), drop_pending_updates),
+            ),
+        )
+        if self.raise_transport_error:
+            raise TelegramTransportError("mock transport error")
+        self.webhook_info = WebhookInfo(
+            url=url,
+            pending_update_count=0 if drop_pending_updates else self.webhook_info.pending_update_count,
+            allowed_updates=tuple(allowed_updates),
+        )
+        return True
+
+    async def delete_webhook(self, *, drop_pending_updates: bool = False) -> bool:
+        self.call_log.append(("delete_webhook", (drop_pending_updates,)))
+        if self.raise_transport_error:
+            raise TelegramTransportError("mock transport error")
+        self.webhook_info = WebhookInfo(url="")
+        return True
+
+    async def get_webhook_info(self) -> WebhookInfo:
+        self.call_log.append(("get_webhook_info", ()))
+        if self.raise_transport_error:
+            raise TelegramTransportError("mock transport error")
+        return self.webhook_info
+
     async def close(self) -> None:  # pragma: no cover - no resource
         return None
 
@@ -534,6 +710,7 @@ __all__ = [
     "TelegramBotClient",
     "TelegramChannelNotFoundError",
     "TelegramTransportError",
+    "WebhookInfo",
     "get_telegram_bot_client",
     "set_telegram_bot_client_override",
 ]
