@@ -127,7 +127,15 @@ export async function apiFetch<T>(path: string, opts: RequestInitOpts = {}): Pro
       retryAfter: body.retry_after_seconds,
     });
   }
-  if (res.status === 204) {
+  // Empty-body success: 204 No Content always omits a body, and the
+  // backend ships 202 Accepted (forgot-password, resend-verification,
+  // channel backfill) with no body either. Calling ``res.json()`` on
+  // an empty body throws ``SyntaxError: Unexpected end of JSON input``
+  // — the form-level catch blocks treat that as a generic failure and
+  // the user sees an error banner where they expected a success
+  // confirmation ("Отправить ссылку" → "Произошла ошибка"). Guard on
+  // ``Content-Length: 0`` so any future empty-body 2xx Just Works.
+  if (res.status === 204 || res.headers.get("content-length") === "0") {
     return undefined as T;
   }
   return (await res.json()) as T;
