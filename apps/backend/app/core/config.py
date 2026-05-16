@@ -10,6 +10,7 @@ from __future__ import annotations
 
 from functools import lru_cache
 from pathlib import Path
+from typing import Literal
 
 from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -196,6 +197,21 @@ class Settings(BaseSettings):
     # Tests flip this on via ``conftest.py``; dev defaults to ``False``
     # so the worker is exercised end-to-end.
     celery_task_always_eager: bool = Field(default=False)
+
+    # ---- LLM / embeddings (PR #17, docs/plans/phase1-sprint2-plan.md) ----
+    # ``llm_provider`` selects the concrete :class:`LLMProvider`
+    # implementation at startup. ``mock`` returns deterministic
+    # seeded vectors and never makes network calls — the default for
+    # dev / CI so unit tests don't need a real api key. Production
+    # sets ``polza`` once the Polza wire-up lands in Sprint 3.
+    llm_provider: Literal["polza", "mock"] = Field(default="mock")
+    polza_api_key: str = Field(default="")
+    polza_base_url: str = Field(default="https://api.polza.ai/api/v1")
+    # ``text-embedding-3-small`` (1536 dim) is the chosen baseline
+    # per docs/05 §3 — small enough that one workspace's brand-memory
+    # fits a single HNSW index without partitioning by model.
+    embedding_model: str = Field(default="text-embedding-3-small")
+    embedding_dim: int = Field(default=1536)
 
     @property
     def cors_origins_list(self) -> list[str]:

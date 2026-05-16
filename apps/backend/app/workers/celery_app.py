@@ -40,7 +40,10 @@ def _build() -> Celery:
         backend=settings.celery_result_backend,
         # Explicit include over autodiscover — keeps the import graph
         # static so static analysis can follow it.
-        include=["app.workers.tasks.channel_backfill"],
+        include=[
+            "app.workers.tasks.channel_backfill",
+            "app.workers.tasks.embed_channel_post",
+        ],
     )
 
     app.conf.update(

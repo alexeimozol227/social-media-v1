@@ -11,6 +11,7 @@ from app.models.channel import (
     WorkspaceChannelRole,
     WorkspaceChannelRoleValues,
 )
+from app.models.channel_post_embedding import ChannelPostEmbedding
 from app.models.email_verification import EmailVerification
 from app.models.idempotency_key import IdempotencyKey
 from app.models.invoice import Invoice
@@ -31,6 +32,7 @@ __all__ = [
     "ChannelPlatform",
     "ChannelPlatformValues",
     "ChannelPost",
+    "ChannelPostEmbedding",
     "EmailVerification",
     "IdempotencyKey",
     "Invoice",
