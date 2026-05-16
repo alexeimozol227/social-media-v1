@@ -62,33 +62,7 @@
       "missingToken": "Invalid or expired link",
       "passwordsDontMatch": "Passwords don't match"
     },
-    "errors": {
-      "INVALID_CREDENTIALS": "Invalid email or password",
-      "EMAIL_ALREADY_EXISTS": "An account with this email already exists",
-      "TOS_NOT_ACCEPTED": "You must accept the Terms of Service",
-      "LOGIN_LOCKED": "Too many failed attempts. Try again later.",
-      "INVALID_REFRESH_TOKEN": "Session expired. Sign in again.",
-      "REFRESH_TOKEN_REPLAYED": "Session ended for security reasons. Sign in again.",
-      "VALIDATION_ERROR": "Please check your input",
-      "UNAUTHENTICATED": "Authentication required",
-      "USER_INACTIVE": "Account deactivated",
-      "VERIFY_RESEND_COOLDOWN": "Wait a moment and try again",
-      "EMAIL_ALREADY_VERIFIED": "Email already verified",
-      "NO_ACTIVE_VERIFICATION": "Request a fresh code — the previous one is no longer valid",
-      "VERIFY_CODE_EXPIRED": "Code expired. Request a new one.",
-      "VERIFY_CODE_INVALID": "Invalid code",
-      "VERIFY_TOO_MANY_ATTEMPTS": "Too many attempts. Request a new code.",
-      "PASSWORD_RESET_INVALID": "Invalid link",
-      "PASSWORD_RESET_EXPIRED": "Link expired",
-      "PASSWORD_RESET_CONSUMED": "Link already used",
-      "MFA_ALREADY_ENABLED": "Two-factor authentication is already on",
-      "MFA_NOT_ENABLED": "Two-factor authentication is not enabled",
-      "MFA_ENROLLMENT_NOT_STARTED": "Start enrollment again — the previous request expired",
-      "MFA_INVALID_CODE": "Invalid code. Try again.",
-      "MFA_TOKEN_INVALID": "Session expired. Sign in again.",
-      "MFA_RATE_LIMITED": "Too many wrong codes. Try again later.",
-      "default": "Something went wrong. Try again."
-    }
+    "errorFallback": "Something went wrong. Try again."
   },
   "settings": {
     "security": {

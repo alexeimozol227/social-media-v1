@@ -154,21 +154,22 @@ async def request_verification(
 
     ttl_minutes = int(_ttl().total_seconds() // 60) or 1
     if purpose == PURPOSE_SIGNUP:
-        subject, body = email_templates.signup_verification(
+        rendered = email_templates.signup_verification(
             code=code,
             ttl_minutes=ttl_minutes,
             lang=lang,
         )
     else:
-        subject, body = email_templates.change_verification(
+        rendered = email_templates.change_verification(
             code=code,
             ttl_minutes=ttl_minutes,
             lang=lang,
         )
     await email_sender.send(
         to=target_email,
-        subject=subject,
-        body=body,
+        subject=rendered.subject,
+        body=rendered.body,
+        html=rendered.html,
         purpose=f"email_verification.{purpose}",
     )
 

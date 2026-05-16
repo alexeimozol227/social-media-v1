@@ -730,11 +730,12 @@ async def mfa_enroll_confirm(
     # Best-effort courtesy email — transport failures must not block
     # enrolment (the row is already committed).
     try:
-        subject, body = email_templates.mfa_enrolled(lang=locale)
+        rendered = email_templates.mfa_enrolled(lang=locale)
         await email_sender.send(
             to=current_user.email,
-            subject=subject,
-            body=body,
+            subject=rendered.subject,
+            body=rendered.body,
+            html=rendered.html,
             purpose="mfa_enrolled",
         )
     except Exception as exc:
@@ -793,11 +794,12 @@ async def mfa_disable(
     await db.commit()
 
     try:
-        subject, body = email_templates.mfa_disabled(lang=locale)
+        rendered = email_templates.mfa_disabled(lang=locale)
         await email_sender.send(
             to=current_user.email,
-            subject=subject,
-            body=body,
+            subject=rendered.subject,
+            body=rendered.body,
+            html=rendered.html,
             purpose="mfa_disabled",
         )
     except Exception as exc:

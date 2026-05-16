@@ -1,0 +1,70 @@
+{
+  "INVALID_CREDENTIALS": "Invalid email or password.",
+  "EMAIL_ALREADY_EXISTS": "An account with this email already exists.",
+  "INVALID_REFRESH_TOKEN": "Invalid or expired refresh token.",
+  "REFRESH_TOKEN_REPLAYED": "Refresh token replayed; the session has been revoked. Sign in again.",
+  "LOGIN_LOCKED": "Too many failed login attempts. Try again later.",
+  "TOS_NOT_ACCEPTED": "Acceptance of the Terms of Service is required.",
+  "UNAUTHENTICATED": "Authentication required.",
+  "USER_INACTIVE": "User account is not active.",
+
+  "VERIFY_RESEND_COOLDOWN": "Verification code resent too recently. Try again shortly.",
+  "EMAIL_ALREADY_VERIFIED": "Email is already verified.",
+  "NO_ACTIVE_VERIFICATION": "No active verification code; request a new one.",
+  "VERIFY_CODE_EXPIRED": "Verification code has expired.",
+  "VERIFY_CODE_INVALID": "Verification code is invalid.",
+  "VERIFY_TOO_MANY_ATTEMPTS": "Too many wrong attempts; request a new code.",
+
+  "PASSWORD_RESET_INVALID": "Invalid password reset token.",
+  "PASSWORD_RESET_EXPIRED": "Password reset link has expired.",
+  "PASSWORD_RESET_CONSUMED": "Password reset link has already been used.",
+
+  "MFA_ALREADY_ENABLED": "Two-factor authentication is already enabled.",
+  "MFA_NOT_ENABLED": "Two-factor authentication is not enabled for this account.",
+  "MFA_ENROLLMENT_NOT_STARTED": "No pending two-factor enrollment; start a new one.",
+  "MFA_INVALID_CODE": "Invalid authentication code.",
+  "MFA_TOKEN_INVALID": "Two-factor session token is invalid or expired.",
+  "MFA_RATE_LIMITED": "Too many wrong codes. Try again later.",
+  "MFA_REQUIRED": "Two-factor authentication is required.",
+
+  "SKILL_NOT_FOUND": "Skill not found.",
+  "SKILL_VALIDATION_FAILED": "Skill manifest validation failed.",
+  "SKILL_OVERRIDE_FORBIDDEN": "Overriding this skill is not allowed.",
+  "SKILL_BUDGET_EXCEEDED": "Compiled prompt exceeds the configured token budget.",
+  "SKILL_COMPILATION_TIMEOUT": "Skill compilation took too long.",
+
+  "IDEMPOTENCY_KEY_TOO_LONG": "Idempotency-Key header is too long.",
+
+  "FEATURE_DISABLED": "This feature is currently disabled.",
+
+  "BRAND_NOT_IN_WORKSPACE": "Brand does not belong to the active workspace.",
+  "ACTIVE_BRAND_REQUIRED": "No active brand could be resolved. Pass an explicit brand id in the URL or send the X-Active-Brand-Id header.",
+  "CHANNEL_NOT_FOUND": "Channel not found on the platform.",
+  "CHANNEL_ALREADY_CONNECTED": "This channel is already connected to the brand.",
+  "CHANNEL_NOT_CONNECTED": "This channel is not connected to the brand.",
+  "BOT_NOT_ADMIN": "The bot is not an administrator in this channel. Add it as an admin and retry.",
+  "BOT_MISSING_POST_PERMISSION": "The bot is an administrator but doesn't have permission to post messages.",
+  "TELEGRAM_API_ERROR": "Telegram Bot API call failed; please retry.",
+
+  "CHANNEL_BACKFILL_LIMIT_EXCEEDED": "Requested backfill window is larger than the per-call limit. Reduce 'limit' and retry.",
+  "CHANNEL_BACKFILL_NOT_CONFIGURED": "History backfill is not configured for this channel. Contact support to enable it.",
+
+  "TELEGRAM_WEBHOOK_UNAUTHORIZED": "Telegram webhook request is not authorised.",
+
+  "LLM_TIMEOUT": "LLM provider call timed out.",
+  "LLM_BUDGET_EXCEEDED": "Request exceeded the configured LLM token budget.",
+  "LLM_PROVIDER_ERROR": "LLM provider returned an error.",
+
+  "COMPETITOR_NOT_PUBLIC": "Competitor channels must be public (have an @username). Private channels can't be connected to the Inspiration Board.",
+  "COMPETITOR_ALREADY_CONNECTED": "This competitor channel is already connected to the brand.",
+  "USERBOT_NO_AVAILABLE_SESSION": "No user-bot sessions are currently available. Try again in a few minutes.",
+
+  "BRAND_QUOTA_EXCEEDED": "You've reached the maximum number of brands allowed by your plan. Upgrade your plan to add more brands.",
+  "BRAND_DELETE_DEFAULT_BLOCKED": "Cannot delete the default brand while other brands exist. Set another brand as default first, then retry.",
+  "BRAND_DELETE_LAST_BLOCKED": "Cannot delete the last remaining brand in the workspace. Create another brand first, then retry.",
+  "BRAND_NAME_REQUIRED": "Brand name is required and must not be blank.",
+
+  "VALIDATION_ERROR": "Request validation failed.",
+  "NOT_FOUND": "Not found.",
+  "INTERNAL_ERROR": "Internal error."
+}

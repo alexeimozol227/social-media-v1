@@ -33,7 +33,7 @@ import { type FormEvent, useCallback, useEffect, useState } from "react";
  */
 export default function SecuritySettingsPage() {
   const t = useTranslations("settings.security");
-  const tErrors = useTranslations("auth.errors");
+  const tAuth = useTranslations("auth");
   const router = useRouter();
   const [status, setStatus] = useState<MFAStatusResponse | null>(null);
   const [loading, setLoading] = useState(true);
@@ -73,9 +73,9 @@ export default function SecuritySettingsPage() {
       </header>
 
       {status?.enabled ? (
-        <EnabledPanel status={status} onChanged={refresh} t={t} tErrors={tErrors} />
+        <EnabledPanel status={status} onChanged={refresh} t={t} tAuth={tAuth} />
       ) : (
-        <DisabledPanel onEnabled={refresh} t={t} tErrors={tErrors} />
+        <DisabledPanel onEnabled={refresh} t={t} tAuth={tAuth} />
       )}
     </main>
   );
@@ -83,7 +83,7 @@ export default function SecuritySettingsPage() {
 
 type T = ReturnType<typeof useTranslations>;
 
-function DisabledPanel({ onEnabled, t, tErrors }: { onEnabled: () => void; t: T; tErrors: T }) {
+function DisabledPanel({ onEnabled, t, tAuth }: { onEnabled: () => void; t: T; tAuth: T }) {
   const [enroll, setEnroll] = useState<MFAEnrollStartResponse | null>(null);
   const [code, setCode] = useState("");
   const [recoveryCodes, setRecoveryCodes] = useState<string[] | null>(null);
@@ -99,7 +99,7 @@ function DisabledPanel({ onEnabled, t, tErrors }: { onEnabled: () => void; t: T;
       });
       setEnroll(res);
     } catch (err) {
-      setError(toError(err, tErrors));
+      setError(toError(err, tAuth));
     } finally {
       setBusy(false);
     }
@@ -117,7 +117,7 @@ function DisabledPanel({ onEnabled, t, tErrors }: { onEnabled: () => void; t: T;
       setRecoveryCodes(res.recovery_codes);
       setCode("");
     } catch (err) {
-      setError(toError(err, tErrors));
+      setError(toError(err, tAuth));
     } finally {
       setBusy(false);
     }
@@ -194,12 +194,12 @@ function EnabledPanel({
   status,
   onChanged,
   t,
-  tErrors,
+  tAuth,
 }: {
   status: MFAStatusResponse;
   onChanged: () => void;
   t: T;
-  tErrors: T;
+  tAuth: T;
 }) {
   const [password, setPassword] = useState("");
   const [disableCode, setDisableCode] = useState("");
@@ -221,7 +221,7 @@ function EnabledPanel({
       setDisableCode("");
       onChanged();
     } catch (err) {
-      setError(toError(err, tErrors));
+      setError(toError(err, tAuth));
     } finally {
       setBusy(false);
     }
@@ -243,7 +243,7 @@ function EnabledPanel({
       setRegenCode("");
       onChanged();
     } catch (err) {
-      setError(toError(err, tErrors));
+      setError(toError(err, tAuth));
     } finally {
       setBusy(false);
     }
@@ -356,13 +356,11 @@ function RecoveryCodesPanel({
   );
 }
 
-function toError(err: unknown, tErrors: T): string {
+function toError(err: unknown, tAuth: T): string {
+  // Backend localises err.message via Accept-Language; fall back to
+  // a generic string for network / non-API errors.
   if (err instanceof ApiError) {
-    try {
-      return tErrors(err.errorCode);
-    } catch {
-      return tErrors("default");
-    }
+    return err.message;
   }
-  return tErrors("default");
+  return tAuth("errorFallback");
 }

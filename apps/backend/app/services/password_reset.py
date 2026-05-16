@@ -197,7 +197,7 @@ async def request_reset(
     await session.commit()
 
     ttl_minutes = int(_ttl().total_seconds() // 60) or 1
-    subject, body = email_templates.password_reset(
+    rendered = email_templates.password_reset(
         reset_url=_build_reset_url(plaintext),
         ttl_minutes=ttl_minutes,
         lang=lang,
@@ -205,8 +205,9 @@ async def request_reset(
     try:
         await email_sender.send(
             to=user.email,
-            subject=subject,
-            body=body,
+            subject=rendered.subject,
+            body=rendered.body,
+            html=rendered.html,
             purpose="password_reset",
         )
     except Exception as exc:
@@ -287,11 +288,12 @@ async def consume_reset(
     # Best-effort courtesy email. Password change is committed; we
     # don't unwind on send failure.
     try:
-        subject, body = email_templates.password_reset_done(lang=lang)
+        rendered = email_templates.password_reset_done(lang=lang)
         await email_sender.send(
             to=user.email,
-            subject=subject,
-            body=body,
+            subject=rendered.subject,
+            body=rendered.body,
+            html=rendered.html,
             purpose="password_reset_done",
         )
     except Exception as exc:

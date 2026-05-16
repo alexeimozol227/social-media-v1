@@ -1,0 +1,21 @@
+{% extends "email/_base.html.jinja" %}
+{% block title %}Двухфакторная аутентификация отключена{% endblock %}
+{% block content %}
+<p style="margin:0 0 16px 0;">Привет!</p>
+<p style="margin:0 0 16px 0;">
+  В твоём аккаунте {{ product_name }} только что отключена двухфакторная
+  аутентификация. Теперь для входа достаточно пароля.
+</p>
+<table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="margin:16px 0 24px 0;background-color:#fee2e2;border:1px solid #fecaca;border-radius:8px;">
+  <tr>
+    <td style="padding:16px 20px;color:#991b1b;font-size:14px;line-height:1.5;">
+      <strong>Если это сделал не ты</strong> — срочно смени пароль и снова включи
+      2FA в настройках безопасности.
+    </td>
+  </tr>
+</table>
+<p style="margin:0;color:#475569;font-size:13px;">
+  Если ты планируешь и дальше пользоваться сервисом, мы рекомендуем сразу же
+  включить 2FA снова — это лучшая защита аккаунта.
+</p>
+{% endblock %}

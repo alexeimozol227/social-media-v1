@@ -70,6 +70,15 @@ dependencies = [
     # only ships the contract + skeleton, so ``pyrogram`` is NOT a
     # production dependency yet.
     "cryptography>=42.0",
+    # i18n / email rendering. Jinja2 powers the externalised email
+    # templates in ``app/locales/{ru,en}/email/*.{subject,html,txt}.jinja``
+    # so neither subject lines nor body copy are baked into Python
+    # source — translators / marketing can iterate on the catalog
+    # without a code release. Plain-text + HTML are rendered from
+    # parallel templates so every transactional email goes out as
+    # multipart/alternative (text fallback + HTML for clients that
+    # support it).
+    "jinja2>=3.1",
 ]
 
 [dependency-groups]

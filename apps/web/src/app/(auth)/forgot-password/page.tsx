@@ -7,7 +7,7 @@ import { type FormEvent, useState } from "react";
 
 export default function ForgotPasswordPage() {
   const t = useTranslations("auth.forgotPassword");
-  const tErrors = useTranslations("auth.errors");
+  const tAuth = useTranslations("auth");
   const [email, setEmail] = useState("");
   const [submitted, setSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -27,16 +27,9 @@ export default function ForgotPasswordPage() {
       setSubmitted(true);
     } catch (err) {
       // Non-202 here means a network / validation error, not an
-      // unknown email.
-      if (err instanceof ApiError) {
-        try {
-          setError(tErrors(err.errorCode));
-        } catch {
-          setError(tErrors("default"));
-        }
-      } else {
-        setError(tErrors("default"));
-      }
+      // unknown email. Backend localises err.message via
+      // Accept-Language.
+      setError(err instanceof ApiError ? err.message : tAuth("errorFallback"));
     } finally {
       setSubmitting(false);
     }

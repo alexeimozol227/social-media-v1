@@ -96,9 +96,9 @@ class _CapturingEmailSender:
     """Test double for :class:`app.core.email.EmailSender`.
 
     Captures every send call into ``sent`` so tests can assert on
-    the subject / body / purpose. Body is captured verbatim because
-    the verification code lives inside it — the production transports
-    deliberately don't log it.
+    the subject / body / html / purpose. Body + html are captured
+    verbatim because the verification code lives inside them — the
+    production transports deliberately don't log them.
     """
 
     def __init__(self) -> None:
@@ -110,6 +110,7 @@ class _CapturingEmailSender:
         to: str,
         subject: str,
         body: str,
+        html: str | None = None,
         purpose: str | None = None,
     ) -> None:
         self.sent.append(
@@ -117,6 +118,7 @@ class _CapturingEmailSender:
                 "to": to,
                 "subject": subject,
                 "body": body,
+                "html": html,
                 "purpose": purpose,
             }
         )
