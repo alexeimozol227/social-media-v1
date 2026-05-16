@@ -123,6 +123,50 @@
     "emailNotVerified": "Email не подтверждён.",
     "verifyNow": "Подтвердить сейчас",
     "security": "Безопасность",
+    "channels": "Каналы",
     "welcomeToast": "Добро пожаловать, {email}! Аккаунт создан."
+  },
+  "brandSwitcher": {
+    "label": "Бренд",
+    "defaultBadge": " (по умолчанию)"
+  },
+  "channels": {
+    "title": "Каналы",
+    "connectedHeader": "Подключённые каналы",
+    "empty": "Каналов пока нет.",
+    "loading": "Загрузка…",
+    "loadError": "Не удалось загрузить список каналов.",
+    "detachError": "Не удалось отключить канал.",
+    "verifyError": "Не удалось перепроверить канал.",
+    "verifyOk": "Боту всё ещё разрешено публиковать.",
+    "detachConfirm": "Отключить {target}?",
+    "wizard": {
+      "title": "Подключить Telegram-канал",
+      "step1": "Укажи @username канала или числовой chat id",
+      "step2": "Добавь бота как администратора с правом «Публиковать сообщения»",
+      "step3": "Канал подключён",
+      "identifierPlaceholder": "@my_channel или -100123…",
+      "next": "Дальше",
+      "back": "Назад",
+      "verify": "Проверить и подключить",
+      "verifying": "Проверяем…",
+      "done": "Канал успешно подключён.",
+      "another": "Подключить ещё один",
+      "noActiveBrand": "Сначала выбери активный бренд.",
+      "identifierRequired": "Укажи @username или числовой id канала.",
+      "promotePrompt": "Сделай нашего бота администратором в {target} с правом «Публиковать сообщения», затем нажми «Проверить и подключить»."
+    },
+    "table": {
+      "platform": "Платформа",
+      "title": "Название",
+      "username": "Username",
+      "role": "Роль",
+      "connectedAt": "Подключён",
+      "actions": "Действия",
+      "verify": "Проверить",
+      "detach": "Отключить",
+      "channelIdFallback": "id {id}",
+      "noTitle": "—"
+    }
   }
 }
