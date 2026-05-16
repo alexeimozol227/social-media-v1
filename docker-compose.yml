@@ -68,6 +68,27 @@ services:
       - "1025:1025"   # SMTP
       - "8025:8025"   # Web UI — http://localhost:8025
 
+  # docs/plans/phase1-sprint2-plan.md PR #15: the Celery worker that
+  # runs ``channel.backfill_history`` and (in later PRs) the agent
+  # task queue. Lives in a sibling container so its restart loop
+  # doesn't impact the API container. Sources its env from
+  # ``apps/backend/.env`` so it picks up the same DB / Redis URLs +
+  # ``CELERY_BROKER_URL`` / ``CELERY_RESULT_BACKEND`` as the API.
+  celery-worker:
+    build:
+      context: ./apps/backend
+    command: celery -A app.workers.celery_app worker -l info --concurrency=2
+    env_file:
+      - ./apps/backend/.env
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    profiles:
+      - workers
+    restart: unless-stopped
+
 volumes:
   postgres_data:
   redis_data:

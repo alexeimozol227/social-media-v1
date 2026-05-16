@@ -49,6 +49,13 @@ dependencies = [
     # imports aiogram lazily so unit tests that use
     # ``MockTelegramBotClient`` don't need the wheel.
     "aiogram>=3.13.0",
+    # PR #15 (docs/plans/phase1-sprint2-plan.md): Celery async worker
+    # for the channel history backfill job + future agent pipelines.
+    # Redis is reused as broker + result backend (docs/05 §2.4). The
+    # Celery app + task module live in ``app.workers``; production
+    # ships a separate ``celery -A app.workers.celery_app worker``
+    # container, dev runs ``make dev-worker``.
+    "celery[redis]>=5.4.0",
 ]
 
 [dependency-groups]

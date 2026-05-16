@@ -162,6 +162,32 @@ class Settings(BaseSettings):
     telegram_bot_token_dev: str = Field(default="")
     telegram_bot_username: str = Field(default="")
 
+    # ---- History backfill (PR #15, docs/plans/phase1-sprint2-plan.md) ----
+    # The backfill Celery task fetches up to ``telegram_backfill_max_limit``
+    # historical posts per channel; the API caps the per-request value at
+    # ``telegram_backfill_default_limit`` so a misclick can't exhaust the
+    # bot's per-minute Bot API budget. Limits mirror the plan's "100–500
+    # posts" window.
+    telegram_backfill_default_limit: int = Field(default=100)
+    telegram_backfill_max_limit: int = Field(default=500)
+
+    # ---- Celery (PR #15, docs/05-tech-stack.md §2.4) ----
+    # Redis is reused as broker + result backend; the Celery worker
+    # subscribes on a dedicated logical DB (``/1``) so its queue traffic
+    # doesn't collide with the pubsub event-bus on ``/0``. The dev URLs
+    # match ``docker-compose.yml``; production overrides them via env.
+    celery_broker_url: str = Field(default="redis://localhost:6379/1")
+    celery_result_backend: str = Field(default="redis://localhost:6379/2")
+    # Soft / hard task time limits (seconds). The default 5-min hard limit
+    # is conservative — backfill of 500 posts at ~1 Bot API call/sec stays
+    # well under it.
+    celery_task_soft_time_limit: int = Field(default=240)
+    celery_task_time_limit: int = Field(default=300)
+    # When ``True``, every ``.delay()`` runs synchronously in-process.
+    # Tests flip this on via ``conftest.py``; dev defaults to ``False``
+    # so the worker is exercised end-to-end.
+    celery_task_always_eager: bool = Field(default=False)
+
     @property
     def cors_origins_list(self) -> list[str]:
         return [o.strip() for o in self.cors_origins.split(",") if o.strip()]

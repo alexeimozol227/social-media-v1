@@ -1,7 +1,9 @@
 """Social-platform adapters (Telegram on MVP)."""
 
 from app.adapters.social.telegram_bot import (
+    AiogramTelegramBotClient,
     ChannelInfo,
+    ChannelPostSnapshot,
     ChatMemberInfo,
     MockTelegramBotClient,
     TelegramBotClient,
@@ -11,7 +13,9 @@ from app.adapters.social.telegram_bot import (
 )
 
 __all__ = [
+    "AiogramTelegramBotClient",
     "ChannelInfo",
+    "ChannelPostSnapshot",
     "ChatMemberInfo",
     "MockTelegramBotClient",
     "TelegramBotClient",

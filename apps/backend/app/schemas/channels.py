@@ -118,7 +118,60 @@ class BrandSummary(BaseModel):
     timezone: Annotated[str, StringConstraints(max_length=64)]
 
 
+class BackfillChannelRequest(BaseModel):
+    """Body of ``POST /v1/brands/{brand_id}/channels/{channel_id}/backfill``.
+
+    ``limit`` is bounded by ``settings.telegram_backfill_max_limit``
+    (the route raises :class:`ChannelBackfillLimitExceededError`
+    when the caller asks for more). ``from_message_id`` lets an
+    operator resume a previous run from a known anchor — leave it
+    ``None`` for the most-recent window.
+    """
+
+    model_config = ConfigDict(extra="forbid")
+
+    limit: int = Field(
+        default=100,
+        ge=1,
+        description=(
+            "Number of historical posts to fetch in this run. "
+            "Hard-capped at ``settings.telegram_backfill_max_limit`` (default 500)."
+        ),
+    )
+    from_message_id: int | None = Field(
+        default=None,
+        ge=1,
+        description=(
+            "Exclusive upper bound on ``message_id``; pass to resume from "
+            "an anchor older than the most-recent post."
+        ),
+    )
+
+
+class BackfillChannelResponse(BaseModel):
+    """Acknowledgment returned by the backfill trigger endpoint.
+
+    The endpoint returns 202 immediately — the actual ingest happens
+    asynchronously in the Celery task identified by ``task_id``. The
+    SPA correlates :class:`app.events.schemas.ChannelBackfillCompletedEvent`
+    on the per-user WS channel against this ``task_id`` to flip its
+    "fetching history…" indicator off.
+    """
+
+    task_id: str = Field(
+        description="Celery task id; mirrors ``ChannelBackfillStartedEvent.task_id``.",
+    )
+    workspace_channel_id: uuid.UUID = Field(
+        description="``workspace_channels.id`` the backfill targets.",
+    )
+    requested_limit: int = Field(
+        description="Post window the worker will fetch (post-clamping).",
+    )
+
+
 __all__ = [
+    "BackfillChannelRequest",
+    "BackfillChannelResponse",
     "BrandSummary",
     "ChannelListResponse",
     "ChannelView",

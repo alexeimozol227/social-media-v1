@@ -81,6 +81,10 @@ class ErrorCode:
     BOT_MISSING_POST_PERMISSION = "BOT_MISSING_POST_PERMISSION"
     TELEGRAM_API_ERROR = "TELEGRAM_API_ERROR"
 
+    # Channel history backfill — PR #15.
+    CHANNEL_BACKFILL_LIMIT_EXCEEDED = "CHANNEL_BACKFILL_LIMIT_EXCEEDED"
+    CHANNEL_BACKFILL_NOT_CONFIGURED = "CHANNEL_BACKFILL_NOT_CONFIGURED"
+
     # Generic
     VALIDATION_ERROR = "VALIDATION_ERROR"
     NOT_FOUND = "NOT_FOUND"
@@ -356,3 +360,37 @@ class TelegramAPIError(AppError):
     error_code = ErrorCode.TELEGRAM_API_ERROR
     http_status = 502
     default_message = "Telegram Bot API call failed; please retry."
+
+
+# ---- Channel history backfill — PR #15 ----
+
+
+class ChannelBackfillLimitExceededError(AppError):
+    """API caller asked for more posts than the per-request cap allows.
+
+    The cap lives in ``settings.telegram_backfill_max_limit`` (500 by
+    default). Surfaces as 422 so the SPA renders an inline form error
+    instead of a global toast.
+    """
+
+    error_code = ErrorCode.CHANNEL_BACKFILL_LIMIT_EXCEEDED
+    http_status = 422
+    default_message = (
+        "Requested backfill window is larger than the per-call limit. Reduce 'limit' and retry."
+    )
+
+
+class ChannelBackfillNotConfiguredError(AppError):
+    """Backfill was requested but the platform adapter can't fulfil it.
+
+    Returned by the API when the platform doesn't support history
+    backfill (e.g. an MVP build with no user-bot configured). The
+    Celery task also raises this internally so the audit trail is
+    consistent regardless of where the rejection happens.
+    """
+
+    error_code = ErrorCode.CHANNEL_BACKFILL_NOT_CONFIGURED
+    http_status = 503
+    default_message = (
+        "History backfill is not configured for this channel. Contact support to enable it."
+    )
