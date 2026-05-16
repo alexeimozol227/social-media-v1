@@ -1,41 +1,86 @@
-"""Plain-text email templates (RU + EN).
+"""Thin wrappers around the localised email catalog.
 
-Adapted from the reference project. The MVP is RU-first
-(``docs/04-architecture.md §22 D63``); EN is included so a future
-locale switch in user settings has somewhere to fall back to.
+The actual subject / plain-text / HTML copy lives in
+``app/locales/{ru,en}/email/*.{subject,html,txt}.jinja`` — see
+``app/core/translations.py`` for the loader. This module preserves
+the existing call signatures (``signup_verification``,
+``change_verification``, …) so the service layer doesn't need to
+know there's a Jinja2 catalog behind them.
 
-The "ты"-form, sentence case, no exclamation points are intentional.
-Templates are short enough to render fine in any mail client without
-a templating engine — we deliberately don't ship HTML email here.
+Each function returns a :class:`RenderedEmail` triple
+(``subject, text_body, html_body``) so the SMTP / HTTP transport can
+ship the message as ``multipart/alternative``. Mail clients that
+can't render HTML fall back to the plain-text view — see
+``docs/05-tech-stack.md §3.6``.
+
+Adding a new email:
+
+1. Create the three Jinja2 files
+   (``email/<key>.subject.jinja``, ``…/<key>.txt.jinja``,
+   ``…/<key>.html.jinja``) under **each** supported locale in
+   ``app/locales/``.
+2. Add a wrapper function here that calls :func:`_render` with the
+   matching key and your template variables.
+
+That's it — no Python copy edits, no second deploy.
 """
 
 from __future__ import annotations
 
-from typing import Literal
+from dataclasses import dataclass
+from datetime import UTC, datetime
+from typing import Final, Literal
 
+from app.core.translations import render_template
+
+# Re-export for backwards compatibility — services still type their
+# ``lang`` parameter as ``email_templates.Lang``.
 Lang = Literal["ru", "en"]
 
+# Branded product name interpolated into every template. Centralised
+# here so a rename / white-label only touches one source line. Kept
+# constant on purpose — making this a runtime setting would mean the
+# catalog values need to be valid Jinja2 in every translation, which
+# adds churn for marketing edits.
+PRODUCT_NAME: Final[str] = "social-media-v1"
 
-_SIGNUP_RU = (
-    "Подтверди свой email в social-media-v1.\n"
-    "\n"
-    "Введи этот код в окне подтверждения — он живёт {ttl_minutes} минут:\n"
-    "\n"
-    "    {code}\n"
-    "\n"
-    "Если ты не регистрировался(ась), просто проигнорируй письмо.\n"
-)
 
-_SIGNUP_EN = (
-    "Confirm your social-media-v1 email.\n"
-    "\n"
-    "Enter this code in the verification dialog — it expires in "
-    "{ttl_minutes} minutes:\n"
-    "\n"
-    "    {code}\n"
-    "\n"
-    "If you didn't sign up, you can ignore this message.\n"
-)
+@dataclass(frozen=True, slots=True)
+class RenderedEmail:
+    """Concrete render of a transactional email.
+
+    The ``html`` body is always set — every template ships an HTML
+    variant. Transports that don't support multipart should send the
+    plain-text ``body`` and discard ``html``.
+    """
+
+    subject: str
+    body: str
+    html: str
+
+
+def _render(
+    key: str,
+    *,
+    lang: Lang,
+    **variables: object,
+) -> RenderedEmail:
+    """Render the (subject, text, html) triple for ``key`` in ``lang``.
+
+    ``key`` is the filename stem under ``locales/{lang}/email/``
+    (e.g. ``"signup"`` → ``signup.subject.jinja`` +
+    ``signup.txt.jinja`` + ``signup.html.jinja``).
+    """
+
+    ctx: dict[str, object] = {
+        "product_name": PRODUCT_NAME,
+        "year": datetime.now(tz=UTC).year,
+        **variables,
+    }
+    subject = render_template(f"email/{key}.subject.jinja", lang, **ctx).strip()
+    text = render_template(f"email/{key}.txt.jinja", lang, **ctx)
+    html = render_template(f"email/{key}.html.jinja", lang, **ctx)
+    return RenderedEmail(subject=subject, body=text, html=html)
 
 
 def signup_verification(
@@ -43,42 +88,10 @@ def signup_verification(
     code: str,
     ttl_minutes: int,
     lang: Lang = "ru",
-) -> tuple[str, str]:
-    """Returns ``(subject, body)`` for the sign-up verification email."""
+) -> RenderedEmail:
+    """Sign-up email-verification code (six-digit OTP)."""
 
-    if lang == "en":
-        return (
-            "Confirm your social-media-v1 email",
-            _SIGNUP_EN.format(code=code, ttl_minutes=ttl_minutes),
-        )
-    return (
-        "Подтверди email в social-media-v1",
-        _SIGNUP_RU.format(code=code, ttl_minutes=ttl_minutes),
-    )
-
-
-_CHANGE_RU = (
-    "Подтверди новый email в social-media-v1.\n"
-    "\n"
-    "Чтобы заменить email на текущий аккаунт, введи код в форме смены — "
-    "он живёт {ttl_minutes} минут:\n"
-    "\n"
-    "    {code}\n"
-    "\n"
-    "Если ты не запрашивал смену email, просто проигнорируй письмо.\n"
-)
-
-_CHANGE_EN = (
-    "Confirm your new social-media-v1 email.\n"
-    "\n"
-    "Enter this code in the change-email form to swap your account "
-    "email — it expires in {ttl_minutes} minutes:\n"
-    "\n"
-    "    {code}\n"
-    "\n"
-    "If you didn't request an email change, you can ignore this "
-    "message.\n"
-)
+    return _render("signup", lang=lang, code=code, ttl_minutes=ttl_minutes)
 
 
 def change_verification(
@@ -86,48 +99,10 @@ def change_verification(
     code: str,
     ttl_minutes: int,
     lang: Lang = "ru",
-) -> tuple[str, str]:
-    """Returns ``(subject, body)`` for the email-change verification.
+) -> RenderedEmail:
+    """Email-change verification code (old email stays active until confirmed)."""
 
-    Routes shipping in PR #3 only exercise ``signup``; the ``change``
-    flow is wired in a follow-up. Defined here so PR-F2 doesn't churn
-    this module.
-    """
-
-    if lang == "en":
-        return (
-            "Confirm your new social-media-v1 email",
-            _CHANGE_EN.format(code=code, ttl_minutes=ttl_minutes),
-        )
-    return (
-        "Подтверди новый email в social-media-v1",
-        _CHANGE_RU.format(code=code, ttl_minutes=ttl_minutes),
-    )
-
-
-_RESET_RU = (
-    "Восстановление пароля social-media-v1.\n"
-    "\n"
-    "Кто-то запросил сброс пароля для этого аккаунта. Если это был ты,\n"
-    "перейди по ссылке — она живёт {ttl_minutes} минут:\n"
-    "\n"
-    "    {reset_url}\n"
-    "\n"
-    "Если ты не запрашивал(а) сброс — просто проигнорируй письмо. Пароль\n"
-    "не изменится сам собой.\n"
-)
-
-_RESET_EN = (
-    "Reset your social-media-v1 password.\n"
-    "\n"
-    "Someone asked to reset the password on this account. If it was you,\n"
-    "open the link — it expires in {ttl_minutes} minutes:\n"
-    "\n"
-    "    {reset_url}\n"
-    "\n"
-    "If you didn't request a reset, you can ignore this message. Your\n"
-    "password won't change unless you open the link.\n"
-)
+    return _render("change_verification", lang=lang, code=code, ttl_minutes=ttl_minutes)
 
 
 def password_reset(
@@ -135,100 +110,38 @@ def password_reset(
     reset_url: str,
     ttl_minutes: int,
     lang: Lang = "ru",
-) -> tuple[str, str]:
-    """Returns ``(subject, body)`` for the password-reset email."""
+) -> RenderedEmail:
+    """One-time password-reset link."""
 
-    if lang == "en":
-        return (
-            "Reset your social-media-v1 password",
-            _RESET_EN.format(reset_url=reset_url, ttl_minutes=ttl_minutes),
-        )
-    return (
-        "Восстановление пароля social-media-v1",
-        _RESET_RU.format(reset_url=reset_url, ttl_minutes=ttl_minutes),
-    )
+    return _render("password_reset", lang=lang, reset_url=reset_url, ttl_minutes=ttl_minutes)
 
 
-_RESET_DONE_RU = (
-    "Пароль на твоём аккаунте social-media-v1 изменён.\n"
-    "\n"
-    "Если это был ты — ничего делать не нужно. Если нет, напиши в поддержку,\n"
-    "и мы заблокируем сессии и сбросим пароль повторно.\n"
-)
-
-_RESET_DONE_EN = (
-    "Your social-media-v1 password was reset.\n"
-    "\n"
-    "If this was you, no action needed. If not, contact support — we'll\n"
-    "lock the account and walk you through a fresh reset.\n"
-)
-
-
-def password_reset_done(*, lang: Lang = "ru") -> tuple[str, str]:
+def password_reset_done(*, lang: Lang = "ru") -> RenderedEmail:
     """Courtesy email sent **after** a successful password reset.
 
     Best-effort — the route handler does not roll back the password
     change if the email fails to send.
     """
 
-    if lang == "en":
-        return ("Your social-media-v1 password was reset", _RESET_DONE_EN)
-    return ("Пароль на social-media-v1 изменён", _RESET_DONE_RU)
+    return _render("password_reset_done", lang=lang)
 
 
-_MFA_ENROLLED_RU = (
-    "Двухфакторная аутентификация (2FA) включена.\n"
-    "\n"
-    "Теперь при входе на social-media-v1 нужно вводить код из "
-    "приложения-аутентификатора в дополнение к паролю.\n"
-    "\n"
-    "Если это сделал не ты, срочно смени пароль на social-media-v1 "
-    "и отключи 2FA в настройках безопасности.\n"
-)
-
-_MFA_ENROLLED_EN = (
-    "Two-factor authentication (2FA) was enabled.\n"
-    "\n"
-    "From now on, signing in to social-media-v1 requires a code from "
-    "your authenticator app in addition to your password.\n"
-    "\n"
-    "If this wasn't you, change your social-media-v1 password and "
-    "disable 2FA in Security settings immediately.\n"
-)
-
-
-def mfa_enrolled(*, lang: Lang = "ru") -> tuple[str, str]:
+def mfa_enrolled(*, lang: Lang = "ru") -> RenderedEmail:
     """Courtesy email confirming 2FA was enabled on the account."""
 
-    if lang == "en":
-        return ("Two-factor authentication enabled", _MFA_ENROLLED_EN)
-    return ("Двухфакторная аутентификация включена", _MFA_ENROLLED_RU)
+    return _render("mfa_enrolled", lang=lang)
 
 
-_MFA_DISABLED_RU = (
-    "Двухфакторная аутентификация (2FA) отключена.\n"
-    "\n"
-    "Если это сделал не ты, срочно смени пароль на social-media-v1.\n"
-)
-
-_MFA_DISABLED_EN = (
-    "Two-factor authentication (2FA) was disabled.\n"
-    "\n"
-    "If this wasn't you, change your social-media-v1 password "
-    "immediately.\n"
-)
-
-
-def mfa_disabled(*, lang: Lang = "ru") -> tuple[str, str]:
+def mfa_disabled(*, lang: Lang = "ru") -> RenderedEmail:
     """Courtesy email confirming 2FA was disabled."""
 
-    if lang == "en":
-        return ("Two-factor authentication disabled", _MFA_DISABLED_EN)
-    return ("Двухфакторная аутентификация отключена", _MFA_DISABLED_RU)
+    return _render("mfa_disabled", lang=lang)
 
 
 __all__ = [
+    "PRODUCT_NAME",
     "Lang",
+    "RenderedEmail",
     "change_verification",
     "mfa_disabled",
     "mfa_enrolled",

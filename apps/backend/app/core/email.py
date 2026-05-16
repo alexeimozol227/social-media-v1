@@ -5,6 +5,13 @@ a fake via ``app.dependency_overrides`` and the production / dev
 choice is driven by config alone (resolution order in
 :func:`get_email_sender`).
 
+Every transactional email ships as ``multipart/alternative`` — a
+plain-text ``body`` (which mail clients render when HTML is blocked
+or unsupported) plus an HTML variant. Templates render both halves
+from parallel Jinja2 files under
+``app/locales/{ru,en}/email/*.{txt,html}.jinja`` — see
+``app.services.email_templates``.
+
 Implementations:
 
 * :class:`LogEmailSender` — default in dev/CI/tests. Logs message
@@ -42,6 +49,7 @@ class EmailSender(Protocol):
         to: str,
         subject: str,
         body: str,
+        html: str | None = None,
         purpose: str | None = None,
     ) -> None: ...
 
@@ -49,11 +57,11 @@ class EmailSender(Protocol):
 class LogEmailSender:
     """Default for dev / CI / tests.
 
-    The message ``body`` is intentionally **not** logged — verification
-    codes and password-reset URLs travel through the body. The dev
-    transport used to log the body verbatim, which is fine on a
-    developer's laptop but a PII / secret leak the moment that
-    transport sees a non-dev environment.
+    The message ``body`` / ``html`` are intentionally **not** logged
+    — verification codes and password-reset URLs travel through the
+    body. The dev transport used to log the body verbatim, which is
+    fine on a developer's laptop but a PII / secret leak the moment
+    that transport sees a non-dev environment.
     """
 
     async def send(
@@ -62,9 +70,10 @@ class LogEmailSender:
         to: str,
         subject: str,
         body: str,
+        html: str | None = None,
         purpose: str | None = None,
     ) -> None:
-        del body  # body carries one-time secrets; never log.
+        del body, html  # body / html carry one-time secrets; never log.
         logger.info(
             "email.send",
             to=to,
@@ -79,7 +88,9 @@ class SmtpEmailSender:
 
     Used for local development with MailHog (``SMTP_HOST=localhost``,
     ``SMTP_PORT=1025``) — the dashboard at http://localhost:8025 shows
-    every message.
+    every message. Plain text + HTML are sent as
+    ``multipart/alternative``; mail clients pick whichever they can
+    render.
     """
 
     def __init__(
@@ -105,13 +116,19 @@ class SmtpEmailSender:
         to: str,
         subject: str,
         body: str,
+        html: str | None = None,
         purpose: str | None = None,
     ) -> None:
         message = EmailMessage()
         message["From"] = self._sender
         message["To"] = to
         message["Subject"] = subject
+        # ``set_content`` writes the plain-text root; ``add_alternative``
+        # appends the HTML view and flips the top-level content-type
+        # to ``multipart/alternative``.
         message.set_content(body)
+        if html is not None:
+            message.add_alternative(html, subtype="html")
 
         await aiosmtplib.send(
             message,
@@ -163,12 +180,19 @@ class UniSenderGoEmailSender:
         to: str,
         subject: str,
         body: str,
+        html: str | None = None,
         purpose: str | None = None,
     ) -> None:
+        # UniSender Go accepts both ``plaintext`` and ``html`` in the
+        # same call and renders both in the same message. Recipients
+        # whose client can't display HTML see ``plaintext`` instead.
+        message_body: dict[str, str] = {"plaintext": body}
+        if html is not None:
+            message_body["html"] = html
         payload: dict[str, Any] = {
             "message": {
                 "subject": subject,
-                "body": {"plaintext": body},
+                "body": message_body,
                 "from_email": self._from_email,
                 "from_name": self._from_name,
                 "recipients": [{"email": to}],

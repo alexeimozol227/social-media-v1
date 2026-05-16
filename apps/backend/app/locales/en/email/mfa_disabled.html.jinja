@@ -1,0 +1,21 @@
+{% extends "email/_base.html.jinja" %}
+{% block title %}Two-factor authentication disabled{% endblock %}
+{% block content %}
+<p style="margin:0 0 16px 0;">Hi there,</p>
+<p style="margin:0 0 16px 0;">
+  Two-factor authentication was just disabled on your {{ product_name }} account.
+  Sign-in now only requires your password.
+</p>
+<table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="margin:16px 0 24px 0;background-color:#fee2e2;border:1px solid #fecaca;border-radius:8px;">
+  <tr>
+    <td style="padding:16px 20px;color:#991b1b;font-size:14px;line-height:1.5;">
+      <strong>If this wasn't you</strong>, change your password immediately and
+      re-enable 2FA from Security settings.
+    </td>
+  </tr>
+</table>
+<p style="margin:0;color:#475569;font-size:13px;">
+  If you plan to keep using the service, we recommend turning 2FA back on right away —
+  it's the best account-level protection.
+</p>
+{% endblock %}

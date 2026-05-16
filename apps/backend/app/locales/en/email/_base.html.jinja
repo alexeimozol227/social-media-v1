@@ -1,0 +1,53 @@
+{# English variant of the base HTML layout — same structure as the
+   RU version, only the footer copy is localised. See the RU file
+   for design rationale.
+-#}
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block subject %}{{ product_name }}{% endblock %}</title>
+</head>
+<body style="margin:0;padding:0;background-color:#f1f5f9;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Oxygen,Ubuntu,sans-serif;color:#0f172a;">
+  <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="background-color:#f1f5f9;padding:32px 16px;">
+    <tr>
+      <td align="center">
+        <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="max-width:560px;background-color:#ffffff;border-radius:12px;box-shadow:0 1px 3px rgba(15,23,42,0.08);overflow:hidden;">
+          <tr>
+            <td style="background-color:#4f46e5;padding:20px 32px;">
+              <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+                <tr>
+                  <td style="color:#ffffff;font-size:18px;font-weight:600;letter-spacing:0.2px;">
+                    {{ product_name }}
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <tr>
+            <td style="padding:32px;">
+              <h1 style="margin:0 0 16px 0;font-size:22px;font-weight:600;line-height:1.35;color:#0f172a;">
+                {% block title %}{% endblock %}
+              </h1>
+              <div style="font-size:15px;line-height:1.55;color:#1e293b;">
+                {% block content %}{% endblock %}
+              </div>
+            </td>
+          </tr>
+
+          <tr>
+            <td style="background-color:#f8fafc;padding:20px 32px;border-top:1px solid #e2e8f0;">
+              <p style="margin:0;font-size:12px;line-height:1.5;color:#64748b;">
+                © {{ year }} {{ product_name }}. This is an automated message — please don't reply.
+                If you have questions, reach support via your account settings.
+              </p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>

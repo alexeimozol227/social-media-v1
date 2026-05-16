@@ -1,0 +1,21 @@
+{% extends "email/_base.html.jinja" %}
+{% block title %}Confirm your new email{% endblock %}
+{% block content %}
+<p style="margin:0 0 16px 0;">Hi there,</p>
+<p style="margin:0 0 16px 0;">
+  Enter this code in the {{ product_name }} email-change dialog. It expires in
+  <strong>{{ ttl_minutes }} minutes</strong>. Your old email stays active until
+  the new one is confirmed.
+</p>
+<table role="presentation" cellspacing="0" cellpadding="0" border="0" align="center" style="margin:24px auto;">
+  <tr>
+    <td style="background-color:#eef2ff;border:1px solid #c7d2fe;border-radius:8px;padding:16px 28px;font-family:'SFMono-Regular',Menlo,Consolas,'Liberation Mono',monospace;font-size:28px;letter-spacing:6px;font-weight:600;color:#3730a3;">
+      {{ code }}
+    </td>
+  </tr>
+</table>
+<p style="margin:0;color:#475569;font-size:13px;">
+  If you didn't request this change, update your password from account settings —
+  someone may have accessed your account.
+</p>
+{% endblock %}
