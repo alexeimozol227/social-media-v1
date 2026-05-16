@@ -311,9 +311,7 @@ async def test_delete_default_brand_blocked_when_others_exist(
     await client.post("/v1/brands", json={"name": "Second"})
     default_id = (await client.get("/v1/brands")).json()[0]["id"]
     # Make sure that's the default one
-    default_brand = next(
-        b for b in (await client.get("/v1/brands")).json() if b["is_default"]
-    )
+    default_brand = next(b for b in (await client.get("/v1/brands")).json() if b["is_default"])
     resp = await client.delete(f"/v1/brands/{default_brand['id']}")
     assert resp.status_code == 409
     assert resp.json()["error_code"] == "BRAND_DELETE_DEFAULT_BLOCKED"
