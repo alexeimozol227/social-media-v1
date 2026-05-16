@@ -36,6 +36,7 @@ from app.models import (  # noqa: F401
     Brand,
     Channel,
     ChannelPost,
+    ChannelPostEmbedding,
     EmailVerification,
     IdempotencyKey,
     Invoice,

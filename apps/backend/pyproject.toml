@@ -56,6 +56,13 @@ dependencies = [
     # ships a separate ``celery -A app.workers.celery_app worker``
     # container, dev runs ``make dev-worker``.
     "celery[redis]>=5.4.0",
+    # PR #17 (docs/plans/phase1-sprint2-plan.md): pgvector ORM
+    # bindings so SQLAlchemy can serialise/deserialise the
+    # ``vector(1536)`` column. The :class:`Vector` ``TypeDecorator``
+    # in ``app.models.channel_post_embedding`` falls back to JSON on
+    # SQLite for tests, so this dependency is only required at
+    # runtime when the dialect is Postgres.
+    "pgvector>=0.3.0",
 ]
 
 [dependency-groups]
