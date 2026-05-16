@@ -104,6 +104,11 @@ class ErrorCode:
     BRAND_DELETE_LAST_BLOCKED = "BRAND_DELETE_LAST_BLOCKED"
     BRAND_NAME_REQUIRED = "BRAND_NAME_REQUIRED"
 
+    # Account settings (change-password / change-email / sessions).
+    EMAIL_UNCHANGED = "EMAIL_UNCHANGED"
+    SESSION_NOT_FOUND = "SESSION_NOT_FOUND"
+    SESSION_REVOKE_CURRENT_FORBIDDEN = "SESSION_REVOKE_CURRENT_FORBIDDEN"
+
     # Generic
     VALIDATION_ERROR = "VALIDATION_ERROR"
     NOT_FOUND = "NOT_FOUND"
@@ -545,3 +550,42 @@ class BrandNameRequiredError(AppError):
     error_code = ErrorCode.BRAND_NAME_REQUIRED
     http_status = 422
     default_message = "Brand name is required and must not be blank."
+
+
+# ---- Account settings (change-password / change-email / sessions) ----
+
+
+class EmailUnchangedError(AppError):
+    """Caller submitted the same email they're already on.
+
+    The change-email flow refuses to issue a verification code for a
+    no-op swap so the user doesn't get confused by a "confirm your
+    email" message that just re-confirms the current address.
+    """
+
+    error_code = ErrorCode.EMAIL_UNCHANGED
+    http_status = 409
+    default_message = "The new email matches your current one."
+
+
+class SessionNotFoundError(AppError):
+    """Caller tried to revoke a session id that doesn't belong to them."""
+
+    error_code = ErrorCode.SESSION_NOT_FOUND
+    http_status = 404
+    default_message = "Session not found."
+
+
+class SessionRevokeCurrentForbiddenError(AppError):
+    """Caller tried to revoke the session they're currently using.
+
+    Use ``POST /v1/auth/logout`` for that — revoking-self via the
+    sessions list would leave the cookies dangling and the UI in a
+    confusing half-signed-out state.
+    """
+
+    error_code = ErrorCode.SESSION_REVOKE_CURRENT_FORBIDDEN
+    http_status = 409
+    default_message = (
+        "Cannot revoke the current session via the sessions list. Use sign-out instead."
+    )

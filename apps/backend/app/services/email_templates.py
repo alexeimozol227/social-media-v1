@@ -138,13 +138,50 @@ def mfa_disabled(*, lang: Lang = "ru") -> RenderedEmail:
     return _render("mfa_disabled", lang=lang)
 
 
+def password_changed(*, lang: Lang = "ru") -> RenderedEmail:
+    """Courtesy email confirming the password was changed from settings.
+
+    Distinct from :func:`password_reset_done` so the copy can explain
+    that the change came from the in-app settings flow (the user
+    already typed their current password) rather than the public
+    forgot-password link.
+    """
+
+    return _render("password_changed", lang=lang)
+
+
+def email_changed(
+    *,
+    old_email: str,
+    new_email: str,
+    lang: Lang = "ru",
+) -> RenderedEmail:
+    """Courtesy email sent to the **old** address after the email
+    swap succeeds.
+
+    Sent to the previous email so the legitimate user still receives
+    the notification even if the attacker controls the new inbox.
+    The new address gets the 6-digit verification code at request
+    time (via :func:`change_verification`).
+    """
+
+    return _render(
+        "email_changed",
+        lang=lang,
+        old_email=old_email,
+        new_email=new_email,
+    )
+
+
 __all__ = [
     "PRODUCT_NAME",
     "Lang",
     "RenderedEmail",
     "change_verification",
+    "email_changed",
     "mfa_disabled",
     "mfa_enrolled",
+    "password_changed",
     "password_reset",
     "password_reset_done",
     "signup_verification",

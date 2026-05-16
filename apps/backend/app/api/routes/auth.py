@@ -6,6 +6,7 @@ docs/06-roadmap.md §5 Сприннт 1: ``/v1/auth/*`` in kebab-case.
 from __future__ import annotations
 
 import uuid
+from datetime import UTC, datetime
 from typing import Any
 
 from fastapi import APIRouter, Depends, Request, Response, status
@@ -29,10 +30,13 @@ from app.core.security import (
     create_access_token,
     create_mfa_token,
     decode_mfa_token,
+    hash_password,
     verify_password,
 )
 from app.db.rls import set_rls_context
 from app.errors import (
+    EmailAlreadyExistsError,
+    EmailUnchangedError,
     InvalidCredentialsError,
     InvalidRefreshTokenError,
     LoginLockedError,
@@ -40,15 +44,23 @@ from app.errors import (
     MFANotEnabledError,
     MFARateLimitedError,
     MFATokenInvalidError,
+    NoActiveVerificationError,
     RefreshTokenReplayedError,
+    SessionNotFoundError,
+    SessionRevokeCurrentForbiddenError,
     VerifyResendCooldownError,
 )
 from app.events.schemas import UserRegisteredEvent
-from app.models.email_verification import PURPOSE_SIGNUP
+from app.models.email_verification import PURPOSE_CHANGE, PURPOSE_SIGNUP
 from app.models.refresh_token import RefreshToken
 from app.models.user import User, UserStatus
 from app.schemas.auth import (
     AccessTokenResponse,
+    ActiveSessionsResponse,
+    ActiveSessionView,
+    ChangeEmailConfirmRequest,
+    ChangeEmailRequestRequest,
+    ChangePasswordRequest,
     LoginMFARequest,
     LoginMFARequiredResponse,
     LoginRequest,
@@ -850,3 +862,311 @@ async def mfa_regenerate_recovery(
     )
     await db.commit()
     return MFARecoveryRegenerateResponse(recovery_codes=list(codes))
+
+
+# ---- Account settings: change password / change email / sessions ----
+
+
+@router.post(
+    "/change-password",
+    status_code=status.HTTP_204_NO_CONTENT,
+    summary="Change the current user's password",
+)
+async def change_password(
+    payload: ChangePasswordRequest,
+    current_user: CurrentUser,
+    db: DbSession,
+    request: Request,
+    response: Response,
+    email_sender: EmailSender = Depends(get_email_sender),
+    locale: Locale = Depends(get_locale),
+) -> Response:
+    """Rotate the user's password from Settings → Account.
+
+    Requires the current password so a stolen access cookie alone
+    can't rotate the password and silently lock the legitimate user
+    out. On success bumps ``users.token_version`` (kills every
+    outstanding access token), revokes every refresh family in the
+    same transaction, clears the cookies on the response, and
+    best-effort-sends a courtesy email.
+    """
+
+    if not verify_password(payload.current_password, current_user.hashed_password):
+        raise InvalidCredentialsError()
+
+    current_user.hashed_password = hash_password(payload.new_password)
+    await refresh_service.bump_token_version(db, user=current_user)
+    await audit_service.record(
+        db,
+        event_type="user.password_changed",
+        severity="warning",
+        user_id=current_user.id,
+        request=request,
+    )
+    await db.commit()
+
+    try:
+        rendered = email_templates.password_changed(lang=locale)
+        await email_sender.send(
+            to=current_user.email,
+            subject=rendered.subject,
+            body=rendered.body,
+            html=rendered.html,
+            purpose="password_changed",
+        )
+    except Exception as exc:
+        logger.warning(
+            "auth.password_changed_email_failed",
+            user_id=str(current_user.id),
+            error=exc.__class__.__name__,
+        )
+
+    _clear_auth_cookies(response)
+    response.status_code = status.HTTP_204_NO_CONTENT
+    return response
+
+
+@router.post(
+    "/change-email/request",
+    status_code=status.HTTP_202_ACCEPTED,
+    summary="Start the email-change flow: send a 6-digit code to the new address",
+)
+async def change_email_request(
+    payload: ChangeEmailRequestRequest,
+    current_user: CurrentUser,
+    db: DbSession,
+    email_sender: EmailSender = Depends(get_email_sender),
+    locale: Locale = Depends(get_locale),
+) -> Response:
+    """Issue a verification code to the **new** address.
+
+    The current email stays bound until the user types the code at
+    ``/change-email/confirm`` — a typo or hostile attempt that never
+    reaches the confirm step leaves the account on the old address.
+    Requires the current password so a stolen access cookie alone
+    isn't enough to kick off the flow.
+    """
+
+    if not verify_password(payload.current_password, current_user.hashed_password):
+        raise InvalidCredentialsError()
+
+    normalized = payload.new_email.strip().lower()
+    if normalized == (current_user.email or "").lower():
+        raise EmailUnchangedError()
+
+    # Uniqueness pre-check. There's still a race between this read
+    # and the confirm step where the row store can grow a row with
+    # the same email; the confirm path re-checks under the same
+    # transaction so the worst case there is a 409 the SPA can
+    # surface cleanly.
+    existing = await auth_service.get_user_by_email(db, normalized)
+    if existing is not None and existing.id != current_user.id:
+        raise EmailAlreadyExistsError(
+            f"User with email {normalized} already exists",
+        )
+
+    await ev_service.request_verification(
+        db,
+        email_sender,
+        current_user,
+        purpose=PURPOSE_CHANGE,
+        email=normalized,
+        lang=locale,
+    )
+    return Response(status_code=status.HTTP_202_ACCEPTED)
+
+
+@router.post(
+    "/change-email/confirm",
+    status_code=status.HTTP_204_NO_CONTENT,
+    summary="Confirm the email-change code and swap the address",
+)
+async def change_email_confirm(
+    payload: ChangeEmailConfirmRequest,
+    current_user: CurrentUser,
+    db: DbSession,
+    request: Request,
+    response: Response,
+    email_sender: EmailSender = Depends(get_email_sender),
+    locale: Locale = Depends(get_locale),
+) -> Response:
+    """Confirm a 6-digit code, swap ``users.email`` to the new
+    address, and kill every outstanding session.
+
+    On success: marks the verification row consumed, updates
+    ``users.email`` to the value stored on the verification row
+    (the new address the user typed at request time), bumps
+    ``users.token_version`` + revokes every refresh family, audit-
+    logs the change, and best-effort-sends a notification to the
+    **old** address so a legitimate user still gets the alert even
+    if an attacker controls the new inbox.
+    """
+
+    verification = await ev_service.confirm_verification(
+        db,
+        current_user,
+        purpose=PURPOSE_CHANGE,
+        code=payload.code,
+    )
+
+    new_email = (verification.email or "").strip().lower()
+    if not new_email:
+        # Defensive: the service writes the target email on row
+        # creation, so an empty value would mean DB corruption.
+        raise NoActiveVerificationError()
+
+    old_email = current_user.email or ""
+
+    # Re-check uniqueness inside the same transaction so a race in
+    # between request and confirm surfaces cleanly.
+    existing = await auth_service.get_user_by_email(db, new_email)
+    if existing is not None and existing.id != current_user.id:
+        raise EmailAlreadyExistsError(
+            f"User with email {new_email} already exists",
+        )
+
+    current_user.email = new_email
+    current_user.email_verified_at = verification.consumed_at
+
+    await refresh_service.bump_token_version(db, user=current_user)
+    await audit_service.record(
+        db,
+        event_type="user.email_changed",
+        severity="warning",
+        user_id=current_user.id,
+        request=request,
+        metadata={"old_email": old_email, "new_email": new_email},
+    )
+    await db.commit()
+
+    # Notify the OLD address so a legitimate user receives the alert
+    # even if an attacker controls the new inbox.
+    if old_email:
+        try:
+            rendered = email_templates.email_changed(
+                old_email=old_email,
+                new_email=new_email,
+                lang=locale,
+            )
+            await email_sender.send(
+                to=old_email,
+                subject=rendered.subject,
+                body=rendered.body,
+                html=rendered.html,
+                purpose="email_changed",
+            )
+        except Exception as exc:
+            logger.warning(
+                "auth.email_changed_email_failed",
+                user_id=str(current_user.id),
+                error=exc.__class__.__name__,
+            )
+
+    _clear_auth_cookies(response)
+    response.status_code = status.HTTP_204_NO_CONTENT
+    return response
+
+
+@router.get(
+    "/sessions",
+    response_model=ActiveSessionsResponse,
+    summary="List active refresh-token sessions for the current user",
+)
+async def list_sessions(
+    current_user: CurrentUser,
+    db: DbSession,
+    request: Request,
+) -> ActiveSessionsResponse:
+    """Return one row per active refresh-token family for the
+    signed-in user.
+
+    "Active" means ``revoked_at IS NULL AND expires_at > now()``. The
+    row whose token hash matches the presented refresh cookie is
+    flagged ``is_current=true`` so the SPA can disable the "revoke"
+    button for it (use sign-out instead).
+    """
+
+    now = datetime.now(tz=UTC)
+    stmt = (
+        select(RefreshToken)
+        .where(
+            RefreshToken.user_id == current_user.id,
+            RefreshToken.revoked_at.is_(None),
+            RefreshToken.expires_at > now,
+        )
+        .order_by(RefreshToken.issued_at.desc())
+    )
+    result = await db.execute(stmt)
+    rows = list(result.scalars().all())
+
+    current_family_id: uuid.UUID | None = None
+    presented = request.cookies.get(REFRESH_COOKIE)
+    if presented:
+        presented_hash = refresh_service.hash_refresh_token(presented)
+        for row in rows:
+            if row.token_hash == presented_hash:
+                current_family_id = row.family_id
+                break
+
+    items = [
+        ActiveSessionView(
+            id=row.family_id,
+            issued_at=row.issued_at,
+            expires_at=row.expires_at,
+            last_seen_at=row.issued_at,
+            user_agent=row.user_agent,
+            ip=row.ip,
+            is_current=(current_family_id is not None and row.family_id == current_family_id),
+        )
+        for row in rows
+    ]
+    return ActiveSessionsResponse(items=items)
+
+
+@router.delete(
+    "/sessions/{session_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+    summary="Revoke a specific refresh-token family",
+)
+async def revoke_session(
+    session_id: uuid.UUID,
+    current_user: CurrentUser,
+    db: DbSession,
+    request: Request,
+) -> Response:
+    """Revoke every refresh-token row in the family ``session_id``.
+
+    Rejects with 409 if the caller is signed in **with** that
+    family — they should use ``POST /v1/auth/logout`` instead so
+    the cookies get cleared in the same response. The family must
+    belong to the current user; cross-tenant attempts surface as
+    404 ``SESSION_NOT_FOUND``.
+    """
+
+    stmt = select(RefreshToken).where(
+        RefreshToken.family_id == session_id,
+        RefreshToken.user_id == current_user.id,
+    )
+    result = await db.execute(stmt)
+    rows = list(result.scalars().all())
+    if not rows:
+        raise SessionNotFoundError()
+
+    presented = request.cookies.get(REFRESH_COOKIE)
+    if presented:
+        presented_hash = refresh_service.hash_refresh_token(presented)
+        for row in rows:
+            if row.token_hash == presented_hash and row.revoked_at is None:
+                raise SessionRevokeCurrentForbiddenError()
+
+    await refresh_service.revoke_family(db, family_id=session_id)
+    await audit_service.record(
+        db,
+        event_type="user.session_revoked",
+        severity="info",
+        user_id=current_user.id,
+        request=request,
+        metadata={"family_id": str(session_id)},
+    )
+    await db.commit()
+    return Response(status_code=status.HTTP_204_NO_CONTENT)

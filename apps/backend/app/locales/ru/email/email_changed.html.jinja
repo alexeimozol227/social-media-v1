@@ -1,0 +1,25 @@
+{% extends "email/_base.html.jinja" %}
+{% block title %}Email изменён{% endblock %}
+{% block content %}
+<p style="margin:0 0 16px 0;">Привет!</p>
+<p style="margin:0 0 16px 0;">
+  Email на твоём аккаунте {{ product_name }} был изменён.
+</p>
+<table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="margin:8px 0 16px 0;background-color:#eef2ff;border:1px solid #c7d2fe;border-radius:8px;">
+  <tr>
+    <td style="padding:12px 16px;font-size:14px;color:#1e293b;line-height:1.6;">
+      Старый адрес: <strong>{{ old_email }}</strong><br/>
+      Новый адрес: <strong>{{ new_email }}</strong>
+    </td>
+  </tr>
+</table>
+<p style="margin:0 0 16px 0;">Все активные сессии завершены — войди заново.</p>
+<table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="margin:16px 0 0 0;background-color:#fef2f2;border:1px solid #fecaca;border-radius:8px;">
+  <tr>
+    <td style="padding:16px 20px;color:#991b1b;font-size:14px;line-height:1.5;">
+      <strong>Если это сделал не ты</strong> — напиши в поддержку как можно скорее.
+      Это письмо отправлено на старый адрес, чтобы уведомление точно дошло.
+    </td>
+  </tr>
+</table>
+{% endblock %}

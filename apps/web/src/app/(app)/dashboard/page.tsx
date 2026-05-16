@@ -134,6 +134,18 @@ export default function DashboardPage() {
           {t("brands")}
         </Link>
         <Link
+          href="/settings/account"
+          className="rounded bg-gray-800 px-4 py-2 text-white transition hover:bg-gray-700"
+        >
+          {t("account")}
+        </Link>
+        <Link
+          href="/settings/sessions"
+          className="rounded bg-gray-800 px-4 py-2 text-white transition hover:bg-gray-700"
+        >
+          {t("sessions")}
+        </Link>
+        <Link
           href="/settings/security"
           className="rounded bg-gray-800 px-4 py-2 text-white transition hover:bg-gray-700"
         >
