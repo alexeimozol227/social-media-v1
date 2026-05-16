@@ -63,9 +63,7 @@ async def configure_secret() -> AsyncIterator[None]:
 @pytest_asyncio.fixture
 async def seed_channel(
     db_session_factory: async_sessionmaker[AsyncSession],
-) -> AsyncIterator[
-    tuple[User, Workspace, Brand, Channel, WorkspaceChannel]
-]:
+) -> AsyncIterator[tuple[User, Workspace, Brand, Channel, WorkspaceChannel]]:
     """Seed a fully-connected channel inside its own session.
 
     We use the test DB factory directly (rather than the route's
@@ -185,11 +183,7 @@ async def _post_count(
 ) -> int:
     async with db_session_factory() as session:
         rows = (
-            (
-                await session.execute(
-                    select(ChannelPost).where(ChannelPost.channel_id == channel_id)
-                )
-            )
+            (await session.execute(select(ChannelPost).where(ChannelPost.channel_id == channel_id)))
             .scalars()
             .all()
         )
@@ -254,11 +248,7 @@ async def test_webhook_edited_channel_post_updates_row(
     assert await _post_count(db_session_factory, channel.id) == 1
     async with db_session_factory() as session:
         rows = (
-            (
-                await session.execute(
-                    select(ChannelPost).where(ChannelPost.channel_id == channel.id)
-                )
-            )
+            (await session.execute(select(ChannelPost).where(ChannelPost.channel_id == channel.id)))
             .scalars()
             .all()
         )

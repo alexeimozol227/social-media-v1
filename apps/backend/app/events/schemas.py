@@ -334,8 +334,7 @@ class ChannelPostEditedEvent(BaseEvent):
     )
     edited_at: datetime = Field(
         description=(
-            "UTC timestamp of the most recent edit — equals "
-            "``Message.edit_date`` from the Bot API."
+            "UTC timestamp of the most recent edit — equals ``Message.edit_date`` from the Bot API."
         ),
     )
     has_media: bool = Field(

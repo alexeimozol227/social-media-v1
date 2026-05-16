@@ -639,7 +639,9 @@ class MockTelegramBotClient:
             raise TelegramTransportError("mock transport error")
         self.webhook_info = WebhookInfo(
             url=url,
-            pending_update_count=0 if drop_pending_updates else self.webhook_info.pending_update_count,
+            pending_update_count=0
+            if drop_pending_updates
+            else self.webhook_info.pending_update_count,
             allowed_updates=tuple(allowed_updates),
         )
         return True

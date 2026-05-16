@@ -258,7 +258,9 @@ class _Subscriber:
             data = msg["data"]
             if isinstance(data, bytes):
                 data = data.decode()
-            self.received[msg["channel"].decode() if isinstance(msg["channel"], bytes) else msg["channel"]].append(
+            self.received[
+                msg["channel"].decode() if isinstance(msg["channel"], bytes) else msg["channel"]
+            ].append(
                 json.loads(data),
             )
 
