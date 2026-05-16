@@ -206,6 +206,36 @@ export interface MFARecoveryRegenerateResponse {
   recovery_codes: string[];
 }
 
+// ---- Account settings (change-password / change-email / sessions) ----
+
+export interface ChangePasswordRequest {
+  current_password: string;
+  new_password: string;
+}
+
+export interface ChangeEmailRequestRequest {
+  current_password: string;
+  new_email: string;
+}
+
+export interface ChangeEmailConfirmRequest {
+  code: string;
+}
+
+export interface ActiveSessionView {
+  id: string;
+  issued_at: string;
+  expires_at: string;
+  last_seen_at: string;
+  user_agent: string | null;
+  ip: string | null;
+  is_current: boolean;
+}
+
+export interface ActiveSessionsResponse {
+  items: ActiveSessionView[];
+}
+
 // ---- Channels (PR #14) ----
 
 export interface ChannelView {

@@ -224,3 +224,62 @@ class MFAStatusResponse(BaseModel):
     enabled: bool
     enrolled_at: datetime | None = None
     recovery_codes_remaining: int = 0
+
+
+# ---- Account settings (change-password / change-email / sessions) ----
+
+
+class ChangePasswordRequest(BaseModel):
+    """Body of ``POST /v1/auth/change-password``.
+
+    Requires the current password so a stolen access cookie alone
+    can't rotate the password and silently lock the legitimate user
+    out.
+    """
+
+    current_password: str = Field(min_length=1, max_length=128)
+    new_password: str = Field(min_length=8, max_length=128)
+
+
+class ChangeEmailRequestRequest(BaseModel):
+    """Body of ``POST /v1/auth/change-email/request``.
+
+    Requires the current password so a stolen access cookie alone
+    can't kick off a hostile email-change flow. The verification
+    code goes to ``new_email``; the old email stays bound until the
+    confirm step succeeds.
+    """
+
+    current_password: str = Field(min_length=1, max_length=128)
+    new_email: EmailStr
+
+
+class ChangeEmailConfirmRequest(BaseModel):
+    """Body of ``POST /v1/auth/change-email/confirm``."""
+
+    code: str = Field(min_length=6, max_length=6, pattern=r"^\d{6}$")
+
+
+class ActiveSessionView(BaseModel):
+    """One row in ``GET /v1/auth/sessions``.
+
+    ``id`` is the refresh-token family id (group of rotated tokens),
+    ``is_current`` flags the session bound to the cookie used for
+    this request. The plaintext token never leaves the server.
+    """
+
+    model_config = ConfigDict(from_attributes=True)
+
+    id: uuid.UUID
+    issued_at: datetime
+    expires_at: datetime
+    last_seen_at: datetime
+    user_agent: str | None
+    ip: str | None
+    is_current: bool
+
+
+class ActiveSessionsResponse(BaseModel):
+    """Body of ``GET /v1/auth/sessions``."""
+
+    items: list[ActiveSessionView] = Field(default_factory=list)

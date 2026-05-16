@@ -1,0 +1,25 @@
+{% extends "email/_base.html.jinja" %}
+{% block title %}Email changed{% endblock %}
+{% block content %}
+<p style="margin:0 0 16px 0;">Hi there,</p>
+<p style="margin:0 0 16px 0;">
+  The email on your {{ product_name }} account was changed.
+</p>
+<table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="margin:8px 0 16px 0;background-color:#eef2ff;border:1px solid #c7d2fe;border-radius:8px;">
+  <tr>
+    <td style="padding:12px 16px;font-size:14px;color:#1e293b;line-height:1.6;">
+      Old address: <strong>{{ old_email }}</strong><br/>
+      New address: <strong>{{ new_email }}</strong>
+    </td>
+  </tr>
+</table>
+<p style="margin:0 0 16px 0;">All active sessions have been signed out — sign back in.</p>
+<table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="margin:16px 0 0 0;background-color:#fef2f2;border:1px solid #fecaca;border-radius:8px;">
+  <tr>
+    <td style="padding:16px 20px;color:#991b1b;font-size:14px;line-height:1.5;">
+      <strong>If this wasn't you</strong>, contact support as soon as possible.
+      We send this message to the old address so the alert still reaches you.
+    </td>
+  </tr>
+</table>
+{% endblock %}
