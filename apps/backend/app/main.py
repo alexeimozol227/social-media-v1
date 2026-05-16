@@ -16,6 +16,7 @@ from app.api.middleware.idempotency import IdempotencyMiddleware
 from app.api.routes import auth as auth_routes
 from app.api.routes import brands as brand_routes
 from app.api.routes import channels as channel_routes
+from app.api.routes import competitors as competitor_routes
 from app.api.routes import email_verifications as email_verification_routes
 from app.api.routes import events as events_routes
 from app.api.routes import health as health_routes
@@ -93,6 +94,10 @@ app.include_router(events_routes.router, prefix="/v1/events", tags=["events"])
 # without a router-level prefix.
 app.include_router(brand_routes.router, tags=["brands"])
 app.include_router(channel_routes.router, tags=["channels"])
+# PR #18 (docs/plans/phase1-sprint2-plan.md): competitor channel
+# bindings — read-only, role='competitor'. Same prefix-less style as
+# the channels router.
+app.include_router(competitor_routes.router, tags=["competitors"])
 # PR #16 (docs/plans/phase1-sprint2-plan.md): live Telegram webhook ingest.
 # The router registers an absolute path (``/v1/integrations/telegram/webhook``)
 # so it's mounted without a router-level prefix.

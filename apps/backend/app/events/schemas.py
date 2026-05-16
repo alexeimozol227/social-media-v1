@@ -304,6 +304,50 @@ class ChannelPostReceivedEvent(BaseEvent):
     )
 
 
+class CompetitorConnectedEvent(BaseEvent):
+    """A competitor channel was just connected to a brand (PR #18).
+
+    Mirrors :class:`ChannelConnectedEvent` but distinct on the event
+    bus so subscribers (Inspiration Board L1, Sprint 9) can filter
+    without inspecting ``workspace_channels.role`` on every payload.
+    """
+
+    event_type: Literal["competitor.connected"] = "competitor.connected"
+    agent_source: Literal["platform.api"] = "platform.api"
+
+    channel_id: str = Field(description="Global Channel Registry UUID.")
+    workspace_channel_id: str = Field(
+        description="workspace_channels row UUID for the competitor binding.",
+    )
+    platform: str = Field(description="Channel platform (``telegram`` on MVP).")
+    title: str | None = Field(
+        default=None,
+        description="Channel display name at connect time (snapshot).",
+    )
+    username: str | None = Field(
+        default=None,
+        description="``@handle`` without the leading ``@``; non-null for competitors.",
+    )
+
+
+class CompetitorDetachedEvent(BaseEvent):
+    """A brand soft-detached a previously-connected competitor channel (PR #18).
+
+    Mirrors :class:`ChannelDetachedEvent`. The audit trail and any
+    cached competitor posts stay intact; the row in ``workspace_channels``
+    just gets ``disconnected_at = now()``.
+    """
+
+    event_type: Literal["competitor.detached"] = "competitor.detached"
+    agent_source: Literal["platform.api"] = "platform.api"
+
+    channel_id: str = Field(description="Global Channel Registry UUID.")
+    workspace_channel_id: str = Field(
+        description="workspace_channels row UUID that was detached.",
+    )
+    platform: str = Field(description="Channel platform (``telegram`` on MVP).")
+
+
 class ChannelPostEditedEvent(BaseEvent):
     """A previously-ingested channel post was edited on Telegram (PR #16).
 
@@ -352,7 +396,9 @@ Event = Annotated[
     | ChannelBackfillStartedEvent
     | ChannelBackfillCompletedEvent
     | ChannelPostReceivedEvent
-    | ChannelPostEditedEvent,
+    | ChannelPostEditedEvent
+    | CompetitorConnectedEvent
+    | CompetitorDetachedEvent,
     Field(discriminator="event_type"),
 ]
 

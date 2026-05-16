@@ -213,6 +213,22 @@ class Settings(BaseSettings):
     embedding_model: str = Field(default="text-embedding-3-small")
     embedding_dim: int = Field(default=1536)
 
+    # ---- User-bot / Pyrogram pool (PR #18, docs/05 §5.2, D40) ----
+    # Fernet key for encrypting userbot session credentials at rest.
+    # Generate with: python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"
+    # None in dev/CI — the crypto module raises when called without a key.
+    userbot_encryption_key: str | None = Field(default=None)
+    # ``mock`` returns deterministic fixtures; ``pyrogram`` creates a
+    # real MTProto session (Sprint 3). Same pattern as ``llm_provider``.
+    userbot_client: Literal["mock", "pyrogram"] = Field(default="mock")
+    # Soft rate-limit: a session that exceeded this count is deprioritised
+    # by the pool rotation query. The hard reset is a pg_cron job in Sprint 8.
+    userbot_max_usage_per_24h: int = Field(default=1000)
+    # Minutes to keep a session in ``flood_wait`` status after Telegram
+    # returns FloodWait. The pool rotation query skips sessions with
+    # ``flood_wait_until > now()``.
+    userbot_flood_wait_cooldown_minutes: int = Field(default=60)
+
     @property
     def cors_origins_list(self) -> list[str]:
         return [o.strip() for o in self.cors_origins.split(",") if o.strip()]
