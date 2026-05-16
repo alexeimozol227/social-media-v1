@@ -223,3 +223,44 @@ export interface ConnectChannelRequest {
   platform?: "telegram";
   identifier: string | number;
 }
+
+// ---- Integrations: Telegram bot identity ----
+
+export interface TelegramBotInfo {
+  username: string;
+  deep_link: string;
+}
+
+// ---- Account management (change-password / change-email / sessions) ----
+
+export interface ChangePasswordRequest {
+  current_password: string;
+  new_password: string;
+}
+
+export interface ChangeEmailRequest {
+  current_password: string;
+  new_email: string;
+}
+
+export interface ChangeEmailRequestResponse {
+  sent_to: string;
+}
+
+export interface ChangeEmailConfirmRequest {
+  code: string;
+}
+
+export interface SessionView {
+  id: string;
+  user_agent: string | null;
+  ip: string | null;
+  issued_at: string;
+  expires_at: string;
+  is_current: boolean;
+}
+
+export interface SessionsListResponse {
+  items: SessionView[];
+  total: number;
+}

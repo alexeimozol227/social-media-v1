@@ -80,6 +80,12 @@ class ErrorCode:
     BOT_NOT_ADMIN = "BOT_NOT_ADMIN"
     BOT_MISSING_POST_PERMISSION = "BOT_MISSING_POST_PERMISSION"
     TELEGRAM_API_ERROR = "TELEGRAM_API_ERROR"
+    TELEGRAM_BOT_NOT_CONFIGURED = "TELEGRAM_BOT_NOT_CONFIGURED"
+
+    # Account management — change-password / change-email / sessions
+    PASSWORD_SAME_AS_CURRENT = "PASSWORD_SAME_AS_CURRENT"
+    EMAIL_SAME_AS_CURRENT = "EMAIL_SAME_AS_CURRENT"
+    SESSION_NOT_FOUND = "SESSION_NOT_FOUND"
 
     # Generic
     VALIDATION_ERROR = "VALIDATION_ERROR"
@@ -356,3 +362,33 @@ class TelegramAPIError(AppError):
     error_code = ErrorCode.TELEGRAM_API_ERROR
     http_status = 502
     default_message = "Telegram Bot API call failed; please retry."
+
+
+class TelegramBotNotConfiguredError(AppError):
+    error_code = ErrorCode.TELEGRAM_BOT_NOT_CONFIGURED
+    http_status = 503
+    default_message = (
+        "Telegram bot is not configured on this server. Set TELEGRAM_BOT_USERNAME "
+        "before connecting channels."
+    )
+
+
+# ---- Account management (change-password / change-email / sessions) ----
+
+
+class PasswordSameAsCurrentError(AppError):
+    error_code = ErrorCode.PASSWORD_SAME_AS_CURRENT
+    http_status = 400
+    default_message = "New password must be different from the current one."
+
+
+class EmailSameAsCurrentError(AppError):
+    error_code = ErrorCode.EMAIL_SAME_AS_CURRENT
+    http_status = 400
+    default_message = "New email must be different from the current one."
+
+
+class SessionNotFoundError(AppError):
+    error_code = ErrorCode.SESSION_NOT_FOUND
+    http_status = 404
+    default_message = "Session not found or already revoked."

@@ -13,12 +13,14 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.middleware.errors import register_error_handlers
 from app.api.middleware.idempotency import IdempotencyMiddleware
+from app.api.routes import account as account_routes
 from app.api.routes import auth as auth_routes
 from app.api.routes import brands as brand_routes
 from app.api.routes import channels as channel_routes
 from app.api.routes import email_verifications as email_verification_routes
 from app.api.routes import events as events_routes
 from app.api.routes import health as health_routes
+from app.api.routes import integrations as integration_routes
 from app.api.routes import password_reset as password_reset_routes
 from app.core.config import settings
 from app.core.feature_flags import get_flag_client, shutdown_flags
@@ -85,6 +87,13 @@ app.include_router(health_routes.router, tags=["health"])
 app.include_router(auth_routes.router, prefix="/v1/auth", tags=["auth"])
 app.include_router(email_verification_routes.router, prefix="/v1/auth", tags=["auth"])
 app.include_router(password_reset_routes.router, prefix="/v1/auth", tags=["auth"])
+# Account management (change-password / change-email / sessions) shares
+# the ``/v1/auth`` prefix so the SPA only has to remember one base path
+# for "everything sign-in / settings".
+app.include_router(account_routes.router, prefix="/v1/auth", tags=["account"])
+# Static integration metadata (Telegram bot username etc.). Routes
+# register their full absolute paths.
+app.include_router(integration_routes.router, tags=["integrations"])
 # PR #7 (D43, docs/06 §5 Спринт 1): per-user realtime stream over WebSocket.
 app.include_router(events_routes.router, prefix="/v1/events", tags=["events"])
 # PR #14 (docs/plans/phase1-sprint2-plan.md): channel registry + brand switcher.

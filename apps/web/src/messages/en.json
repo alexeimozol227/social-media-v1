@@ -124,7 +124,58 @@
     "verifyNow": "Verify now",
     "security": "Security",
     "channels": "Channels",
+    "account": "Account",
     "welcomeToast": "Welcome, {email}! Your account has been created."
+  },
+  "account": {
+    "title": "Account",
+    "back": "Back to dashboard",
+    "password": {
+      "title": "Change password",
+      "current": "Current password",
+      "new": "New password",
+      "confirm": "Confirm new password",
+      "submit": "Update password",
+      "submitting": "Updating…",
+      "mismatch": "New passwords don't match.",
+      "successHint": "Password updated. All other sessions were ended.",
+      "genericError": "Could not change the password."
+    },
+    "email": {
+      "title": "Change email",
+      "current": "Current password",
+      "newEmail": "New email",
+      "sendCode": "Send verification code",
+      "sending": "Sending…",
+      "codeSent": "We've sent a 6-digit code to {email}. Enter it below.",
+      "codePlaceholder": "123456",
+      "back": "Back",
+      "confirm": "Confirm",
+      "confirming": "Confirming…",
+      "successHint": "Email updated. The next login will use the new address.",
+      "genericError": "Could not change the email."
+    },
+    "sessions": {
+      "title": "Active sessions",
+      "loading": "Loading…",
+      "empty": "No active sessions besides this one.",
+      "loadError": "Could not load sessions.",
+      "revokeError": "Could not revoke the session.",
+      "revokeConfirm": "Revoke this session?",
+      "revokeOthers": "Sign out other devices",
+      "revokeOthersConfirm": "Sign out every other device?",
+      "table": {
+        "device": "Device",
+        "ip": "IP",
+        "issued": "Signed in",
+        "expires": "Expires",
+        "actions": "Actions",
+        "revoke": "Revoke",
+        "current": "Current session",
+        "unknownUa": "Unknown device",
+        "unknownIp": "—"
+      }
+    }
   },
   "brandSwitcher": {
     "label": "Brand",
@@ -154,7 +205,11 @@
       "another": "Connect another",
       "noActiveBrand": "Pick an active brand first.",
       "identifierRequired": "Channel @username or id is required.",
-      "promotePrompt": "Promote our bot to administrator in {target} with at least the \"Post messages\" right, then click \"Verify & connect\"."
+      "promotePrompt": "Promote our bot to administrator in {target} with at least the \"Post messages\" right, then click \"Verify & connect\".",
+      "promotePromptWithBot": "Promote {bot} to administrator in {target} with at least the \"Post messages\" right, then click \"Verify & connect\".",
+      "botHintIntro": "Make this bot a channel administrator with the \"Post messages\" right:",
+      "botHintOpen": "Open in Telegram",
+      "botInfoError": "Could not load bot info. Channel verification may still work, but the admin promotion step won't show a deep link."
     },
     "table": {
       "platform": "Platform",
