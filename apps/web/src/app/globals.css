@@ -15,22 +15,22 @@
   --font-mono: ui-monospace, "SF Mono", "JetBrains Mono", "Fira Code", Menlo, monospace;
 
   /* Surfaces */
-  --color-background: oklch(0.16 0.014 282);
-  --color-surface: oklch(0.205 0.017 282);
-  --color-surface-2: oklch(0.245 0.019 282);
-  --color-card: oklch(0.205 0.017 282);
+  --color-background: oklch(0.215 0.018 280);
+  --color-surface: oklch(0.255 0.02 280);
+  --color-surface-2: oklch(0.3 0.022 280);
+  --color-card: oklch(0.255 0.02 280);
   --color-card-foreground: oklch(0.97 0.005 285);
 
   /* Text */
   --color-foreground: oklch(0.97 0.005 285);
-  --color-muted: oklch(0.245 0.019 282);
-  --color-muted-foreground: oklch(0.71 0.02 285);
+  --color-muted: oklch(0.3 0.022 280);
+  --color-muted-foreground: oklch(0.74 0.022 285);
 
   /* Lines & inputs */
-  --color-border: oklch(0.31 0.02 283);
-  --color-border-strong: oklch(0.4 0.025 283);
-  --color-input: oklch(0.235 0.018 282);
-  --color-ring: oklch(0.65 0.19 277);
+  --color-border: oklch(0.37 0.022 283);
+  --color-border-strong: oklch(0.46 0.026 283);
+  --color-input: oklch(0.285 0.02 282);
+  --color-ring: oklch(0.66 0.19 277);
 
   /* Brand / primary */
   --color-primary: oklch(0.62 0.2 277);
@@ -39,8 +39,8 @@
   --color-primary-foreground: oklch(0.99 0 0);
 
   /* Secondary (neutral fill) */
-  --color-secondary: oklch(0.27 0.02 282);
-  --color-secondary-hover: oklch(0.31 0.02 282);
+  --color-secondary: oklch(0.33 0.022 282);
+  --color-secondary-hover: oklch(0.37 0.024 282);
   --color-secondary-foreground: oklch(0.97 0.005 285);
 
   /* Status */
@@ -157,7 +157,7 @@
   /* Decorative gradient mesh for the auth brand panel. Purely
    * presentational — kept out of markup so the panel stays clean. */
   .auth-aurora {
-    background-color: oklch(0.19 0.04 280);
+    background-color: oklch(0.26 0.035 280);
     background-image: radial-gradient(
         ellipse 80% 60% at 20% 10%,
         oklch(0.62 0.2 277 / 0.45),

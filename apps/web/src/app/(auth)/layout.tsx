@@ -12,11 +12,25 @@ export default async function AuthLayout({
   const features = [t("f1"), t("f2"), t("f3")];
 
   return (
-    <div className="grid min-h-dvh lg:grid-cols-[1.05fr_1fr]">
-      {/* Brand panel — desktop only (content-priority on mobile). */}
+    <div className="grid min-h-dvh lg:grid-cols-[1fr_1.05fr]">
+      {/* Form column — now on the left. */}
+      <main className="flex flex-col items-center justify-center px-5 py-10 sm:px-8">
+        <div className="w-full max-w-[400px]">
+          <Link
+            href="/"
+            className="mb-8 inline-flex rounded-lg focus-visible:outline-2 lg:hidden"
+            aria-label="social-media-v1"
+          >
+            <LogoMark className="size-10" />
+          </Link>
+          {children}
+        </div>
+      </main>
+
+      {/* Brand panel — right side, desktop only (content-priority on mobile). */}
       <aside className="auth-aurora relative hidden overflow-hidden lg:flex lg:flex-col lg:justify-between lg:p-12">
         <div className="auth-grid absolute inset-0" aria-hidden="true" />
-        <div className="relative">
+        <div className="relative flex justify-end">
           <Link href="/" className="inline-flex rounded-lg focus-visible:outline-2">
             <Logo />
           </Link>
@@ -45,24 +59,10 @@ export default async function AuthLayout({
             ))}
           </ul>
         </div>
-        <p className="relative text-xs text-foreground/50">
+        <p className="relative text-right text-xs text-foreground/50">
           © {new Date().getFullYear()} social-media-v1
         </p>
       </aside>
-
-      {/* Form column. */}
-      <main className="flex flex-col items-center justify-center px-5 py-10 sm:px-8">
-        <div className="w-full max-w-[400px]">
-          <Link
-            href="/"
-            className="mb-8 inline-flex rounded-lg focus-visible:outline-2 lg:hidden"
-            aria-label="social-media-v1"
-          >
-            <LogoMark className="size-10" />
-          </Link>
-          {children}
-        </div>
-      </main>
     </div>
   );
 }

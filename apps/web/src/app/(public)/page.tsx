@@ -272,34 +272,20 @@ export default async function LandingPage() {
     { v: tStats("s4Value"), l: tStats("s4Label") },
   ];
   const trustPoints = [tTrust("point1"), tTrust("point2"), tTrust("point3")];
-  const resourceCols = [
-    {
-      k: "c1",
-      title: tRes("c1Title"),
-      items: [tRes("c1i1"), tRes("c1i2"), tRes("c1i3")],
-      icon: (
-        <path d="M4 5h13a3 3 0 0 1 3 3v11a2 2 0 0 0-2-2H4Z M4 5a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2" />
-      ),
-    },
-    {
-      k: "c2",
-      title: tRes("c2Title"),
-      items: [tRes("c2i1"), tRes("c2i2"), tRes("c2i3")],
-      icon: (
-        <path d="M9 18V5l12-2v13M9 9l12-2M9 18a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm12-2a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
-      ),
-    },
-    {
-      k: "c3",
-      title: tRes("c3Title"),
-      items: [tRes("c3i1"), tRes("c3i2"), tRes("c3i3")],
-      icon: (
-        <>
-          <circle cx="12" cy="12" r="9" />
-          <path d="M12 7v5l3 2" />
-        </>
-      ),
-    },
+  const helpItems = [
+    { t: tRes("help1Title"), d: tRes("help1Desc") },
+    { t: tRes("help2Title"), d: tRes("help2Desc") },
+    { t: tRes("help3Title"), d: tRes("help3Desc") },
+  ];
+  const roadItems = [
+    { t: tRes("road1Title"), w: tRes("road1When") },
+    { t: tRes("road2Title"), w: tRes("road2When") },
+    { t: tRes("road3Title"), w: tRes("road3When") },
+  ];
+  const updItems = [
+    { v: tRes("upd1Ver"), date: tRes("upd1Date"), t: tRes("upd1Title") },
+    { v: tRes("upd2Ver"), date: tRes("upd2Date"), t: tRes("upd2Title") },
+    { v: tRes("upd3Ver"), date: tRes("upd3Date"), t: tRes("upd3Title") },
   ];
   const faq = [
     { q: tFaq("q1"), a: tFaq("a1") },
@@ -541,58 +527,91 @@ export default async function LandingPage() {
           <Pricing />
         </section>
 
-        {/* Resources & roadmap */}
-        <section className="mx-auto max-w-6xl px-5 py-24 sm:px-8">
-          <SectionHeading title={tRes("title")} subtitle={tRes("subtitle")} />
-          <div className="grid gap-6 md:grid-cols-3">
-            {resourceCols.map((c) => (
-              <div key={c.k} className="rounded-2xl border border-border bg-card p-7">
-                <div className="flex items-center gap-3">
-                  <span className="grid size-10 place-items-center rounded-lg bg-primary/15 text-primary">
-                    <Icon path={c.icon} />
-                  </span>
-                  <h3 className="font-semibold text-foreground">{c.title}</h3>
-                </div>
-                <ul className="mt-5 flex flex-col divide-y divide-border">
-                  {c.items.map((it) => (
-                    <li key={it} className="py-3 text-sm leading-relaxed text-muted-foreground">
-                      {it}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            ))}
-          </div>
-        </section>
-
-        {/* Trusted by — band with floating decorative nodes */}
+        {/* Trusted by — constellation of avatars + agent nodes */}
         <section className="relative overflow-hidden border-y border-border bg-surface/40">
-          <div className="pointer-events-none absolute inset-0 hidden md:block" aria-hidden="true">
-            <span className="absolute left-[8%] top-[22%] grid size-11 place-items-center rounded-full border border-border bg-card text-primary">
-              <Icon path={AGENT_ICONS.content} className="size-5" />
+          <div className="pointer-events-none absolute inset-0 hidden lg:block" aria-hidden="true">
+            {/* Avatar nodes (swap /public/avatars/*.svg for real photos). */}
+            <img
+              src="/avatars/a1.svg"
+              alt=""
+              width={56}
+              height={56}
+              className="absolute left-[7%] top-[20%] size-14 rounded-full border-2 border-border object-cover shadow-pop"
+            />
+            <img
+              src="/avatars/a2.svg"
+              alt=""
+              width={48}
+              height={48}
+              className="animate-float absolute left-[15%] top-[58%] size-12 rounded-full border-2 border-border object-cover shadow-pop"
+            />
+            <img
+              src="/avatars/a3.svg"
+              alt=""
+              width={44}
+              height={44}
+              className="absolute left-[27%] bottom-[14%] size-11 rounded-full border-2 border-border object-cover shadow-pop"
+            />
+            <img
+              src="/avatars/a4.svg"
+              alt=""
+              width={56}
+              height={56}
+              className="absolute right-[7%] top-[24%] size-14 rounded-full border-2 border-border object-cover shadow-pop"
+            />
+            <img
+              src="/avatars/a5.svg"
+              alt=""
+              width={48}
+              height={48}
+              className="animate-float absolute right-[15%] top-[60%] size-12 rounded-full border-2 border-border object-cover shadow-pop"
+              style={{ animationDelay: "900ms", animationDuration: "8s" }}
+            />
+            <img
+              src="/avatars/a2.svg"
+              alt=""
+              width={40}
+              height={40}
+              className="absolute right-[28%] bottom-[16%] size-10 rounded-full border-2 border-border object-cover shadow-pop"
+            />
+            {/* Agent-icon nodes */}
+            <span className="absolute left-[20%] top-[14%] grid size-10 place-items-center rounded-full border border-border bg-card text-primary">
+              <Icon path={AGENT_ICONS.content} className="size-4" />
             </span>
-            <span className="animate-float absolute left-[16%] top-[60%] size-9 rounded-full border border-border bg-card" />
-            <span className="absolute left-[30%] top-[16%] size-7 rounded-full bg-primary/25" />
-            <span className="absolute left-[24%] bottom-[14%] grid size-10 place-items-center rounded-full border border-border bg-card text-primary">
+            <span className="absolute left-[33%] top-[40%] grid size-9 place-items-center rounded-full border border-border bg-card text-primary">
               <Icon path={AGENT_ICONS.analyst} className="size-4" />
             </span>
-            <span className="absolute right-[9%] top-[26%] grid size-11 place-items-center rounded-full border border-border bg-card text-primary">
-              <Icon path={AGENT_ICONS.publisher} className="size-5" />
+            <span className="absolute right-[19%] top-[16%] grid size-10 place-items-center rounded-full border border-border bg-card text-primary">
+              <Icon path={AGENT_ICONS.publisher} className="size-4" />
             </span>
             <span
-              className="animate-float absolute right-[18%] top-[62%] size-9 rounded-full border border-border bg-card"
-              style={{ animationDelay: "700ms", animationDuration: "8s" }}
-            />
-            <span className="absolute right-[30%] top-[15%] size-7 rounded-full bg-primary/25" />
-            <span className="absolute right-[24%] bottom-[16%] grid size-10 place-items-center rounded-full border border-border bg-card text-primary">
+              className="animate-float absolute right-[33%] top-[42%] grid size-9 place-items-center rounded-full border border-border bg-card text-primary"
+              style={{ animationDelay: "400ms" }}
+            >
               <Icon path={AGENT_ICONS.brandMemory} className="size-4" />
             </span>
+            {/* Plain dots */}
+            <span className="absolute left-[10%] bottom-[28%] size-3 rounded-full bg-primary/30" />
+            <span className="absolute left-[37%] top-[20%] size-2.5 rounded-full bg-primary/25" />
+            <span className="absolute right-[10%] bottom-[26%] size-3 rounded-full bg-primary/30" />
+            <span className="absolute right-[37%] top-[22%] size-2.5 rounded-full bg-primary/25" />
+            <span className="absolute right-[24%] top-[70%] size-2 rounded-full bg-primary/20" />
+            <span className="absolute left-[24%] top-[72%] size-2 rounded-full bg-primary/20" />
           </div>
+
           <div className="relative mx-auto max-w-xl px-5 py-24 text-center sm:px-8">
             <h2 className="text-balance text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
               {tTrust("title")}
             </h2>
-            <p className="mx-auto mt-4 max-w-md text-pretty text-base leading-relaxed text-muted-foreground">
+            <div className="mt-6">
+              <p className="text-6xl font-bold tracking-tight text-gradient sm:text-7xl">
+                {tTrust("count")}
+              </p>
+              <p className="mt-2 text-sm font-medium text-muted-foreground">
+                {tTrust("countLabel")}
+              </p>
+            </div>
+            <p className="mx-auto mt-5 max-w-md text-pretty text-base leading-relaxed text-muted-foreground">
               {tTrust("subtitle")}
             </p>
             <ul className="mx-auto mt-8 flex max-w-md flex-col gap-3 text-left">
@@ -609,6 +628,110 @@ export default async function LandingPage() {
               ))}
             </ul>
             <p className="mt-6 text-sm text-muted-foreground/80">{tTrust("note")}</p>
+          </div>
+        </section>
+
+        {/* Resources & roadmap */}
+        <section className="mx-auto max-w-6xl px-5 py-24 sm:px-8">
+          <SectionHeading title={tRes("title")} subtitle={tRes("subtitle")} />
+          <div className="grid gap-6 md:grid-cols-3">
+            {/* Help */}
+            <div className="flex flex-col rounded-2xl border border-border bg-card p-7">
+              <div className="flex items-center gap-3">
+                <span className="grid size-10 place-items-center rounded-lg bg-primary/15 text-primary">
+                  <Icon
+                    path={
+                      <path d="M4 5h13a3 3 0 0 1 3 3v11a2 2 0 0 0-2-2H4Z M4 5a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2" />
+                    }
+                  />
+                </span>
+                <h3 className="font-semibold text-foreground">{tRes("helpTitle")}</h3>
+              </div>
+              <ul className="mt-5 flex flex-1 flex-col divide-y divide-border">
+                {helpItems.map((it) => (
+                  <li key={it.t} className="py-3">
+                    <p className="text-sm font-medium text-foreground">{it.t}</p>
+                    <p className="mt-1 text-xs leading-relaxed text-muted-foreground">{it.d}</p>
+                  </li>
+                ))}
+              </ul>
+              <Link
+                href="#"
+                className="mt-5 inline-flex items-center gap-1.5 text-sm font-semibold text-primary transition-colors hover:text-primary-hover"
+              >
+                {tRes("helpMore")}
+                <Icon path={<path d="M5 12h14M13 6l6 6-6 6" />} className="size-4" />
+              </Link>
+            </div>
+
+            {/* Roadmap */}
+            <div className="flex flex-col rounded-2xl border border-border bg-card p-7">
+              <div className="flex items-center gap-3">
+                <span className="grid size-10 place-items-center rounded-lg bg-primary/15 text-primary">
+                  <Icon
+                    path={
+                      <path d="M9 18V5l12-2v13M9 9l12-2M9 18a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm12-2a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+                    }
+                  />
+                </span>
+                <h3 className="font-semibold text-foreground">{tRes("roadTitle")}</h3>
+              </div>
+              <ul className="mt-5 flex flex-1 flex-col divide-y divide-border">
+                {roadItems.map((it) => (
+                  <li key={it.t} className="flex items-start gap-3 py-3">
+                    <span className="mt-1.5 size-2 shrink-0 rounded-full bg-primary" />
+                    <div>
+                      <p className="text-sm font-medium text-foreground">{it.t}</p>
+                      <p className="mt-0.5 text-xs text-muted-foreground">{it.w}</p>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+              <Link
+                href="#"
+                className="mt-5 inline-flex items-center gap-1.5 text-sm font-semibold text-primary transition-colors hover:text-primary-hover"
+              >
+                {tRes("roadMore")}
+                <Icon path={<path d="M5 12h14M13 6l6 6-6 6" />} className="size-4" />
+              </Link>
+            </div>
+
+            {/* Changelog */}
+            <div className="flex flex-col rounded-2xl border border-border bg-card p-7">
+              <div className="flex items-center gap-3">
+                <span className="grid size-10 place-items-center rounded-lg bg-primary/15 text-primary">
+                  <Icon
+                    path={
+                      <>
+                        <circle cx="12" cy="12" r="9" />
+                        <path d="M12 7v5l3 2" />
+                      </>
+                    }
+                  />
+                </span>
+                <h3 className="font-semibold text-foreground">{tRes("updTitle")}</h3>
+              </div>
+              <ul className="mt-5 flex flex-1 flex-col divide-y divide-border">
+                {updItems.map((it) => (
+                  <li key={it.v} className="py-3">
+                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                      <span className="rounded bg-secondary px-1.5 py-0.5 font-mono text-foreground">
+                        {it.v}
+                      </span>
+                      <span>{it.date}</span>
+                    </div>
+                    <p className="mt-1.5 text-sm font-medium text-foreground">{it.t}</p>
+                  </li>
+                ))}
+              </ul>
+              <Link
+                href="#"
+                className="mt-5 inline-flex items-center gap-1.5 text-sm font-semibold text-primary transition-colors hover:text-primary-hover"
+              >
+                {tRes("updMore")}
+                <Icon path={<path d="M5 12h14M13 6l6 6-6 6" />} className="size-4" />
+              </Link>
+            </div>
           </div>
         </section>
 
