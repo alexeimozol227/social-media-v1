@@ -101,9 +101,31 @@
       "cta": "Start free — 7 days",
       "note": "No card. Cancel anytime."
     },
+    "stats": {
+      "s1Value": "8",
+      "s1Label": "AI agents in the team",
+      "s2Value": "15 min",
+      "s2Label": "to the first AI post",
+      "s3Value": "24/7",
+      "s3Label": "channel runs without you",
+      "s4Value": "−17%",
+      "s4Label": "when paying annually"
+    },
     "footer": {
       "tagline": "AI operating system for social networks. Human in the loop, not the human doing the loop.",
-      "product": "Product",
+      "ctaTitle": "Ready to delegate the routine?",
+      "ctaButton": "Start free",
+      "colProduct": "Product",
+      "colResources": "How it works",
+      "colAccount": "Account",
+      "linkFeatures": "Features",
+      "linkAgents": "Agents",
+      "linkPricing": "Pricing",
+      "linkHow": "Onboarding",
+      "linkAudience": "Who it's for",
+      "linkSignIn": "Sign in",
+      "linkRegister": "Create account",
+      "madeFor": "Built for channel authors and operators in the CIS",
       "rights": "All rights reserved."
     }
   },
