@@ -97,9 +97,9 @@
     },
     "finalCta": {
       "title": "Free yourself from social media routine",
-      "subtitle": "Connect a channel and get your first autonomous post today.",
+      "subtitle": "Connect your Telegram channel — and in 15 minutes the AI team takes over: ideas, posts, publishing, analytics and channel growth, all in one place.",
       "cta": "Start free — 7 days",
-      "note": "No card. Cancel anytime."
+      "note": "Free trial · No card required · 5-minute setup"
     },
     "stats": {
       "s1Value": "8",
@@ -111,21 +111,60 @@
       "s4Value": "−17%",
       "s4Label": "when paying annually"
     },
+    "trust": {
+      "title": "Trusted by",
+      "subtitle": "Closed beta for Telegram channel authors and operators in the CIS.",
+      "point1": "Every AI decision is transparent",
+      "point2": "Control and approval mode",
+      "point3": "Export your data anytime",
+      "note": "Trust over speed — a product principle"
+    },
+    "resources": {
+      "title": "Resources & roadmap",
+      "subtitle": "Help materials, the roadmap and the changelog.",
+      "c1Title": "Help",
+      "c1i1": "Quick start: connecting a channel",
+      "c1i2": "How AI builds brand memory",
+      "c1i3": "Autopilot and approval modes",
+      "c2Title": "Roadmap",
+      "c2i1": "v1.0 — 8 AI agents for Telegram",
+      "c2i2": "Month 7 — Research and Engagement",
+      "c2i3": "v1.1 — Strategist and team roles",
+      "c3Title": "Changelog",
+      "c3i1": "Auth, MFA and sessions",
+      "c3i2": "Brands and channel connection",
+      "c3i3": "New interface and landing"
+    },
+    "faq": {
+      "title": "Frequently asked questions",
+      "subtitle": "The essentials — onboarding covers the rest.",
+      "q1": "Is it safe to connect a channel?",
+      "a1": "You add our bot as an administrator — we work via Telegram's official Bot API. Tokens are encrypted and access can be revoked anytime.",
+      "q2": "How are you different from schedulers and ChatGPT?",
+      "a2": "It's not a scheduler or a text generator but a team of AI agents: they ideate, write, publish and analyse themselves — with memory of your brand.",
+      "q3": "How fast is the first post?",
+      "a3": "Usually 15 minutes: connect the channel, AI extracts brand memory from recent posts and proposes the first plan and drafts.",
+      "q4": "How much does it cost?",
+      "a4": "Three plans — Solo, Pro and Network. 7 days of full Pro access, free and without a card.",
+      "q5": "Which social networks are supported?",
+      "a5": "At launch — Telegram only. Then in order: Instagram, YouTube, TikTok, VK.",
+      "q6": "Does AI publish on its own or with my approval?",
+      "a6": "Both modes: «AI does it» and «AI proposes — you approve». Switch anytime; moderation always runs before publishing."
+    },
     "footer": {
       "tagline": "AI operating system for social networks. Human in the loop, not the human doing the loop.",
-      "ctaTitle": "Ready to delegate the routine?",
-      "ctaButton": "Start free",
       "colProduct": "Product",
-      "colResources": "How it works",
-      "colAccount": "Account",
+      "colSocial": "Social",
+      "colContacts": "Contacts",
       "linkFeatures": "Features",
       "linkAgents": "Agents",
       "linkPricing": "Pricing",
-      "linkHow": "Onboarding",
-      "linkAudience": "Who it's for",
-      "linkSignIn": "Sign in",
-      "linkRegister": "Create account",
-      "madeFor": "Built for channel authors and operators in the CIS",
+      "linkTelegram": "Telegram channel",
+      "linkYoutube": "YouTube",
+      "requisites": "Alexei Mozol · UNP: 12345678",
+      "legalOffer": "Offer",
+      "legalPrivacy": "Privacy",
+      "legalAgreement": "Agreement",
       "rights": "All rights reserved."
     }
   },
