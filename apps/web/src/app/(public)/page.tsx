@@ -245,6 +245,9 @@ export default async function LandingPage() {
   const tPricing = await getTranslations("landing.pricing");
   const tFinal = await getTranslations("landing.finalCta");
   const tStats = await getTranslations("landing.stats");
+  const tTrust = await getTranslations("landing.trust");
+  const tRes = await getTranslations("landing.resources");
+  const tFaq = await getTranslations("landing.faq");
 
   const pillars = [
     { t: tPillars("p1Title"), d: tPillars("p1Desc") },
@@ -267,6 +270,44 @@ export default async function LandingPage() {
     { v: tStats("s2Value"), l: tStats("s2Label") },
     { v: tStats("s3Value"), l: tStats("s3Label") },
     { v: tStats("s4Value"), l: tStats("s4Label") },
+  ];
+  const trustPoints = [tTrust("point1"), tTrust("point2"), tTrust("point3")];
+  const resourceCols = [
+    {
+      k: "c1",
+      title: tRes("c1Title"),
+      items: [tRes("c1i1"), tRes("c1i2"), tRes("c1i3")],
+      icon: (
+        <path d="M4 5h13a3 3 0 0 1 3 3v11a2 2 0 0 0-2-2H4Z M4 5a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2" />
+      ),
+    },
+    {
+      k: "c2",
+      title: tRes("c2Title"),
+      items: [tRes("c2i1"), tRes("c2i2"), tRes("c2i3")],
+      icon: (
+        <path d="M9 18V5l12-2v13M9 9l12-2M9 18a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm12-2a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+      ),
+    },
+    {
+      k: "c3",
+      title: tRes("c3Title"),
+      items: [tRes("c3i1"), tRes("c3i2"), tRes("c3i3")],
+      icon: (
+        <>
+          <circle cx="12" cy="12" r="9" />
+          <path d="M12 7v5l3 2" />
+        </>
+      ),
+    },
+  ];
+  const faq = [
+    { q: tFaq("q1"), a: tFaq("a1") },
+    { q: tFaq("q2"), a: tFaq("a2") },
+    { q: tFaq("q3"), a: tFaq("a3") },
+    { q: tFaq("q4"), a: tFaq("a4") },
+    { q: tFaq("q5"), a: tFaq("a5") },
+    { q: tFaq("q6"), a: tFaq("a6") },
   ];
 
   return (
@@ -500,6 +541,112 @@ export default async function LandingPage() {
           <Pricing />
         </section>
 
+        {/* Resources & roadmap */}
+        <section className="mx-auto max-w-6xl px-5 py-24 sm:px-8">
+          <SectionHeading title={tRes("title")} subtitle={tRes("subtitle")} />
+          <div className="grid gap-6 md:grid-cols-3">
+            {resourceCols.map((c) => (
+              <div key={c.k} className="rounded-2xl border border-border bg-card p-7">
+                <div className="flex items-center gap-3">
+                  <span className="grid size-10 place-items-center rounded-lg bg-primary/15 text-primary">
+                    <Icon path={c.icon} />
+                  </span>
+                  <h3 className="font-semibold text-foreground">{c.title}</h3>
+                </div>
+                <ul className="mt-5 flex flex-col divide-y divide-border">
+                  {c.items.map((it) => (
+                    <li key={it} className="py-3 text-sm leading-relaxed text-muted-foreground">
+                      {it}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* Trusted by — band with floating decorative nodes */}
+        <section className="relative overflow-hidden border-y border-border bg-surface/40">
+          <div className="pointer-events-none absolute inset-0 hidden md:block" aria-hidden="true">
+            <span className="absolute left-[8%] top-[22%] grid size-11 place-items-center rounded-full border border-border bg-card text-primary">
+              <Icon path={AGENT_ICONS.content} className="size-5" />
+            </span>
+            <span className="animate-float absolute left-[16%] top-[60%] size-9 rounded-full border border-border bg-card" />
+            <span className="absolute left-[30%] top-[16%] size-7 rounded-full bg-primary/25" />
+            <span className="absolute left-[24%] bottom-[14%] grid size-10 place-items-center rounded-full border border-border bg-card text-primary">
+              <Icon path={AGENT_ICONS.analyst} className="size-4" />
+            </span>
+            <span className="absolute right-[9%] top-[26%] grid size-11 place-items-center rounded-full border border-border bg-card text-primary">
+              <Icon path={AGENT_ICONS.publisher} className="size-5" />
+            </span>
+            <span
+              className="animate-float absolute right-[18%] top-[62%] size-9 rounded-full border border-border bg-card"
+              style={{ animationDelay: "700ms", animationDuration: "8s" }}
+            />
+            <span className="absolute right-[30%] top-[15%] size-7 rounded-full bg-primary/25" />
+            <span className="absolute right-[24%] bottom-[16%] grid size-10 place-items-center rounded-full border border-border bg-card text-primary">
+              <Icon path={AGENT_ICONS.brandMemory} className="size-4" />
+            </span>
+          </div>
+          <div className="relative mx-auto max-w-xl px-5 py-24 text-center sm:px-8">
+            <h2 className="text-balance text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
+              {tTrust("title")}
+            </h2>
+            <p className="mx-auto mt-4 max-w-md text-pretty text-base leading-relaxed text-muted-foreground">
+              {tTrust("subtitle")}
+            </p>
+            <ul className="mx-auto mt-8 flex max-w-md flex-col gap-3 text-left">
+              {trustPoints.map((p) => (
+                <li
+                  key={p}
+                  className="flex items-center gap-3 rounded-xl border border-border bg-card px-4 py-3 text-sm text-foreground"
+                >
+                  <span className="grid size-6 shrink-0 place-items-center rounded-full bg-primary/15 text-primary">
+                    <Icon path={<path d="m5 13 4 4L19 7" />} className="size-3.5" />
+                  </span>
+                  {p}
+                </li>
+              ))}
+            </ul>
+            <p className="mt-6 text-sm text-muted-foreground/80">{tTrust("note")}</p>
+          </div>
+        </section>
+
+        {/* FAQ */}
+        <section className="mx-auto max-w-3xl px-5 py-24 sm:px-8">
+          <SectionHeading title={tFaq("title")} subtitle={tFaq("subtitle")} />
+          <div className="flex flex-col gap-3">
+            {faq.map((item, i) => (
+              <details
+                key={item.q}
+                className="group rounded-xl border border-border bg-card transition-colors open:border-border-strong"
+              >
+                <summary className="flex cursor-pointer list-none items-center justify-between gap-4 p-5 text-left font-medium text-foreground [&::-webkit-details-marker]:hidden">
+                  <span className="flex items-baseline gap-3">
+                    <span className="font-mono text-sm text-muted-foreground">0{i + 1}</span>
+                    {item.q}
+                  </span>
+                  <svg
+                    className="size-5 shrink-0 text-muted-foreground transition-transform duration-200 group-open:rotate-180"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    aria-hidden="true"
+                  >
+                    <path
+                      d="m6 9 6 6 6-6"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                </summary>
+                <p className="px-5 pb-5 text-sm leading-relaxed text-muted-foreground">{item.a}</p>
+              </details>
+            ))}
+          </div>
+        </section>
+
         {/* Final CTA — full-bleed band with edge-bleeding product mocks */}
         <section className="relative overflow-hidden border-y border-border">
           <div className="auth-aurora absolute inset-0" aria-hidden="true" />
@@ -540,7 +687,7 @@ export default async function LandingPage() {
             </div>
           </div>
 
-          <div className="relative mx-auto max-w-2xl px-5 py-28 text-center sm:px-8 sm:py-36">
+          <div className="relative mx-auto max-w-2xl px-5 py-20 text-center sm:px-8 sm:py-24">
             <h2 className="text-balance text-4xl font-bold tracking-tight text-foreground sm:text-5xl">
               {tFinal("title")}
             </h2>
