@@ -32,9 +32,10 @@ export async function SiteFooter() {
 
   return (
     <footer className="border-t border-border bg-surface/30">
-      {/* Footer container is intentionally wider than the 6xl page body. */}
-      <div className="mx-auto max-w-7xl px-5 sm:px-8">
-        <div className="grid gap-12 py-16 md:grid-cols-[1.6fr_1fr_1fr_1fr]">
+      {/* Footer spans wider than the 6xl page body (matches the
+       * reference: full-bleed band, content stretched near the edges). */}
+      <div className="mx-auto max-w-[100rem] px-6 sm:px-10 lg:px-16">
+        <div className="grid gap-12 py-20 md:grid-cols-[2fr_1fr_1fr_1fr]">
           <div className="flex flex-col gap-5">
             <Link
               href="/"

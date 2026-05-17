@@ -160,6 +160,82 @@ function HeroMock({
   );
 }
 
+function MiniMock({
+  variant,
+  labels,
+}: {
+  variant: "table" | "metrics";
+  labels: { agent: string; live: string; spend: string; views: string };
+}) {
+  if (variant === "table") {
+    const rows = ["r1", "r2", "r3", "r4", "r5", "r6"];
+    return (
+      <div className="card-gradient-border rounded-2xl bg-card/90 p-3 shadow-pop backdrop-blur-sm">
+        <div className="rounded-xl border border-border bg-background p-4">
+          <div className="flex items-center justify-between">
+            <span className="inline-flex items-center gap-2 text-xs font-medium text-foreground">
+              <span className="grid size-5 place-items-center rounded-md bg-primary/20 text-primary">
+                <Icon path={AGENT_ICONS.content} className="size-3" />
+              </span>
+              {labels.agent}
+            </span>
+            <span className="rounded-full bg-success/15 px-2 py-0.5 text-[10px] font-medium text-success">
+              {labels.live}
+            </span>
+          </div>
+          <div className="mt-4 space-y-2.5">
+            {rows.map((r, i) => (
+              <div key={r} className="flex items-center gap-2">
+                <span className="size-2 rounded-full bg-primary/40" />
+                <span
+                  className="h-2 rounded-full bg-secondary"
+                  style={{ width: `${70 - i * 7}%` }}
+                />
+                <span className="ml-auto rounded bg-primary/15 px-1.5 py-0.5 text-[10px] text-primary">
+                  +{20 - i * 2}%
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
+  const metrics = [
+    { k: "m1", label: labels.spend, value: "5 316 ₽" },
+    { k: "m2", label: labels.views, value: "8 240" },
+  ];
+  return (
+    <div className="flex flex-col gap-3">
+      {metrics.map((m) => (
+        <div
+          key={m.k}
+          className="card-gradient-border rounded-2xl bg-card/90 p-4 shadow-pop backdrop-blur-sm"
+        >
+          <p className="text-xs text-muted-foreground">{m.label}</p>
+          <div className="mt-1 flex items-end justify-between gap-3">
+            <p className="text-2xl font-bold tracking-tight text-foreground">{m.value}</p>
+            <svg
+              viewBox="0 0 80 28"
+              className="h-7 w-20 text-primary"
+              fill="none"
+              aria-hidden="true"
+            >
+              <path
+                d="M2 22 18 16 32 19 48 8 64 12 78 4"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 export default async function LandingPage() {
   const tHero = await getTranslations("landing.hero");
   const tPillars = await getTranslations("landing.pillars");
@@ -424,25 +500,60 @@ export default async function LandingPage() {
           <Pricing />
         </section>
 
-        {/* Final CTA */}
-        <section className="mx-auto max-w-6xl px-5 pb-24 sm:px-8">
-          <div className="card-gradient-border relative overflow-hidden rounded-3xl bg-card p-10 text-center sm:p-16">
-            <div className="auth-aurora absolute inset-0 opacity-50" aria-hidden="true" />
-            <div className="relative">
-              <h2 className="text-balance text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
-                {tFinal("title")}
-              </h2>
-              <p className="mx-auto mt-4 max-w-xl text-pretty text-muted-foreground">
-                {tFinal("subtitle")}
-              </p>
-              <Link
-                href="/register"
-                className="mt-8 inline-flex h-12 items-center justify-center rounded-lg bg-primary px-8 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary-hover"
-              >
-                {tFinal("cta")}
-              </Link>
-              <p className="mt-5 text-sm text-muted-foreground/80">{tFinal("note")}</p>
+        {/* Final CTA — full-bleed band with edge-bleeding product mocks */}
+        <section className="relative overflow-hidden border-y border-border">
+          <div className="auth-aurora absolute inset-0" aria-hidden="true" />
+          <div className="auth-grid absolute inset-0 opacity-30" aria-hidden="true" />
+
+          {/* Striking floating mocks bleeding off both edges (lg+). */}
+          <div
+            className="pointer-events-none absolute inset-0 hidden overflow-hidden lg:block"
+            aria-hidden="true"
+          >
+            <div
+              className="animate-float absolute -left-28 top-1/2 w-[440px] -translate-y-1/2 -rotate-6"
+              style={delay(0)}
+            >
+              <MiniMock
+                variant="table"
+                labels={{
+                  agent: tAgents("contentName"),
+                  live: tPricing("recommended"),
+                  spend: tStats("s1Label"),
+                  views: tStats("s2Label"),
+                }}
+              />
             </div>
+            <div
+              className="animate-float absolute -right-28 top-1/2 w-[420px] -translate-y-1/2 rotate-6"
+              style={{ animationDelay: "800ms", animationDuration: "8s" }}
+            >
+              <MiniMock
+                variant="metrics"
+                labels={{
+                  agent: tAgents("analystName"),
+                  live: tPricing("recommended"),
+                  spend: tStats("s1Label"),
+                  views: tStats("s2Label"),
+                }}
+              />
+            </div>
+          </div>
+
+          <div className="relative mx-auto max-w-2xl px-5 py-28 text-center sm:px-8 sm:py-36">
+            <h2 className="text-balance text-4xl font-bold tracking-tight text-foreground sm:text-5xl">
+              {tFinal("title")}
+            </h2>
+            <p className="mx-auto mt-5 max-w-lg text-pretty text-lg leading-relaxed text-muted-foreground">
+              {tFinal("subtitle")}
+            </p>
+            <Link
+              href="/register"
+              className="mt-9 inline-flex h-13 items-center justify-center rounded-xl bg-primary px-9 text-base font-semibold text-primary-foreground shadow-pop transition-colors hover:bg-primary-hover"
+            >
+              {tFinal("cta")}
+            </Link>
+            <p className="mt-5 text-sm text-muted-foreground/80">{tFinal("note")}</p>
           </div>
         </section>
       </main>
