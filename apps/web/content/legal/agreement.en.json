@@ -1,0 +1,41 @@
+{
+  "title": "User Agreement",
+  "updated": "2026-05-17",
+  "intro": "This Agreement describes the rules for using the social-media-v1 service and the mutual obligations of the parties.",
+  "sections": [
+    {
+      "heading": "1. Acceptance",
+      "body": [
+        "By using the Service, the User confirms they have read and agree to this Agreement, the Terms of Service and the Privacy Policy."
+      ]
+    },
+    {
+      "heading": "2. Acceptable use",
+      "body": [
+        "It is prohibited to use the Service for spam, disinformation, artificial engagement or circumventing social network rules.",
+        "Content that violates the law, third-party rights or belongs to prohibited niches is not allowed."
+      ]
+    },
+    {
+      "heading": "3. User content",
+      "body": [
+        "The User retains rights to their content and grants the Provider the right to process it solely to operate the Service.",
+        "Content passes automated moderation before publishing; final responsibility lies with the User."
+      ]
+    },
+    {
+      "heading": "4. Suspension and blocking",
+      "body": [
+        "On breach of this Agreement, access may be limited: warning, suspension, account block.",
+        "The Provider notifies the User of the reasons unless prohibited by law."
+      ]
+    },
+    {
+      "heading": "5. Changes",
+      "body": [
+        "The Provider may amend this Agreement with prior notice via the Service or by email.",
+        "Contacts: Alexei Mozol, UNP: 12345678, support@social.media."
+      ]
+    }
+  ]
+}

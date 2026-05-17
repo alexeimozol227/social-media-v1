@@ -71,6 +71,7 @@ export default function LoginPage() {
           inputMode="email"
           required
           autoFocus
+          placeholder={tAuth("ph.email")}
           value={email}
           onChange={(e) => setEmail(e.target.value)}
         />
@@ -79,6 +80,7 @@ export default function LoginPage() {
             label={t("password")}
             autoComplete="current-password"
             required
+            placeholder={tAuth("ph.password")}
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             showLabel={tAuth("showPassword")}

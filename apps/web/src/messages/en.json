@@ -194,13 +194,22 @@
     },
     "showPassword": "Show password",
     "hidePassword": "Hide password",
+    "ph": {
+      "email": "you@example.com",
+      "name": "Jane Doe",
+      "password": "Your password",
+      "newPassword": "At least 8 characters",
+      "confirmPassword": "Repeat the password",
+      "code": "123456",
+      "mfaCode": "123456 or a recovery code"
+    },
     "login": {
       "title": "Sign in",
       "email": "Email",
       "password": "Password",
       "submit": "Sign in",
       "noAccount": "No account?",
-      "createAccount": "Create one",
+      "createAccount": "Sign up",
       "forgotPassword": "Forgot password?"
     },
     "loginMfa": {
@@ -215,10 +224,13 @@
       "title": "Sign up",
       "email": "Email",
       "password": "Password",
-      "passwordHint": "At least 8 characters",
       "fullName": "Full name",
-      "fullNameOptional": "optional",
+      "fullNameOptional": "(optional)",
       "tosAccept": "I accept the Terms of Service and Privacy Policy",
+      "legalIntro": "By signing up, you accept the",
+      "legalTerms": "Terms",
+      "legalPrivacy": "Privacy Policy",
+      "legalAgreement": "Agreement",
       "submit": "Create account",
       "haveAccount": "Already have an account?",
       "signIn": "Sign in"
@@ -238,7 +250,11 @@
       "description": "If this email is registered, we'll send a reset link.",
       "email": "Email",
       "submit": "Send reset link",
-      "submitted": "If the email exists, a message has been sent. Check your inbox.",
+      "submitted": "If an account with this email exists, we've sent a password reset link.",
+      "checkSpam": "Check your inbox, including the Spam folder.",
+      "notReceived": "Didn't receive the email?",
+      "resend": "Resend",
+      "resendCooldown": "Resend ({sec}s)",
       "backToLogin": "Back to sign in"
     },
     "resetPassword": {
@@ -450,5 +466,9 @@
       "channelIdFallback": "id {id}",
       "noTitle": "—"
     }
+  },
+  "legal": {
+    "home": "Home",
+    "effectiveFrom": "In effect from"
   }
 }

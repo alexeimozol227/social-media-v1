@@ -32,9 +32,9 @@ export async function SiteFooter() {
   ];
 
   const legal = [
-    { label: t("legalOffer"), href: "#" },
-    { label: t("legalPrivacy"), href: "#" },
-    { label: t("legalAgreement"), href: "#" },
+    { label: t("legalOffer"), href: "/terms" },
+    { label: t("legalPrivacy"), href: "/privacy" },
+    { label: t("legalAgreement"), href: "/agreement" },
   ];
 
   return (

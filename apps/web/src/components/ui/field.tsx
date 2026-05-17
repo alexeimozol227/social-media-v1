@@ -6,17 +6,17 @@ import { type InputHTMLAttributes, type ReactNode, forwardRef, useId, useState }
 export function Label({
   htmlFor,
   children,
-  required,
+  requiredMark,
 }: {
   htmlFor: string;
   children: ReactNode;
-  required?: boolean;
+  requiredMark?: boolean;
 }) {
   return (
     <label htmlFor={htmlFor} className="text-sm font-medium text-foreground">
       {children}
-      {required && (
-        <span className="ml-0.5 text-destructive" aria-hidden="true">
+      {requiredMark && (
+        <span className="ml-0.5 text-foreground" aria-hidden="true">
           *
         </span>
       )}
@@ -67,9 +67,10 @@ function FieldHint({ id, children }: { id: string; children: ReactNode }) {
 }
 
 type TextFieldProps = Omit<InputProps, "id"> & {
-  label: string;
+  label: ReactNode;
   hint?: string;
   error?: string | null;
+  requiredMark?: boolean;
 };
 
 /** Label + input + hint/error with full aria wiring (aria-invalid,
@@ -78,7 +79,7 @@ export function TextField({
   label,
   hint,
   error,
-  required,
+  requiredMark,
   className,
   ...inputProps
 }: TextFieldProps) {
@@ -89,16 +90,10 @@ export function TextField({
     [error ? errId : null, hint ? hintId : null].filter(Boolean).join(" ") || undefined;
   return (
     <div className={cn("flex flex-col gap-1.5", className)}>
-      <Label htmlFor={id} required={required}>
+      <Label htmlFor={id} requiredMark={requiredMark}>
         {label}
       </Label>
-      <Input
-        id={id}
-        required={required}
-        invalid={Boolean(error)}
-        aria-describedby={describedBy}
-        {...inputProps}
-      />
+      <Input id={id} invalid={Boolean(error)} aria-describedby={describedBy} {...inputProps} />
       {hint && !error && <FieldHint id={hintId}>{hint}</FieldHint>}
       {error && <FieldError id={errId}>{error}</FieldError>}
     </div>
@@ -117,7 +112,7 @@ export function PasswordField({
   label,
   hint,
   error,
-  required,
+  requiredMark,
   className,
   showLabel,
   hideLabel,
@@ -131,14 +126,13 @@ export function PasswordField({
     [error ? errId : null, hint ? hintId : null].filter(Boolean).join(" ") || undefined;
   return (
     <div className={cn("flex flex-col gap-1.5", className)}>
-      <Label htmlFor={id} required={required}>
+      <Label htmlFor={id} requiredMark={requiredMark}>
         {label}
       </Label>
       <div className="relative">
         <Input
           id={id}
           type={visible ? "text" : "password"}
-          required={required}
           invalid={Boolean(error)}
           aria-describedby={describedBy}
           className="pr-12"

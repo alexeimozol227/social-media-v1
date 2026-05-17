@@ -55,28 +55,37 @@ export default function RegisterPage() {
       <AuthHeading title={t("title")} />
       <form onSubmit={onSubmit} className="flex flex-col gap-5" noValidate>
         <TextField
+          label={
+            <>
+              {t("fullName")}{" "}
+              <span className="font-normal text-muted-foreground">{t("fullNameOptional")}</span>
+            </>
+          }
+          type="text"
+          autoComplete="name"
+          autoFocus
+          placeholder={tAuth("ph.name")}
+          value={fullName}
+          onChange={(e) => setFullName(e.target.value)}
+        />
+        <TextField
           label={t("email")}
           type="email"
           autoComplete="email"
           inputMode="email"
           required
-          autoFocus
+          requiredMark
+          placeholder={tAuth("ph.email")}
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-        />
-        <TextField
-          label={`${t("fullName")} · ${t("fullNameOptional")}`}
-          type="text"
-          autoComplete="name"
-          value={fullName}
-          onChange={(e) => setFullName(e.target.value)}
         />
         <PasswordField
           label={t("password")}
           autoComplete="new-password"
           required
+          requiredMark
           minLength={8}
-          hint={t("passwordHint")}
+          placeholder={tAuth("ph.newPassword")}
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           showLabel={tAuth("showPassword")}
@@ -88,6 +97,29 @@ export default function RegisterPage() {
           required
           label={t("tosAccept")}
         />
+        <p className="text-xs leading-relaxed text-muted-foreground">
+          {t("legalIntro")}{" "}
+          <Link
+            href="/terms"
+            className="text-foreground underline underline-offset-2 hover:text-primary"
+          >
+            {t("legalTerms")}
+          </Link>
+          ,{" "}
+          <Link
+            href="/privacy"
+            className="text-foreground underline underline-offset-2 hover:text-primary"
+          >
+            {t("legalPrivacy")}
+          </Link>{" "}
+          <Link
+            href="/agreement"
+            className="text-foreground underline underline-offset-2 hover:text-primary"
+          >
+            {t("legalAgreement")}
+          </Link>
+          .
+        </p>
         {error && <Alert tone="error">{error}</Alert>}
         <Button type="submit" loading={submitting} disabled={!tosAccepted} fullWidth>
           {t("submit")}

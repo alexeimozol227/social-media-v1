@@ -19,7 +19,7 @@ type Theme = { id: string; label: string; bg: string; primary: string };
 const THEMES: Theme[] = [
   {
     id: "",
-    label: "Indigo (по умолчанию)",
+    label: "Indigo (default)",
     bg: "oklch(0.215 0.018 280)",
     primary: "oklch(0.62 0.2 277)",
   },
@@ -84,8 +84,8 @@ export function ThemeSwitcher() {
       {open && (
         <div className="mb-3 w-64 overflow-hidden rounded-2xl border border-border bg-card shadow-pop">
           <div className="border-b border-border px-4 py-3">
-            <p className="text-sm font-semibold text-foreground">Тема (временно)</p>
-            <p className="mt-0.5 text-xs text-muted-foreground">Выбор палитры — потом уберём</p>
+            <p className="text-sm font-semibold text-foreground">Theme (temporary)</p>
+            <p className="mt-0.5 text-xs text-muted-foreground">Palette preview — removed later</p>
           </div>
           <ul className="max-h-80 overflow-y-auto p-2">
             {THEMES.map((th) => (
@@ -133,7 +133,7 @@ export function ThemeSwitcher() {
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        aria-label="Переключить тему"
+        aria-label="Toggle theme"
         aria-expanded={open}
         className="flex h-12 items-center gap-2 rounded-full border border-border bg-card px-5 text-sm font-semibold text-foreground shadow-pop transition-colors hover:bg-secondary"
       >
@@ -141,7 +141,7 @@ export function ThemeSwitcher() {
           <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="2" />
           <path d="M12 3a9 9 0 0 1 0 18Z" fill="currentColor" />
         </svg>
-        Тема
+        Theme
       </button>
     </div>
   );

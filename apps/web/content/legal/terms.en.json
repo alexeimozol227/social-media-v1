@@ -1,0 +1,47 @@
+{
+  "title": "Terms of Service",
+  "updated": "2026-05-17",
+  "intro": "These Terms govern the use of the social-media-v1 service. By registering and using the service you accept these Terms in full.",
+  "sections": [
+    {
+      "heading": "1. Definitions",
+      "body": [
+        "“Service” — the social-media-v1 software product available via the website and API.",
+        "“User” — an individual or legal entity using the Service under these Terms.",
+        "“Provider” — Alexei Mozol, UNP: 12345678."
+      ]
+    },
+    {
+      "heading": "2. Subject",
+      "body": [
+        "The Provider grants the User access to the Service's social media management features powered by AI agents, under the selected plan.",
+        "The feature set of each plan is listed on the pricing page and may change with prior notice."
+      ]
+    },
+    {
+      "heading": "3. Registration and account",
+      "body": [
+        "Using the Service requires creating an account and verifying the email address.",
+        "The User is responsible for keeping credentials safe and for all actions performed with their account."
+      ]
+    },
+    {
+      "heading": "4. Payment",
+      "body": [
+        "Paid plans are provided on a subscription basis. The trial period is provided without a card.",
+        "Refunds are handled per the refund section and applicable law."
+      ]
+    },
+    {
+      "heading": "5. Liability",
+      "body": [
+        "The Service is provided “as is”. The Provider makes reasonable efforts to keep it available but does not guarantee uninterrupted operation.",
+        "The User is solely responsible for content published through the Service and for complying with the rules of the social networks used."
+      ]
+    },
+    {
+      "heading": "6. Contacts",
+      "body": ["Alexei Mozol, UNP: 12345678.", "Support email: support@social.media."]
+    }
+  ]
+}

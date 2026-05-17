@@ -1,0 +1,41 @@
+{
+  "title": "Privacy Policy",
+  "updated": "2026-05-17",
+  "intro": "We respect your privacy and collect only the data needed to operate the social-media-v1 service.",
+  "sections": [
+    {
+      "heading": "1. Data we collect",
+      "body": [
+        "Account data: email address, name (optional), password hash.",
+        "Technical data: IP address, device and browser info, access logs.",
+        "Integration data: tokens of connected channels, stored encrypted."
+      ]
+    },
+    {
+      "heading": "2. How we use data",
+      "body": [
+        "To provide and improve the service, for authentication and security.",
+        "To send service notifications and account/billing emails.",
+        "We do not sell personal data to third parties."
+      ]
+    },
+    {
+      "heading": "3. Storage and protection",
+      "body": [
+        "Data is encrypted at rest and in transit. Employee access is restricted and logged.",
+        "Raw data is retained for a limited time; aggregated metrics may be kept longer."
+      ]
+    },
+    {
+      "heading": "4. Your rights",
+      "body": [
+        "You can request an export of your data and delete your account in settings.",
+        "After account deletion, personal data is removed within the defined period."
+      ]
+    },
+    {
+      "heading": "5. Contacts",
+      "body": ["Operator: Alexei Mozol, UNP: 12345678.", "Privacy enquiries: support@social.media."]
+    }
+  ]
+}
