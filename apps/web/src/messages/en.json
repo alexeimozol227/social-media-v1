@@ -5,6 +5,15 @@
     "cta": "Get started"
   },
   "auth": {
+    "brand": {
+      "title": "The AI operating system for social networks",
+      "tagline": "Plan, publish and analyse content across every channel from one place. Analytics, ideas and scheduling on autopilot.",
+      "f1": "Content calendar with scheduled auto-posting",
+      "f2": "Real-time channel and competitor analytics",
+      "f3": "AI post ideas and drafts tuned to your brand"
+    },
+    "showPassword": "Show password",
+    "hidePassword": "Hide password",
     "login": {
       "title": "Sign in",
       "email": "Email",
@@ -26,7 +35,9 @@
       "title": "Sign up",
       "email": "Email",
       "password": "Password",
+      "passwordHint": "At least 8 characters",
       "fullName": "Full name",
+      "fullNameOptional": "optional",
       "tosAccept": "I accept the Terms of Service and Privacy Policy",
       "submit": "Create account",
       "haveAccount": "Already have an account?",

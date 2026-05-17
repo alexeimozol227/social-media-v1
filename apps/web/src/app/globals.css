@@ -1,20 +1,130 @@
 @import "tailwindcss";
 
-:root {
-  --background: #0a0a0a;
-  --foreground: #ededed;
-  --accent: #2563eb;
-  --muted: #6b7280;
+/* ---------------------------------------------------------------------------
+ * Design system — "social-media-v1" (AI Operating System for Social Networks)
+ *
+ * Dark-first SaaS palette. Tokens are exposed through Tailwind v4 `@theme`
+ * so semantic utilities (bg-primary, text-muted-foreground, border-border,
+ * ring-ring …) are generated. Components must consume these semantic tokens
+ * rather than raw colour utilities so a future light theme is a token swap.
+ * ------------------------------------------------------------------------- */
+
+@theme {
+  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial,
+    sans-serif;
+  --font-mono: ui-monospace, "SF Mono", "JetBrains Mono", "Fira Code", Menlo, monospace;
+
+  /* Surfaces */
+  --color-background: oklch(0.16 0.014 282);
+  --color-surface: oklch(0.205 0.017 282);
+  --color-surface-2: oklch(0.245 0.019 282);
+  --color-card: oklch(0.205 0.017 282);
+  --color-card-foreground: oklch(0.97 0.005 285);
+
+  /* Text */
+  --color-foreground: oklch(0.97 0.005 285);
+  --color-muted: oklch(0.245 0.019 282);
+  --color-muted-foreground: oklch(0.71 0.02 285);
+
+  /* Lines & inputs */
+  --color-border: oklch(0.31 0.02 283);
+  --color-border-strong: oklch(0.4 0.025 283);
+  --color-input: oklch(0.235 0.018 282);
+  --color-ring: oklch(0.65 0.19 277);
+
+  /* Brand / primary */
+  --color-primary: oklch(0.62 0.2 277);
+  --color-primary-hover: oklch(0.67 0.2 277);
+  --color-primary-active: oklch(0.57 0.2 277);
+  --color-primary-foreground: oklch(0.99 0 0);
+
+  /* Secondary (neutral fill) */
+  --color-secondary: oklch(0.27 0.02 282);
+  --color-secondary-hover: oklch(0.31 0.02 282);
+  --color-secondary-foreground: oklch(0.97 0.005 285);
+
+  /* Status */
+  --color-destructive: oklch(0.62 0.21 24);
+  --color-destructive-foreground: oklch(0.99 0 0);
+  --color-success: oklch(0.7 0.16 155);
+  --color-success-foreground: oklch(0.16 0.02 160);
+  --color-info: oklch(0.68 0.15 240);
+
+  /* Radius scale */
+  --radius-sm: 0.5rem;
+  --radius: 0.75rem;
+  --radius-lg: 1rem;
+  --radius-xl: 1.25rem;
+  --radius-2xl: 1.5rem;
+
+  /* Elevation */
+  --shadow-card: 0 1px 2px oklch(0 0 0 / 0.3), 0 8px 24px oklch(0 0 0 / 0.35);
+  --shadow-pop: 0 12px 40px oklch(0 0 0 / 0.45);
 }
 
-html,
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+@layer base {
+  * {
+    border-color: var(--color-border);
+  }
+
+  html,
+  body {
+    background: var(--color-background);
+    color: var(--color-foreground);
+    font-family: var(--font-sans);
+  }
+
+  body {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  /* Visible, on-brand focus ring for keyboard users only. */
+  :focus-visible {
+    outline: 2px solid var(--color-ring);
+    outline-offset: 2px;
+  }
+
+  ::selection {
+    background: var(--color-primary);
+    color: var(--color-primary-foreground);
+  }
 }
 
-a {
-  color: inherit;
-  text-decoration: none;
+@layer components {
+  /* Decorative gradient mesh for the auth brand panel. Purely
+   * presentational — kept out of markup so the panel stays clean. */
+  .auth-aurora {
+    background-color: oklch(0.19 0.04 280);
+    background-image: radial-gradient(
+        ellipse 80% 60% at 20% 10%,
+        oklch(0.62 0.2 277 / 0.45),
+        transparent 60%
+      ), radial-gradient(ellipse 70% 60% at 90% 90%, oklch(0.6 0.18 320 / 0.4), transparent 60%),
+      radial-gradient(ellipse 60% 50% at 60% 50%, oklch(0.6 0.16 230 / 0.3), transparent 65%);
+  }
+
+  .auth-grid {
+    background-image: linear-gradient(oklch(1 0 0 / 0.04) 1px, transparent 1px),
+      linear-gradient(90deg, oklch(1 0 0 / 0.04) 1px, transparent 1px);
+    background-size: 44px 44px;
+    -webkit-mask-image: radial-gradient(ellipse 100% 80% at 50% 40%, black, transparent 75%);
+    mask-image: radial-gradient(ellipse 100% 80% at 50% 40%, black, transparent 75%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }
