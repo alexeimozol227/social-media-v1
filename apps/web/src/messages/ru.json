@@ -194,13 +194,22 @@
     },
     "showPassword": "Показать пароль",
     "hidePassword": "Скрыть пароль",
+    "ph": {
+      "email": "you@example.com",
+      "name": "Иван Петров",
+      "password": "Ваш пароль",
+      "newPassword": "Не менее 8 символов",
+      "confirmPassword": "Повторите пароль",
+      "code": "123456",
+      "mfaCode": "123456 или recovery-код"
+    },
     "login": {
       "title": "Вход",
       "email": "Email",
       "password": "Пароль",
       "submit": "Войти",
       "noAccount": "Нет аккаунта?",
-      "createAccount": "Создать",
+      "createAccount": "Зарегистрироваться",
       "forgotPassword": "Забыли пароль?"
     },
     "loginMfa": {
@@ -215,10 +224,13 @@
       "title": "Регистрация",
       "email": "Email",
       "password": "Пароль",
-      "passwordHint": "Минимум 8 символов",
       "fullName": "Имя",
-      "fullNameOptional": "необязательно",
+      "fullNameOptional": "(опционально)",
       "tosAccept": "Я принимаю Условия использования и Политику конфиденциальности",
+      "legalIntro": "Регистрируясь, вы принимаете",
+      "legalTerms": "Оферту",
+      "legalPrivacy": "Политику конфиденциальности",
+      "legalAgreement": "Соглашение",
       "submit": "Создать аккаунт",
       "haveAccount": "Уже есть аккаунт?",
       "signIn": "Войти"
@@ -238,8 +250,12 @@
       "description": "Если этот email зарегистрирован, мы отправим на него ссылку для сброса пароля.",
       "email": "Email",
       "submit": "Отправить ссылку",
-      "submitted": "Если email существует, письмо отправлено. Проверь почту.",
-      "backToLogin": "Назад к входу"
+      "submitted": "Если аккаунт с таким email существует, мы отправили ссылку для сброса пароля.",
+      "checkSpam": "Проверьте почту, включая папку «Спам».",
+      "notReceived": "Не получили письмо?",
+      "resend": "Отправить повторно",
+      "resendCooldown": "Отправить повторно ({sec} сек)",
+      "backToLogin": "Вернуться ко входу"
     },
     "resetPassword": {
       "title": "Новый пароль",
@@ -450,5 +466,9 @@
       "channelIdFallback": "id {id}",
       "noTitle": "—"
     }
+  },
+  "legal": {
+    "home": "На главную",
+    "effectiveFrom": "Действует с"
   }
 }

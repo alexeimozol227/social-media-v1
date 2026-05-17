@@ -82,6 +82,7 @@ function ResetPasswordInner() {
           autoComplete="new-password"
           required
           minLength={8}
+          placeholder={tAuth("ph.newPassword")}
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           showLabel={tAuth("showPassword")}
@@ -92,6 +93,7 @@ function ResetPasswordInner() {
           autoComplete="new-password"
           required
           minLength={8}
+          placeholder={tAuth("ph.confirmPassword")}
           error={confirm && password !== confirm ? t("passwordsDontMatch") : null}
           value={confirm}
           onChange={(e) => setConfirm(e.target.value)}

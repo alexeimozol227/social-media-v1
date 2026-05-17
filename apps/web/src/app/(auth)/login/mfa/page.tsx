@@ -73,15 +73,14 @@ export default function LoginMFAPage() {
       <AuthHeading title={t("title")} description={t("description")} />
       <form onSubmit={onSubmit} className="flex flex-col gap-5" noValidate>
         <div className="flex flex-col gap-1.5">
-          <Label htmlFor={codeId} required>
-            {t("code")}
-          </Label>
+          <Label htmlFor={codeId}>{t("code")}</Label>
           <CodeInput
             id={codeId}
             inputMode="numeric"
             autoComplete="one-time-code"
             required
             autoFocus
+            placeholder={tAuth("ph.mfaCode")}
             value={code}
             onChange={(e) => setCode(e.target.value)}
           />
