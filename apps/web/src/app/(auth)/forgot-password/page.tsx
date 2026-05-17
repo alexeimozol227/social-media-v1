@@ -1,5 +1,9 @@
 "use client";
 
+import { Alert } from "@/components/ui/alert";
+import { AuthHeading } from "@/components/ui/auth-heading";
+import { Button } from "@/components/ui/button";
+import { TextField } from "@/components/ui/field";
 import { ApiError, apiFetch } from "@/lib/api";
 import { useTranslations } from "next-intl";
 import Link from "next/link";
@@ -36,46 +40,46 @@ export default function ForgotPasswordPage() {
   }
 
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center p-8">
-      <div className="flex w-full max-w-sm flex-col gap-4 rounded-lg border border-gray-800 bg-gray-950 p-6">
-        <h1 className="text-center text-2xl font-bold">{t("title")}</h1>
-        {submitted ? (
-          <>
-            <p className="rounded bg-green-950 px-3 py-2 text-center text-sm text-green-300">
-              {t("submitted")}
-            </p>
-            <Link href="/login" className="text-center text-sm text-blue-400 hover:underline">
-              {t("backToLogin")}
-            </Link>
-          </>
-        ) : (
-          <form onSubmit={onSubmit} className="flex flex-col gap-4">
-            <p className="text-sm text-gray-400">{t("description")}</p>
-            <label className="flex flex-col gap-1">
-              <span className="text-sm text-gray-400">{t("email")}</span>
-              <input
-                type="email"
-                autoComplete="email"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="rounded border border-gray-700 bg-gray-900 px-3 py-2 outline-none focus:border-blue-500"
-              />
-            </label>
-            {error && <p className="rounded bg-red-950 px-3 py-2 text-sm text-red-300">{error}</p>}
-            <button
-              type="submit"
-              disabled={submitting}
-              className="rounded bg-blue-600 px-4 py-2 font-semibold text-white transition hover:bg-blue-500 disabled:opacity-50"
-            >
+    <>
+      <AuthHeading title={t("title")} description={!submitted ? t("description") : undefined} />
+      {submitted ? (
+        <div className="flex flex-col gap-5">
+          <Alert tone="success">{t("submitted")}</Alert>
+          <Link
+            href="/login"
+            className="text-center text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+          >
+            {t("backToLogin")}
+          </Link>
+        </div>
+      ) : (
+        <>
+          <form onSubmit={onSubmit} className="flex flex-col gap-5" noValidate>
+            <TextField
+              label={t("email")}
+              type="email"
+              autoComplete="email"
+              inputMode="email"
+              required
+              autoFocus
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+            />
+            {error && <Alert tone="error">{error}</Alert>}
+            <Button type="submit" loading={submitting} fullWidth>
               {t("submit")}
-            </button>
-            <Link href="/login" className="text-center text-sm text-blue-400 hover:underline">
+            </Button>
+          </form>
+          <p className="mt-7 text-center text-sm">
+            <Link
+              href="/login"
+              className="font-medium text-muted-foreground transition-colors hover:text-foreground"
+            >
               {t("backToLogin")}
             </Link>
-          </form>
-        )}
-      </div>
-    </main>
+          </p>
+        </>
+      )}
+    </>
   );
 }
