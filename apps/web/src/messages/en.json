@@ -2,8 +2,10 @@
   "landing": {
     "nav": {
       "features": "Features",
-      "agents": "Agents",
+      "how": "How it works",
       "pricing": "Pricing",
+      "faq": "FAQ",
+      "resources": "Help",
       "signIn": "Sign in",
       "getStarted": "Start free",
       "menu": "Menu"
@@ -116,9 +118,6 @@
       "subtitle": "Closed beta for Telegram channel authors and operators in the CIS.",
       "count": "1,200+",
       "countLabel": "authors already onboarded",
-      "point1": "Every AI decision is transparent",
-      "point2": "Control and approval mode",
-      "point3": "Export your data anytime",
       "note": "Trust over speed — a product principle"
     },
     "resources": {
