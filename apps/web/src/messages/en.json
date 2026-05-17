@@ -1,8 +1,111 @@
 {
   "landing": {
-    "title": "social-media-v1",
-    "subtitle": "AI operating system for social networks",
-    "cta": "Get started"
+    "nav": {
+      "features": "Features",
+      "agents": "Agents",
+      "pricing": "Pricing",
+      "signIn": "Sign in",
+      "getStarted": "Start free",
+      "menu": "Menu"
+    },
+    "hero": {
+      "badge": "AI operating system for social networks",
+      "title": "An AI team that runs your Telegram channel for you",
+      "subtitle": "Not a scheduler, not «another ChatGPT». A team of AI agents ideates, writes, publishes and analyses — around the clock, in your brand voice, under your control.",
+      "ctaPrimary": "Start free — 7 days",
+      "ctaSecondary": "Sign in",
+      "trust": "No card · First AI post in 15 minutes · Telegram-focused"
+    },
+    "pillars": {
+      "title": "Why it works differently",
+      "subtitle": "Three principles that set us apart from schedulers and text generators.",
+      "p1Title": "Autonomy, not automation",
+      "p1Desc": "Not «click a button → a post». Describe the goal — agents do weeks of work themselves: trends, plan, copy, visuals, publishing.",
+      "p2Title": "Brand memory",
+      "p2Desc": "Tone of voice, winning formats and audience live in one brand memory. Every agent checks it before any action.",
+      "p3Title": "Transparency and control",
+      "p3Desc": "Every AI decision can be unfolded: reasoning chain and sources. Run «AI does it» or «AI proposes — you approve»."
+    },
+    "agents": {
+      "title": "A team of 8 AI agents",
+      "subtitle": "Each owns one area. They work in a chain, coordinate and back each other up.",
+      "contentName": "Content",
+      "contentDesc": "Post copy, headlines and scripts in your brand voice.",
+      "publisherName": "Publisher",
+      "publisherDesc": "Publishes and picks the best time for each post.",
+      "analystName": "Analyst",
+      "analystDesc": "Turns metrics into insights and recommendations, not charts.",
+      "orchestratorName": "Orchestrator",
+      "orchestratorDesc": "Coordinates agent chains and handles errors.",
+      "brandMemoryName": "Brand Memory",
+      "brandMemoryDesc": "Stores and updates the living memory of your brand.",
+      "onboardingName": "Onboarding",
+      "onboardingDesc": "Builds brand memory from recent posts in minutes.",
+      "moderationName": "Moderation",
+      "moderationDesc": "Checks content before publishing: toxicity, risks, injections.",
+      "notificationName": "Notification",
+      "notificationDesc": "Digests, alerts and escalations to a human."
+    },
+    "how": {
+      "title": "From sign-up to first AI post — 15 minutes",
+      "subtitle": "No filling 100 fields by hand. AI figures your channel out itself.",
+      "s1Title": "Connect your Telegram channel",
+      "s1Desc": "Add our bot as an administrator to your channel — that's all it takes.",
+      "s2Title": "AI extracts brand memory",
+      "s2Desc": "The Onboarding agent analyses your last 50 posts: tone, topics, formats, audience.",
+      "s3Title": "Get a weekly plan",
+      "s3Desc": "Agents propose topics and post drafts tuned to your audience.",
+      "s4Title": "Turn on autopilot",
+      "s4Desc": "The channel lives and grows without you — on vacation or under load. Under your control."
+    },
+    "audience": {
+      "title": "For channel authors and operators",
+      "subtitle": "Solo expert, network owner or a business with a channel — there's value for each.",
+      "a1Title": "Small business",
+      "a1Desc": "One brand channel. Posting 3–5 times a week without burnout and without an expensive SMM hire.",
+      "a2Title": "Network owners",
+      "a2Desc": "3–10 channels, each with its own voice. Replace a team of editors with AI, 24/7.",
+      "a3Title": "Solo experts",
+      "a3Desc": "A personal brand as a sales funnel. The channel doesn't go silent even when you're busy."
+    },
+    "pricing": {
+      "title": "Simple pricing",
+      "subtitle": "7 days of full Pro access — free, no card. Then tiers by volume of work.",
+      "monthly": "Monthly",
+      "annual": "Annual",
+      "save": "−17%",
+      "perMonth": "/mo",
+      "recommended": "Popular",
+      "currencyNote": "Prices shown for Russia in ₽. Belarus in Br, other countries in $. Billed in your currency.",
+      "trialNote": "Every tier includes 8 AI agents, brand memory, the weekly report, autopilot modes and MFA.",
+      "cta": "Start free",
+      "soloName": "Solo",
+      "soloFor": "Small business — 1 brand",
+      "proName": "Pro",
+      "proFor": "Expert or a growing brand",
+      "networkName": "Network",
+      "networkFor": "Channel network and mini-agency",
+      "featBrands": "{count, plural, one {# brand} other {# brands}}",
+      "featChannels": "{count} TG channels per brand",
+      "featPosts": "{count} posts per month",
+      "featAiText": "{count} AI text generations",
+      "featAiMedia": "{count} AI images per month",
+      "featCompetitors": "{count} competitors monitored",
+      "featSwitcher": "Multi-brand switcher",
+      "featAgents": "8 AI agents and brand memory",
+      "featReports": "Weekly AI report"
+    },
+    "finalCta": {
+      "title": "Free yourself from social media routine",
+      "subtitle": "Connect a channel and get your first autonomous post today.",
+      "cta": "Start free — 7 days",
+      "note": "No card. Cancel anytime."
+    },
+    "footer": {
+      "tagline": "AI operating system for social networks. Human in the loop, not the human doing the loop.",
+      "product": "Product",
+      "rights": "All rights reserved."
+    }
   },
   "auth": {
     "brand": {
