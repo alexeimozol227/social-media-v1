@@ -8,8 +8,10 @@ import { useEffect, useState } from "react";
 
 const SECTIONS = [
   { id: "features", key: "features" },
-  { id: "agents", key: "agents" },
+  { id: "how", key: "how" },
   { id: "pricing", key: "pricing" },
+  { id: "faq", key: "faq" },
+  { id: "resources", key: "resources" },
 ] as const;
 
 export function SiteHeader() {

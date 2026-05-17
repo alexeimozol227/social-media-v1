@@ -1,4 +1,4 @@
-import { Logo, LogoMark } from "@/components/ui/logo";
+import { Logo } from "@/components/ui/logo";
 import { getTranslations } from "next-intl/server";
 import Link from "next/link";
 import type { ReactNode } from "react";
@@ -13,29 +13,24 @@ export default async function AuthLayout({
 
   return (
     <div className="grid min-h-dvh lg:grid-cols-[1fr_1.05fr]">
-      {/* Form column — now on the left. */}
-      <main className="flex flex-col items-center justify-center px-5 py-10 sm:px-8">
-        <div className="w-full max-w-[400px]">
-          <Link
-            href="/"
-            className="mb-8 inline-flex rounded-lg focus-visible:outline-2 lg:hidden"
-            aria-label="social-media-v1"
-          >
-            <LogoMark className="size-10" />
-          </Link>
-          {children}
+      {/* Form column (left) — logo pinned top-left on every size. */}
+      <main className="flex min-h-dvh flex-col px-5 py-8 sm:px-10 lg:py-10">
+        <Link
+          href="/"
+          className="inline-flex w-fit rounded-lg focus-visible:outline-2"
+          aria-label="social-media-v1"
+        >
+          <Logo />
+        </Link>
+        <div className="flex flex-1 items-center justify-center py-10">
+          <div className="w-full max-w-[400px]">{children}</div>
         </div>
       </main>
 
       {/* Brand panel — right side, desktop only (content-priority on mobile). */}
       <aside className="auth-aurora relative hidden overflow-hidden lg:flex lg:flex-col lg:justify-between lg:p-12">
         <div className="auth-grid absolute inset-0" aria-hidden="true" />
-        <div className="relative flex justify-end">
-          <Link href="/" className="inline-flex rounded-lg focus-visible:outline-2">
-            <Logo />
-          </Link>
-        </div>
-        <div className="relative max-w-md">
+        <div className="relative mt-auto max-w-md">
           <h2 className="text-balance text-3xl font-semibold leading-tight tracking-tight">
             {t("title")}
           </h2>
@@ -59,7 +54,7 @@ export default async function AuthLayout({
             ))}
           </ul>
         </div>
-        <p className="relative text-right text-xs text-foreground/50">
+        <p className="relative mt-8 text-xs text-foreground/50">
           © {new Date().getFullYear()} social-media-v1
         </p>
       </aside>

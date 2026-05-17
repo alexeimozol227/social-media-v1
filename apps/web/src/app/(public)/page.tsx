@@ -271,7 +271,6 @@ export default async function LandingPage() {
     { v: tStats("s3Value"), l: tStats("s3Label") },
     { v: tStats("s4Value"), l: tStats("s4Label") },
   ];
-  const trustPoints = [tTrust("point1"), tTrust("point2"), tTrust("point3")];
   const helpItems = [
     { t: tRes("help1Title"), d: tRes("help1Desc") },
     { t: tRes("help2Title"), d: tRes("help2Desc") },
@@ -614,25 +613,12 @@ export default async function LandingPage() {
             <p className="mx-auto mt-5 max-w-md text-pretty text-base leading-relaxed text-muted-foreground">
               {tTrust("subtitle")}
             </p>
-            <ul className="mx-auto mt-8 flex max-w-md flex-col gap-3 text-left">
-              {trustPoints.map((p) => (
-                <li
-                  key={p}
-                  className="flex items-center gap-3 rounded-xl border border-border bg-card px-4 py-3 text-sm text-foreground"
-                >
-                  <span className="grid size-6 shrink-0 place-items-center rounded-full bg-primary/15 text-primary">
-                    <Icon path={<path d="m5 13 4 4L19 7" />} className="size-3.5" />
-                  </span>
-                  {p}
-                </li>
-              ))}
-            </ul>
-            <p className="mt-6 text-sm text-muted-foreground/80">{tTrust("note")}</p>
+            <p className="mt-8 text-sm text-muted-foreground/80">{tTrust("note")}</p>
           </div>
         </section>
 
         {/* Resources & roadmap */}
-        <section className="mx-auto max-w-6xl px-5 py-24 sm:px-8">
+        <section id="resources" className="mx-auto max-w-6xl scroll-mt-20 px-5 py-24 sm:px-8">
           <SectionHeading title={tRes("title")} subtitle={tRes("subtitle")} />
           <div className="grid gap-6 md:grid-cols-3">
             {/* Help */}
@@ -736,7 +722,7 @@ export default async function LandingPage() {
         </section>
 
         {/* FAQ */}
-        <section className="mx-auto max-w-3xl px-5 py-24 sm:px-8">
+        <section id="faq" className="mx-auto max-w-3xl scroll-mt-20 px-5 py-24 sm:px-8">
           <SectionHeading title={tFaq("title")} subtitle={tFaq("subtitle")} />
           <div className="flex flex-col gap-3">
             {faq.map((item, i) => (
