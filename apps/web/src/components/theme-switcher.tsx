@@ -19,37 +19,11 @@ type Theme = { id: string; label: string; bg: string; primary: string };
 const THEMES: Theme[] = [
   {
     id: "",
-    label: "Indigo (default)",
+    label: "Indigo",
     bg: "oklch(0.215 0.018 280)",
     primary: "oklch(0.62 0.2 277)",
   },
-  { id: "violet", label: "Violet", bg: "oklch(0.21 0.03 305)", primary: "oklch(0.62 0.22 312)" },
-  { id: "ocean", label: "Ocean", bg: "oklch(0.2 0.03 245)", primary: "oklch(0.64 0.16 230)" },
-  { id: "emerald", label: "Emerald", bg: "oklch(0.2 0.025 165)", primary: "oklch(0.66 0.15 158)" },
-  { id: "teal", label: "Teal", bg: "oklch(0.2 0.025 200)", primary: "oklch(0.66 0.13 190)" },
-  { id: "rose", label: "Rose", bg: "oklch(0.21 0.028 350)", primary: "oklch(0.62 0.22 5)" },
-  { id: "amber", label: "Amber", bg: "oklch(0.21 0.022 70)", primary: "oklch(0.76 0.15 72)" },
-  { id: "crimson", label: "Crimson", bg: "oklch(0.2 0.02 20)", primary: "oklch(0.58 0.23 25)" },
-  {
-    id: "graphite",
-    label: "Graphite",
-    bg: "oklch(0.22 0.004 270)",
-    primary: "oklch(0.72 0.05 255)",
-  },
-  {
-    id: "midnight",
-    label: "Midnight",
-    bg: "oklch(0.17 0.03 265)",
-    primary: "oklch(0.68 0.15 215)",
-  },
-  { id: "sunset", label: "Sunset", bg: "oklch(0.22 0.03 35)", primary: "oklch(0.66 0.2 38)" },
   { id: "light", label: "Light", bg: "oklch(0.98 0.004 280)", primary: "oklch(0.55 0.22 277)" },
-  {
-    id: "light-warm",
-    label: "Light warm",
-    bg: "oklch(0.98 0.012 75)",
-    primary: "oklch(0.58 0.18 42)",
-  },
 ];
 
 function applyTheme(id: string) {

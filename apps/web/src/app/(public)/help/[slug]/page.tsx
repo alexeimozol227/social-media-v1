@@ -25,7 +25,7 @@ export default async function HelpArticlePage({
   }
 
   return (
-    <div className="min-h-dvh bg-background">
+    <div className="flex min-h-dvh flex-col bg-background">
       <SiteHeader />
       <HelpArticleView content={content} article={article} />
       <SiteFooter />

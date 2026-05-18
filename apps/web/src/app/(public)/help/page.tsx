@@ -28,7 +28,7 @@ export default async function HelpPage({
   }
 
   return (
-    <div className="min-h-dvh bg-background">
+    <div className="flex min-h-dvh flex-col bg-background">
       <SiteHeader />
       <HelpCenter content={content} initialView={resolveView(section)} />
       <SiteFooter />
