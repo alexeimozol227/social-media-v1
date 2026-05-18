@@ -13,6 +13,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.middleware.errors import register_error_handlers
 from app.api.middleware.idempotency import IdempotencyMiddleware
+from app.api.routes import admin as admin_routes
 from app.api.routes import auth as auth_routes
 from app.api.routes import brands as brand_routes
 from app.api.routes import channels as channel_routes
@@ -102,6 +103,10 @@ app.include_router(competitor_routes.router, tags=["competitors"])
 # The router registers an absolute path (``/v1/integrations/telegram/webhook``)
 # so it's mounted without a router-level prefix.
 app.include_router(integrations_routes.router, tags=["integrations"])
+# PR #20 (docs/plans/phase1-sprint3-plan.md): admin audit-log surface +
+# LLM healthcheck endpoints. Role-gated inside the handlers (admin /
+# support / user) so the router doesn't need its own auth dependency.
+app.include_router(admin_routes.router, tags=["admin"])
 
 
 @app.get("/", tags=["meta"])

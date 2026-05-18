@@ -9,7 +9,7 @@ from __future__ import annotations
 import uuid
 from datetime import datetime
 
-from sqlalchemy import JSON, CheckConstraint, DateTime, ForeignKey, Integer, String, Text
+from sqlalchemy import JSON, Boolean, CheckConstraint, DateTime, ForeignKey, Integer, String, Text
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -169,6 +169,18 @@ class User(UUIDPrimaryKeyMixin, TimestampMixin, SoftDeleteMixin, Base):
     totp_last_step_up_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True),
         nullable=True,
+    )
+
+    # PR #20: explicit opt-in for "use my data to improve the model".
+    # docs/04-architecture.md §18.5 + D58. Snapshotted onto every
+    # ``llm_calls`` row at write time so a later policy flip doesn't
+    # rewrite history (the dataset team needs a deterministic "may we
+    # include this call?" signal per row).
+    opt_in_training: Mapped[bool] = mapped_column(
+        Boolean,
+        nullable=False,
+        default=False,
+        server_default="false",
     )
 
     def __repr__(self) -> str:

@@ -30,7 +30,7 @@ from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.adapters.llm.base import EmbeddingResult, LLMProvider, LLMProviderError
+from app.adapters.llm.base import LLMProvider, LLMProviderError
 from app.models.channel import ChannelPost, WorkspaceChannel
 from app.models.channel_post_embedding import EMBEDDING_DIM, ChannelPostEmbedding
 
@@ -154,15 +154,22 @@ class EmbeddingsService:
                 model=self.model,
             )
 
-        result: EmbeddingResult = await self.provider.embed(text, self.model)
-        if len(result.vector) != self.dim:
+        # PR #20 contract: ``embed`` is batched; single-text callers
+        # wrap in ``[text]`` and read ``result[0]``.
+        vectors = await self.provider.embed([text], self.model)
+        if not vectors:
+            raise LLMProviderError(
+                "Provider returned empty embedding batch for one input",
+            )
+        vector = vectors[0]
+        if len(vector) != self.dim:
             # Dim mismatch is a configuration bug — the provider
             # returned an embedding the persistence layer can't
             # store. Surface it as ``LLMProviderError`` so the
             # Celery task's retry budget isn't burned on something
             # only a re-deploy can fix.
             raise LLMProviderError(
-                f"Embedding dim {len(result.vector)} does not match "
+                f"Embedding dim {len(vector)} does not match "
                 f"configured dim {self.dim} for model {self.model!r}",
             )
 
@@ -172,7 +179,7 @@ class EmbeddingsService:
             channel_id=post.channel_id,
             workspace_id=binding.workspace_id,
             model=self.model,
-            vector=result.vector,
+            vector=vector,
         )
 
 

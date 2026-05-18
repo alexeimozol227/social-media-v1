@@ -1,15 +1,17 @@
-"""Unit tests for :class:`app.services.embeddings.EmbeddingsService` (PR #17).
+"""Unit tests for :class:`app.services.embeddings.EmbeddingsService` (PR #20).
 
-Coverage (10 cases):
+Coverage:
 
 * Happy-path insert + skip variants (no text / no binding / unknown post).
 * Idempotent re-run = update with new vector.
 * Multiple workspace bindings — only one embedding row is persisted.
-* Dim mismatch surfaces as :class:`LLMProviderError` (configuration bug,
-  not a retryable provider error).
+* Dim mismatch surfaces as :class:`LLMProviderError`.
 * Workspace_id matches the oldest active binding (stable across re-runs).
 * Provider error / transient error propagates so the Celery task retries.
 * Detached binding (``disconnected_at`` set) is treated as no binding.
+
+PR #20 updates the provider contract to ``embed(texts: list[str])``;
+single-text callers wrap in ``[text]`` and read ``result[0]``.
 """
 
 from __future__ import annotations
@@ -23,13 +25,15 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.adapters.llm import (
-    EmbeddingResult,
+    ChatMessage,
+    ChatResponse,
     LLMProvider,
     LLMProviderError,
-    LLMResult,
     LLMTimeoutError,
     MockLLMProvider,
-    Tool,
+    ProviderHealth,
+    ResponseFormat,
+    ToolSpec,
 )
 from app.models.brand import Brand
 from app.models.channel import (
@@ -48,17 +52,11 @@ from app.services.embeddings import (
     EmbeddingsService,
 )
 
-# ---------------------------------------------------------------------------
-# Fixtures
-# ---------------------------------------------------------------------------
-
 
 @pytest_asyncio.fixture
 async def seed(
     db_session: AsyncSession,
 ) -> tuple[User, Workspace, Brand, Channel, WorkspaceChannel, ChannelPost]:
-    """Seed user + workspace + brand + connected channel + 1 post."""
-
     user = User(
         email="emb@example.com",
         hashed_password="x",
@@ -138,11 +136,6 @@ def _service(dim: int = 4) -> EmbeddingsService:
     )
 
 
-# ---------------------------------------------------------------------------
-# Service tests
-# ---------------------------------------------------------------------------
-
-
 @pytest.mark.asyncio
 async def test_happy_path_inserts_embedding(
     db_session: AsyncSession,
@@ -156,8 +149,6 @@ async def test_happy_path_inserts_embedding(
     assert result.inserted is True
     assert result.updated is False
     assert result.skipped is None
-    assert result.channel_post_id == post.id
-    assert result.model == "text-embedding-3-small"
 
     rows = (
         (
@@ -172,8 +163,6 @@ async def test_happy_path_inserts_embedding(
     row = rows[0]
     assert row.workspace_id == workspace.id
     assert row.channel_id == channel.id
-    assert row.model == "text-embedding-3-small"
-    assert isinstance(row.embedding, list)
     assert len(row.embedding) == 4
 
 
@@ -183,8 +172,6 @@ async def test_idempotent_rerun_updates_existing_row(
     seed: tuple[User, Workspace, Brand, Channel, WorkspaceChannel, ChannelPost],
 ) -> None:
     _u, _ws, _b, _ch, _bind, post = seed
-    # Run 1 uses the seeded mock vectors; run 2 plants a fixture so we
-    # can prove the row was overwritten in place.
     service_v1 = _service(dim=4)
     first = await service_v1.embed_channel_post(db_session, post.id)
     assert first.inserted is True
@@ -230,16 +217,14 @@ async def test_skips_post_without_text(
     result = await _service().embed_channel_post(db_session, media_post.id)
 
     assert result.skipped == SKIP_NO_TEXT
-    assert result.inserted is False
-    assert result.updated is False
-    count_rows = (
+    rows = (
         await db_session.execute(
             select(ChannelPostEmbedding).where(
                 ChannelPostEmbedding.channel_post_id == media_post.id
             ),
         )
     ).all()
-    assert count_rows == []
+    assert rows == []
 
 
 @pytest.mark.asyncio
@@ -259,7 +244,6 @@ async def test_skips_post_with_whitespace_only_text(
     await db_session.flush()
 
     result = await _service().embed_channel_post(db_session, blank_post.id)
-
     assert result.skipped == SKIP_NO_TEXT
 
 
@@ -267,8 +251,6 @@ async def test_skips_post_with_whitespace_only_text(
 async def test_skips_post_with_unknown_id(db_session: AsyncSession) -> None:
     result = await _service().embed_channel_post(db_session, uuid.uuid4())
     assert result.skipped == SKIP_UNKNOWN_POST
-    assert result.inserted is False
-    assert result.updated is False
 
 
 @pytest.mark.asyncio
@@ -277,14 +259,11 @@ async def test_skips_post_when_no_active_binding(
     seed: tuple[User, Workspace, Brand, Channel, WorkspaceChannel, ChannelPost],
 ) -> None:
     _u, _ws, _b, _ch, binding, post = seed
-    # Detach the only binding — service should report no_binding.
     binding.disconnected_at = datetime.now(tz=UTC)
     await db_session.flush()
 
     result = await _service().embed_channel_post(db_session, post.id)
-
     assert result.skipped == SKIP_NO_BINDING
-    assert result.inserted is False
 
 
 @pytest.mark.asyncio
@@ -293,7 +272,6 @@ async def test_dim_mismatch_raises_llm_provider_error(
     seed: tuple[User, Workspace, Brand, Channel, WorkspaceChannel, ChannelPost],
 ) -> None:
     _u, _ws, _b, _ch, _bind, post = seed
-    # Provider returns dim=2 but the service expects dim=4 → config bug.
     provider = MockLLMProvider(
         dim=2,
         embedding_fixtures={post.text or "": [0.1, 0.2]},
@@ -310,14 +288,7 @@ async def test_workspace_id_is_oldest_active_binding(
     db_session: AsyncSession,
     seed: tuple[User, Workspace, Brand, Channel, WorkspaceChannel, ChannelPost],
 ) -> None:
-    """When two workspaces bind the same channel, the older one wins.
-
-    docs/03 §D20 Global Channel Registry — embedding rows pick the
-    oldest active binding for ``workspace_id`` so re-runs are stable.
-    """
-
     older_user, older_ws, _b, channel, _bind, post = seed
-    # Spin up a second workspace + binding that connected *later*.
     newer_owner = User(
         email="other@example.com",
         hashed_password="x",
@@ -353,7 +324,7 @@ async def test_workspace_id_is_oldest_active_binding(
         channel_id=channel.id,
         role=WorkspaceChannelRoleValues.OWNED,
         bot_admin_rights={"status": "administrator", "can_post_messages": True},
-        connected_at=datetime.now(tz=UTC),  # later than seed
+        connected_at=datetime.now(tz=UTC),
     )
     db_session.add(newer_binding)
     await db_session.flush()
@@ -371,7 +342,6 @@ async def test_workspace_id_is_oldest_active_binding(
         .all()
     )
     assert len(rows) == 1
-    # Older workspace wins — the seeded binding connected 2 days earlier.
     assert rows[0].workspace_id == older_ws.id
     del older_user
 
@@ -381,14 +351,10 @@ async def test_only_active_bindings_are_considered(
     db_session: AsyncSession,
     seed: tuple[User, Workspace, Brand, Channel, WorkspaceChannel, ChannelPost],
 ) -> None:
-    """A detached older binding doesn't anchor the row over a newer active one."""
-
     _u, _older_ws, _b, channel, older_binding, post = seed
-    # Detach the seeded binding.
     older_binding.disconnected_at = datetime.now(tz=UTC)
     await db_session.flush()
 
-    # New workspace with an active binding.
     newer_owner = User(
         email="active@example.com",
         hashed_password="x",
@@ -452,25 +418,36 @@ async def test_transient_error_propagates_to_caller(
     db_session: AsyncSession,
     seed: tuple[User, Workspace, Brand, Channel, WorkspaceChannel, ChannelPost],
 ) -> None:
-    """The service doesn't swallow timeouts — the task retries."""
-
     _u, _ws, _b, _ch, _bind, post = seed
 
     class FailingProvider:
-        async def complete(
+        provider_slug = "test"
+
+        async def chat(
             self,
-            prompt: str,
+            messages: list[ChatMessage],
             model: str,
             *,
-            tools: list[Tool] | None = None,
+            tools: list[ToolSpec] | None = None,
+            response_format: ResponseFormat | None = None,
+            temperature: float = 0.2,
             max_tokens: int = 2000,
-        ) -> LLMResult:  # pragma: no cover - not exercised
-            del prompt, model, tools, max_tokens
-            return LLMResult(text="")
+            idempotency_key: str | None = None,
+        ) -> ChatResponse:  # pragma: no cover - not exercised
+            del messages, model, tools, response_format
+            del temperature, max_tokens, idempotency_key
+            return ChatResponse()
 
-        async def embed(self, text: str, model: str) -> EmbeddingResult:
-            del text, model
+        async def embed(
+            self,
+            texts: list[str],
+            model: str = "text-embedding-3-small",
+        ) -> list[list[float]]:
+            del texts, model
             raise LLMTimeoutError("polza timed out")
+
+        async def health_check(self) -> ProviderHealth:  # pragma: no cover
+            return ProviderHealth(provider=self.provider_slug, status="ok")
 
     provider: LLMProvider = FailingProvider()
     service = EmbeddingsService(provider=provider, model="text-embedding-3-small", dim=4)

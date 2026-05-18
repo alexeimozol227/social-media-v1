@@ -428,6 +428,69 @@
     "label": "Brand",
     "defaultBadge": " (default)"
   },
+  "admin": {
+    "index": {
+      "title": "Admin",
+      "subtitle": "Platform tooling for admins and support engineers.",
+      "accessDenied": "You don't have access to this area.",
+      "backToDashboard": "Back to dashboard",
+      "healthcheckTitle": "LLM health",
+      "healthcheckBlurb": "Latest provider/model liveness probe.",
+      "agentRunsTitle": "Agent runs",
+      "agentRunsBlurb": "Recent agent invocations across all workspaces."
+    },
+    "healthcheck": {
+      "title": "LLM health",
+      "subtitle": "Latest health-check call per provider/model pair.",
+      "accessDenied": "You don't have access to this area.",
+      "backToDashboard": "Back to dashboard",
+      "backToAdmin": "Back to admin",
+      "refresh": "Refresh",
+      "runNow": "Run health-check now",
+      "loadError": "Failed to load health-check status.",
+      "runError": "Failed to trigger a health-check.",
+      "empty": "No health-check call has been recorded yet.",
+      "colProvider": "Provider",
+      "colModel": "Model",
+      "colStatus": "Status",
+      "colLatency": "Latency",
+      "colError": "Error",
+      "colChecked": "Last checked",
+      "status": {
+        "ok": "ok",
+        "degraded": "degraded",
+        "down": "down"
+      }
+    },
+    "agentRuns": {
+      "title": "Agent runs",
+      "subtitle": "Recent agent invocations across every workspace.",
+      "accessDenied": "You don't have access to this area.",
+      "backToDashboard": "Back to dashboard",
+      "backToAdmin": "Back to admin",
+      "refresh": "Refresh",
+      "apply": "Apply",
+      "loadMore": "Load more",
+      "loadError": "Failed to load agent runs.",
+      "empty": "No agent runs yet.",
+      "agentLabel": "Agent",
+      "statusLabel": "Status",
+      "statusAny": "Any",
+      "colAgent": "Agent",
+      "colStatus": "Status",
+      "colStarted": "Started",
+      "colLatency": "Latency",
+      "colTokens": "Prompt/Completion",
+      "colCost": "Cost (USD)",
+      "colError": "Error",
+      "status": {
+        "started": "started",
+        "succeeded": "succeeded",
+        "failed": "failed",
+        "cancelled": "cancelled"
+      }
+    }
+  },
   "channels": {
     "title": "Channels",
     "connectedHeader": "Connected channels",

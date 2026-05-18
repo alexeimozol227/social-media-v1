@@ -79,6 +79,14 @@ dependencies = [
     # multipart/alternative (text fallback + HTML for clients that
     # support it).
     "jinja2>=3.1",
+    # PR #20 (docs/plans/phase1-sprint3-plan.md): retry + circuit
+    # breaker for the LLM gateway. ``tenacity`` drives the per-call
+    # retry budget (jittered exponential backoff on transient
+    # errors only); ``pybreaker`` arms the per-(provider, model)
+    # circuit breaker whose state lives in Redis so every worker /
+    # web instance reads the same "open / closed" signal.
+    "tenacity>=9.0",
+    "pybreaker>=1.2",
 ]
 
 [dependency-groups]
@@ -93,6 +101,11 @@ dev = [
     "aiosqlite>=0.20.0",
     "fakeredis>=2.26.0",
     "anyio>=4.6.0",
+    # PR #20: ``respx`` mocks httpx requests (Polza gateway), and
+    # ``freezegun`` freezes time for retry / circuit-breaker /
+    # daily-aggregation tests.
+    "respx>=0.21",
+    "freezegun>=1.5",
 ]
 
 [tool.uv]
@@ -137,6 +150,7 @@ exclude = ["alembic/versions"]
 module = [
     "passlib.*", "jose.*", "frontmatter.*", "tiktoken.*", "re2.*",
     "opentelemetry.*",
+    "pybreaker.*",
 ]
 ignore_missing_imports = true
 

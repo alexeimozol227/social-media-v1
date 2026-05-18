@@ -198,7 +198,8 @@ class Settings(BaseSettings):
     # so the worker is exercised end-to-end.
     celery_task_always_eager: bool = Field(default=False)
 
-    # ---- LLM / embeddings (PR #17, docs/plans/phase1-sprint2-plan.md) ----
+    # ---- LLM / embeddings (PR #17, docs/plans/phase1-sprint2-plan.md +
+    # PR #20, docs/plans/phase1-sprint3-plan.md) ----
     # ``llm_provider`` selects the concrete :class:`LLMProvider`
     # implementation at startup. ``mock`` returns deterministic
     # seeded vectors and never makes network calls — the default for
@@ -207,11 +208,36 @@ class Settings(BaseSettings):
     llm_provider: Literal["polza", "mock"] = Field(default="mock")
     polza_api_key: str = Field(default="")
     polza_base_url: str = Field(default="https://api.polza.ai/api/v1")
+    # PR #20: full gateway tuning surface. The names mirror what the
+    # plan calls ``LLM_GATEWAY_*`` so a deployment-time switch from
+    # Polza to any other OpenAI-compatible gateway only flips
+    # ``LLM_PROVIDER`` + this trio.
+    llm_gateway_timeout_seconds: float = Field(default=30.0)
+    llm_gateway_retry_max_attempts: int = Field(default=3)
+    llm_gateway_retry_initial_backoff_seconds: float = Field(default=0.5)
+    llm_gateway_retry_max_backoff_seconds: float = Field(default=8.0)
+    # Circuit breaker tuning (docs/04 §16.4 + plan §2.1.4). After
+    # ``threshold`` consecutive failures the breaker trips OPEN for
+    # ``reset_seconds`` before going HALF_OPEN.
+    llm_circuit_breaker_fail_threshold: int = Field(default=5)
+    llm_circuit_breaker_reset_seconds: int = Field(default=60)
+    # Optional Redis-backed completion cache. ``TTL <= 0`` disables
+    # caching entirely; the cache is keyed on
+    # ``hash(provider, model, messages, tools, response_format)``.
+    llm_prompt_cache_ttl_seconds: int = Field(default=0)
+    # FX fallback when no ``fx_rates`` snapshot is available yet.
+    # The plan fixes the seed value at 95 RUB / USD so a fresh
+    # CI / dev env still produces sensible RUB cost rows.
+    usd_to_rub_fallback: float = Field(default=95.0)
     # ``text-embedding-3-small`` (1536 dim) is the chosen baseline
     # per docs/05 §3 — small enough that one workspace's brand-memory
     # fits a single HNSW index without partitioning by model.
     embedding_model: str = Field(default="text-embedding-3-small")
     embedding_dim: int = Field(default=1536)
+    # Default ``users.opt_in_training`` value for new accounts (D58
+    # in docs/04 §18.5 — every user is opt-in by default, the
+    # account-settings page later flips it off).
+    default_opt_in_training: bool = Field(default=False)
 
     # ---- User-bot / Pyrogram pool (PR #18, docs/05 §5.2, D40) ----
     # Fernet key for encrypting userbot session credentials at rest.
