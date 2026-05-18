@@ -1,6 +1,6 @@
 """audit log: agent_runs / llm_calls / llm_calls_daily + fx_rates + opt_in_training
 
-Revision ID: 0014_audit_log_agent_runs_llm_calls
+Revision ID: 0014_agent_audit_log
 Revises: 0013_seed_plan_catalog
 Create Date: 2026-05-17
 
@@ -76,7 +76,7 @@ from alembic import op
 from sqlalchemy.dialects import postgresql
 
 # revision identifiers, used by Alembic.
-revision: str = "0014_audit_log_agent_runs_llm_calls"
+revision: str = "0014_agent_audit_log"
 down_revision: str | None = "0013_seed_plan_catalog"
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
@@ -97,107 +97,137 @@ ALTER TABLE users
 """
 
 
-_PG_FX_RATES_DDL = """
-CREATE TABLE IF NOT EXISTS fx_rates (
-    id              UUID PRIMARY KEY,
-    base_currency   VARCHAR(8) NOT NULL,
-    quote_currency  VARCHAR(8) NOT NULL,
-    rate            NUMERIC(18, 8) NOT NULL,
-    observed_at     TIMESTAMPTZ NOT NULL,
-    source          VARCHAR(32) NOT NULL DEFAULT 'manual',
-    created_at      TIMESTAMPTZ NOT NULL DEFAULT now(),
-    updated_at      TIMESTAMPTZ NOT NULL DEFAULT now(),
-    CONSTRAINT uq_fx_rates_natural UNIQUE (base_currency, quote_currency, observed_at)
-);
-CREATE INDEX IF NOT EXISTS ix_fx_rates_pair_observed
-    ON fx_rates (base_currency, quote_currency, observed_at DESC);
-"""
+# ``asyncpg`` rejects multi-statement strings inside a single prepared
+# statement, so DDL blocks that bundle a ``CREATE TABLE`` with one or more
+# ``CREATE INDEX`` calls are kept as tuples and executed one statement at
+# a time (same pattern as PR #17 / migration 0011).
+_PG_FX_RATES_STATEMENTS: tuple[str, ...] = (
+    """
+    CREATE TABLE IF NOT EXISTS fx_rates (
+        id              UUID PRIMARY KEY,
+        base_currency   VARCHAR(8) NOT NULL,
+        quote_currency  VARCHAR(8) NOT NULL,
+        rate            NUMERIC(18, 8) NOT NULL,
+        observed_at     TIMESTAMPTZ NOT NULL,
+        source          VARCHAR(32) NOT NULL DEFAULT 'manual',
+        created_at      TIMESTAMPTZ NOT NULL DEFAULT now(),
+        updated_at      TIMESTAMPTZ NOT NULL DEFAULT now(),
+        CONSTRAINT uq_fx_rates_natural UNIQUE (base_currency, quote_currency, observed_at)
+    );
+    """,
+    """
+    CREATE INDEX IF NOT EXISTS ix_fx_rates_pair_observed
+        ON fx_rates (base_currency, quote_currency, observed_at DESC);
+    """,
+)
 
 
-_PG_AGENT_RUNS_DDL = """
-CREATE TABLE IF NOT EXISTS agent_runs (
-    id                    UUID PRIMARY KEY,
-    workspace_id          UUID NOT NULL REFERENCES workspaces(id) ON DELETE CASCADE,
-    brand_id              UUID NULL REFERENCES brands(id) ON DELETE SET NULL,
-    agent                 VARCHAR(64) NOT NULL,
-    agent_version         VARCHAR(32) NOT NULL DEFAULT 'v0',
-    status                VARCHAR(16) NOT NULL,
-    started_at            TIMESTAMPTZ NOT NULL DEFAULT now(),
-    finished_at           TIMESTAMPTZ NULL,
-    latency_ms            BIGINT NULL,
-    prompt_tokens         INTEGER NOT NULL DEFAULT 0,
-    completion_tokens     INTEGER NOT NULL DEFAULT 0,
-    cost_usd              NUMERIC(14, 6) NOT NULL DEFAULT 0,
-    cost_rub              NUMERIC(14, 4) NOT NULL DEFAULT 0,
-    error_code            VARCHAR(64) NULL,
-    error_message         TEXT NULL,
-    chain_of_thought      JSONB NULL,
-    retrieved_context     JSONB NULL,
-    skills_used           JSONB NOT NULL DEFAULT '[]'::jsonb,
-    parent_run_id         UUID NULL REFERENCES agent_runs(id) ON DELETE SET NULL,
-    idempotency_key       TEXT NULL,
-    originator_user_id    UUID NULL REFERENCES users(id) ON DELETE SET NULL,
-    opt_in_training       BOOLEAN NOT NULL DEFAULT false,
-    created_at            TIMESTAMPTZ NOT NULL DEFAULT now(),
-    CONSTRAINT ck_agent_runs_status
-        CHECK (status IN ('started', 'succeeded', 'failed', 'cancelled'))
-);
-CREATE INDEX IF NOT EXISTS ix_agent_runs_workspace_started
-    ON agent_runs (workspace_id, started_at DESC);
-CREATE INDEX IF NOT EXISTS ix_agent_runs_brand_started
-    ON agent_runs (brand_id, started_at DESC);
-CREATE INDEX IF NOT EXISTS ix_agent_runs_agent
-    ON agent_runs (agent, started_at DESC);
-CREATE INDEX IF NOT EXISTS ix_agent_runs_parent
-    ON agent_runs (parent_run_id)
-    WHERE parent_run_id IS NOT NULL;
-CREATE INDEX IF NOT EXISTS ix_agent_runs_cot_gin
-    ON agent_runs USING gin (chain_of_thought)
-    WHERE chain_of_thought IS NOT NULL;
-"""
+_PG_AGENT_RUNS_STATEMENTS: tuple[str, ...] = (
+    """
+    CREATE TABLE IF NOT EXISTS agent_runs (
+        id                    UUID PRIMARY KEY,
+        workspace_id          UUID NOT NULL REFERENCES workspaces(id) ON DELETE CASCADE,
+        brand_id              UUID NULL REFERENCES brands(id) ON DELETE SET NULL,
+        agent                 VARCHAR(64) NOT NULL,
+        agent_version         VARCHAR(32) NOT NULL DEFAULT 'v0',
+        status                VARCHAR(16) NOT NULL,
+        started_at            TIMESTAMPTZ NOT NULL DEFAULT now(),
+        finished_at           TIMESTAMPTZ NULL,
+        latency_ms            BIGINT NULL,
+        prompt_tokens         INTEGER NOT NULL DEFAULT 0,
+        completion_tokens     INTEGER NOT NULL DEFAULT 0,
+        cost_usd              NUMERIC(14, 6) NOT NULL DEFAULT 0,
+        cost_rub              NUMERIC(14, 4) NOT NULL DEFAULT 0,
+        error_code            VARCHAR(64) NULL,
+        error_message         TEXT NULL,
+        chain_of_thought      JSONB NULL,
+        retrieved_context     JSONB NULL,
+        skills_used           JSONB NOT NULL DEFAULT '[]'::jsonb,
+        parent_run_id         UUID NULL REFERENCES agent_runs(id) ON DELETE SET NULL,
+        idempotency_key       TEXT NULL,
+        originator_user_id    UUID NULL REFERENCES users(id) ON DELETE SET NULL,
+        opt_in_training       BOOLEAN NOT NULL DEFAULT false,
+        created_at            TIMESTAMPTZ NOT NULL DEFAULT now(),
+        CONSTRAINT ck_agent_runs_status
+            CHECK (status IN ('started', 'succeeded', 'failed', 'cancelled'))
+    );
+    """,
+    """
+    CREATE INDEX IF NOT EXISTS ix_agent_runs_workspace_started
+        ON agent_runs (workspace_id, started_at DESC);
+    """,
+    """
+    CREATE INDEX IF NOT EXISTS ix_agent_runs_brand_started
+        ON agent_runs (brand_id, started_at DESC);
+    """,
+    """
+    CREATE INDEX IF NOT EXISTS ix_agent_runs_agent
+        ON agent_runs (agent, started_at DESC);
+    """,
+    """
+    CREATE INDEX IF NOT EXISTS ix_agent_runs_parent
+        ON agent_runs (parent_run_id)
+        WHERE parent_run_id IS NOT NULL;
+    """,
+    """
+    CREATE INDEX IF NOT EXISTS ix_agent_runs_cot_gin
+        ON agent_runs USING gin (chain_of_thought)
+        WHERE chain_of_thought IS NOT NULL;
+    """,
+)
 
 
-_PG_LLM_CALLS_DDL = """
-CREATE TABLE IF NOT EXISTS llm_calls (
-    id                      UUID PRIMARY KEY,
-    agent_run_id            UUID NOT NULL REFERENCES agent_runs(id) ON DELETE CASCADE,
-    workspace_id            UUID NOT NULL,
-    brand_id                UUID NULL,
-    provider                VARCHAR(64) NOT NULL,
-    model                   VARCHAR(96) NOT NULL,
-    call_type               VARCHAR(16) NOT NULL,
-    prompt_hash             VARCHAR(64) NOT NULL,
-    prompt_full             TEXT NULL,
-    raw_output              TEXT NULL,
-    tools_called            JSONB NOT NULL DEFAULT '[]'::jsonb,
-    prompt_tokens           INTEGER NOT NULL DEFAULT 0,
-    completion_tokens       INTEGER NOT NULL DEFAULT 0,
-    input_cost_usd          NUMERIC(14, 6) NOT NULL DEFAULT 0,
-    output_cost_usd         NUMERIC(14, 6) NOT NULL DEFAULT 0,
-    cost_usd                NUMERIC(14, 6) NOT NULL DEFAULT 0,
-    cost_rub                NUMERIC(14, 4) NOT NULL DEFAULT 0,
-    latency_ms              INTEGER NOT NULL DEFAULT 0,
-    circuit_breaker_state   VARCHAR(16) NOT NULL DEFAULT 'closed',
-    retries                 INTEGER NOT NULL DEFAULT 0,
-    success                 BOOLEAN NOT NULL,
-    error_code              VARCHAR(64) NULL,
-    response_id             VARCHAR(128) NULL,
-    opt_in_training         BOOLEAN NOT NULL DEFAULT false,
-    created_at              TIMESTAMPTZ NOT NULL DEFAULT now(),
-    CONSTRAINT ck_llm_calls_call_type
-        CHECK (call_type IN ('chat', 'embed', 'image')),
-    CONSTRAINT ck_llm_calls_breaker_state
-        CHECK (circuit_breaker_state IN ('closed', 'half_open', 'open'))
-);
-CREATE INDEX IF NOT EXISTS ix_llm_calls_agent_run
-    ON llm_calls (agent_run_id, created_at);
-CREATE INDEX IF NOT EXISTS ix_llm_calls_workspace_created
-    ON llm_calls (workspace_id, created_at DESC);
-CREATE INDEX IF NOT EXISTS ix_llm_calls_provider_model_created
-    ON llm_calls (provider, model, created_at DESC);
-CREATE INDEX IF NOT EXISTS ix_llm_calls_success_created
-    ON llm_calls (success, created_at DESC);
-"""
+_PG_LLM_CALLS_STATEMENTS: tuple[str, ...] = (
+    """
+    CREATE TABLE IF NOT EXISTS llm_calls (
+        id                      UUID PRIMARY KEY,
+        agent_run_id            UUID NOT NULL REFERENCES agent_runs(id) ON DELETE CASCADE,
+        workspace_id            UUID NOT NULL,
+        brand_id                UUID NULL,
+        provider                VARCHAR(64) NOT NULL,
+        model                   VARCHAR(96) NOT NULL,
+        call_type               VARCHAR(16) NOT NULL,
+        prompt_hash             VARCHAR(64) NOT NULL,
+        prompt_full             TEXT NULL,
+        raw_output              TEXT NULL,
+        tools_called            JSONB NOT NULL DEFAULT '[]'::jsonb,
+        prompt_tokens           INTEGER NOT NULL DEFAULT 0,
+        completion_tokens       INTEGER NOT NULL DEFAULT 0,
+        input_cost_usd          NUMERIC(14, 6) NOT NULL DEFAULT 0,
+        output_cost_usd         NUMERIC(14, 6) NOT NULL DEFAULT 0,
+        cost_usd                NUMERIC(14, 6) NOT NULL DEFAULT 0,
+        cost_rub                NUMERIC(14, 4) NOT NULL DEFAULT 0,
+        latency_ms              INTEGER NOT NULL DEFAULT 0,
+        circuit_breaker_state   VARCHAR(16) NOT NULL DEFAULT 'closed',
+        retries                 INTEGER NOT NULL DEFAULT 0,
+        success                 BOOLEAN NOT NULL,
+        error_code              VARCHAR(64) NULL,
+        response_id             VARCHAR(128) NULL,
+        opt_in_training         BOOLEAN NOT NULL DEFAULT false,
+        created_at              TIMESTAMPTZ NOT NULL DEFAULT now(),
+        CONSTRAINT ck_llm_calls_call_type
+            CHECK (call_type IN ('chat', 'embed', 'image')),
+        CONSTRAINT ck_llm_calls_breaker_state
+            CHECK (circuit_breaker_state IN ('closed', 'half_open', 'open'))
+    );
+    """,
+    """
+    CREATE INDEX IF NOT EXISTS ix_llm_calls_agent_run
+        ON llm_calls (agent_run_id, created_at);
+    """,
+    """
+    CREATE INDEX IF NOT EXISTS ix_llm_calls_workspace_created
+        ON llm_calls (workspace_id, created_at DESC);
+    """,
+    """
+    CREATE INDEX IF NOT EXISTS ix_llm_calls_provider_model_created
+        ON llm_calls (provider, model, created_at DESC);
+    """,
+    """
+    CREATE INDEX IF NOT EXISTS ix_llm_calls_success_created
+        ON llm_calls (success, created_at DESC);
+    """,
+)
 
 
 _PG_LLM_CALLS_DAILY_PARENT_DDL = """
@@ -223,15 +253,21 @@ CREATE TABLE IF NOT EXISTS llm_calls_daily (
 """
 
 
-_PG_LLM_CALLS_DAILY_TEMPLATE_DDL = """
-CREATE TABLE IF NOT EXISTS llm_calls_daily_template
-    (LIKE llm_calls_daily INCLUDING ALL);
-CREATE INDEX IF NOT EXISTS ix_llm_calls_daily_template_ws_date
-    ON llm_calls_daily_template (workspace_id, date DESC);
-CREATE INDEX IF NOT EXISTS ix_llm_calls_daily_template_brand_date
-    ON llm_calls_daily_template (brand_id, date DESC)
-    WHERE brand_id IS NOT NULL;
-"""
+_PG_LLM_CALLS_DAILY_TEMPLATE_STATEMENTS: tuple[str, ...] = (
+    """
+    CREATE TABLE IF NOT EXISTS llm_calls_daily_template
+        (LIKE llm_calls_daily INCLUDING ALL);
+    """,
+    """
+    CREATE INDEX IF NOT EXISTS ix_llm_calls_daily_template_ws_date
+        ON llm_calls_daily_template (workspace_id, date DESC);
+    """,
+    """
+    CREATE INDEX IF NOT EXISTS ix_llm_calls_daily_template_brand_date
+        ON llm_calls_daily_template (brand_id, date DESC)
+        WHERE brand_id IS NOT NULL;
+    """,
+)
 
 
 _PG_LLM_CALLS_DAILY_BOOTSTRAP_DDL = """
@@ -466,15 +502,19 @@ def upgrade() -> None:
         op.execute(_PG_ADD_OPT_IN_TRAINING_DDL)
 
         # 2) FX rate snapshot table.
-        op.execute(_PG_FX_RATES_DDL)
+        for stmt in _PG_FX_RATES_STATEMENTS:
+            op.execute(stmt)
 
         # 3) agent_runs + llm_calls tables.
-        op.execute(_PG_AGENT_RUNS_DDL)
-        op.execute(_PG_LLM_CALLS_DDL)
+        for stmt in _PG_AGENT_RUNS_STATEMENTS:
+            op.execute(stmt)
+        for stmt in _PG_LLM_CALLS_STATEMENTS:
+            op.execute(stmt)
 
         # 4) llm_calls_daily — partitioned monthly via pg_partman.
         op.execute(_PG_LLM_CALLS_DAILY_PARENT_DDL)
-        op.execute(_PG_LLM_CALLS_DAILY_TEMPLATE_DDL)
+        for stmt in _PG_LLM_CALLS_DAILY_TEMPLATE_STATEMENTS:
+            op.execute(stmt)
         op.execute(_PG_LLM_CALLS_DAILY_BOOTSTRAP_DDL)
         op.execute(_PG_LLM_CALLS_DAILY_PARTMAN_DDL)
 
