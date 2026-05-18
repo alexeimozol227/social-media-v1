@@ -22,6 +22,7 @@ export interface HelpArticle {
   date: string;
   duration?: string;
   videoUrl?: string;
+  related?: string[];
   blocks: HelpBlock[];
 }
 
@@ -64,6 +65,7 @@ export interface HelpUi {
   roadmapSubtitle: string;
   backToHelp: string;
   returnToHelp: string;
+  relatedTitle: string;
   read: string;
   watch: string;
   articleLabel: string;

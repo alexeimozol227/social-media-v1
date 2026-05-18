@@ -17,6 +17,7 @@
     "roadmapSubtitle": "Планы развития и текущие задачи",
     "backToHelp": "Назад к справке",
     "returnToHelp": "Вернуться к справке",
+    "relatedTitle": "Связанные статьи",
     "read": "Читать",
     "watch": "Смотреть",
     "articleLabel": "Статья",
@@ -72,7 +73,8 @@
             "Это видео проведёт вас по всем шагам — от регистрации до первого опубликованного AI-поста. Весь процесс занимает около 15 минут."
           ]
         }
-      ]
+      ],
+      "related": ["connect-telegram", "how-brand-memory-works"]
     },
     {
       "slug": "connect-telegram",
@@ -117,7 +119,8 @@
             "Вы выбираете режим: «AI делает сам» или «AI предлагает — вы утверждаете»"
           ]
         }
-      ]
+      ],
+      "related": ["how-brand-memory-works", "operating-modes"]
     },
     {
       "slug": "how-brand-memory-works",
@@ -146,7 +149,8 @@
             "Эталонные посты как образец стиля"
           ]
         }
-      ]
+      ],
+      "related": ["operating-modes", "content-agent-overview"]
     },
     {
       "slug": "operating-modes",
@@ -173,7 +177,8 @@
             "Пауза — агенты готовят черновики, но ничего не публикуют"
           ]
         }
-      ]
+      ],
+      "related": ["content-agent-overview", "how-brand-memory-works"]
     },
     {
       "slug": "content-agent-overview",
@@ -193,7 +198,8 @@
             "В этом ролике разбираем, как контент-агент формирует контент-план и готовит публикации на основе памяти бренда."
           ]
         }
-      ]
+      ],
+      "related": ["operating-modes", "quick-start"]
     },
     {
       "slug": "two-factor-auth",
@@ -215,7 +221,8 @@
             "Сохраните резервные коды в надёжном месте"
           ]
         }
-      ]
+      ],
+      "related": ["plans-and-billing"]
     },
     {
       "slug": "plans-and-billing",
@@ -242,7 +249,8 @@
             "Пробный период предоставляется без привязки карты. Сменить тариф можно в любой момент в разделе оплаты."
           ]
         }
-      ]
+      ],
+      "related": ["two-factor-auth"]
     }
   ],
   "changelog": [

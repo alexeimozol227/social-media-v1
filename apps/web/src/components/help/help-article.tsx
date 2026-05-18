@@ -63,9 +63,12 @@ export function HelpArticleView({
   const { ui, categories } = content;
   const category = categories.find((c) => c.id === article.category);
   const isVideo = article.type === "video";
+  const related = (article.related ?? [])
+    .map((slug) => content.articles.find((a) => a.slug === slug))
+    .filter((a): a is NonNullable<typeof a> => Boolean(a) && a?.slug !== article.slug);
 
   return (
-    <main className="mx-auto max-w-3xl px-5 py-12 sm:px-8">
+    <main className="mx-auto w-full max-w-3xl flex-1 px-5 py-12 sm:px-8">
       <Link
         href="/help"
         className="inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
@@ -142,6 +145,25 @@ export function HelpArticleView({
           <Block key={b.heading ?? `block-${i}`} block={b} />
         ))}
       </div>
+
+      {related.length > 0 && (
+        <section className="mt-12 border-t border-border pt-8">
+          <h2 className="text-lg font-semibold text-foreground">{ui.relatedTitle}</h2>
+          <ul className="mt-4 flex flex-col gap-2.5">
+            {related.map((r) => (
+              <li key={r.slug} className="flex gap-3">
+                <span className="mt-2 size-1.5 shrink-0 rounded-full bg-primary" />
+                <Link
+                  href={`/help/${r.slug}`}
+                  className="text-sm font-medium text-primary transition-colors hover:text-primary-hover"
+                >
+                  {r.title}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
 
       <div className="mt-12 border-t border-border pt-8">
         <Link

@@ -228,23 +228,29 @@ function ArticlesView({
   }, [categories]);
 
   const q = query.trim().toLowerCase();
-  // Flat list ordered by publication date (newest first) — no
-  // grouping by category. A selected category just filters the list.
-  const filtered = useMemo(
-    () =>
-      articles
-        .filter((a) => {
-          if (activeCategory && a.category !== activeCategory) return false;
-          if (!q) return true;
-          return a.title.toLowerCase().includes(q) || a.summary.toLowerCase().includes(q);
-        })
-        .sort((a, b) => b.date.localeCompare(a.date)),
-    [articles, activeCategory, q],
-  );
+  // "All articles" stays grouped by category. Selecting a category
+  // swaps the page heading to that category and drops the grouping.
+  const groups = useMemo(() => {
+    const match = (a: HelpArticle) =>
+      !q || a.title.toLowerCase().includes(q) || a.summary.toLowerCase().includes(q);
+    const byDate = (a: HelpArticle, b: HelpArticle) => b.date.localeCompare(a.date);
+    return categories
+      .filter((c) => !activeCategory || c.id === activeCategory)
+      .map((c) => ({
+        category: c,
+        items: articles.filter((a) => a.category === c.id && match(a)).sort(byDate),
+      }))
+      .filter((g) => g.items.length > 0);
+  }, [articles, categories, activeCategory, q]);
+
+  const activeTitle = activeCategory
+    ? (categoryTitles.get(activeCategory) ?? meta.title)
+    : meta.title;
+  const grouped = !activeCategory;
 
   return (
     <div className="min-w-0 flex-1">
-      <h1 className="text-3xl font-semibold tracking-tight text-foreground">{meta.title}</h1>
+      <h1 className="text-3xl font-semibold tracking-tight text-foreground">{activeTitle}</h1>
       <p className="mt-2 text-muted-foreground">{meta.subtitle}</p>
 
       <div className="relative mt-7 max-w-md">
@@ -271,17 +277,26 @@ function ArticlesView({
         />
       </div>
 
-      {filtered.length === 0 ? (
+      {groups.length === 0 ? (
         <p className="mt-12 text-sm text-muted-foreground">{ui.searchEmpty}</p>
       ) : (
-        <div className="mt-10 grid gap-5 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
-          {filtered.map((a) => (
-            <ArticleCard
-              key={a.slug}
-              article={a}
-              categoryTitle={categoryTitles.get(a.category) ?? ""}
-              labels={labels}
-            />
+        <div className="mt-10 flex flex-col gap-12">
+          {groups.map((g) => (
+            <section key={g.category.id}>
+              {grouped && (
+                <h2 className="mb-5 text-lg font-semibold text-foreground">{g.category.title}</h2>
+              )}
+              <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
+                {g.items.map((a) => (
+                  <ArticleCard
+                    key={a.slug}
+                    article={a}
+                    categoryTitle={categoryTitles.get(a.category) ?? ""}
+                    labels={labels}
+                  />
+                ))}
+              </div>
+            </section>
           ))}
         </div>
       )}
@@ -393,7 +408,7 @@ export function HelpCenter({
   }
 
   return (
-    <main className="mx-auto flex max-w-[100rem] flex-col gap-10 px-6 py-12 sm:px-10 lg:flex-row lg:gap-14 lg:px-16">
+    <main className="mx-auto flex w-full max-w-[100rem] flex-1 flex-col gap-10 px-6 py-12 sm:px-10 lg:flex-row lg:gap-14 lg:px-16">
       <Sidebar content={content} view={view} activeCategory={activeCategory} onSelect={select} />
       {view === "changelog" ? (
         <ChangelogView content={content} />

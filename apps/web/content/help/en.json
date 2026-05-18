@@ -17,6 +17,7 @@
     "roadmapSubtitle": "Development plans and current work",
     "backToHelp": "Back to help",
     "returnToHelp": "Return to help",
+    "relatedTitle": "Related articles",
     "read": "Read",
     "watch": "Watch",
     "articleLabel": "Article",
@@ -72,7 +73,8 @@
             "This video walks you through every step — from sign-up to your first published AI post. The whole process takes about 15 minutes."
           ]
         }
-      ]
+      ],
+      "related": ["connect-telegram", "how-brand-memory-works"]
     },
     {
       "slug": "connect-telegram",
@@ -117,7 +119,8 @@
             "You choose the mode: «AI does it» or «AI proposes — you approve»"
           ]
         }
-      ]
+      ],
+      "related": ["how-brand-memory-works", "operating-modes"]
     },
     {
       "slug": "how-brand-memory-works",
@@ -146,7 +149,8 @@
             "Reference posts as a style sample"
           ]
         }
-      ]
+      ],
+      "related": ["operating-modes", "content-agent-overview"]
     },
     {
       "slug": "operating-modes",
@@ -173,7 +177,8 @@
             "Paused — agents prepare drafts but publish nothing"
           ]
         }
-      ]
+      ],
+      "related": ["content-agent-overview", "how-brand-memory-works"]
     },
     {
       "slug": "content-agent-overview",
@@ -193,7 +198,8 @@
             "In this clip we look at how the content agent builds a content plan and prepares publications from brand memory."
           ]
         }
-      ]
+      ],
+      "related": ["operating-modes", "quick-start"]
     },
     {
       "slug": "two-factor-auth",
@@ -215,7 +221,8 @@
             "Store the backup codes in a safe place"
           ]
         }
-      ]
+      ],
+      "related": ["plans-and-billing"]
     },
     {
       "slug": "plans-and-billing",
@@ -242,7 +249,8 @@
             "The trial requires no card. You can switch plans at any time in the billing section."
           ]
         }
-      ]
+      ],
+      "related": ["two-factor-auth"]
     }
   ],
   "changelog": [
