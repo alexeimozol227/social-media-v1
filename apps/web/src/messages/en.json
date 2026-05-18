@@ -539,5 +539,13 @@
   },
   "authGuard": {
     "checking": "Checking your session…"
+  },
+  "theme": {
+    "title": "Theme (temporary)",
+    "subtitle": "Palette preview — removed later",
+    "button": "Theme",
+    "toggle": "Toggle theme",
+    "indigo": "Indigo",
+    "light": "Light"
   }
 }

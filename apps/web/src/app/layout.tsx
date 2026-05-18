@@ -29,8 +29,8 @@ export default async function RootLayout({
         <script dangerouslySetInnerHTML={{ __html: THEME_BOOTSTRAP }} />
         <NextIntlClientProvider locale={locale} messages={messages}>
           <QueryProvider>{children}</QueryProvider>
+          <ThemeSwitcher />
         </NextIntlClientProvider>
-        <ThemeSwitcher />
       </body>
     </html>
   );

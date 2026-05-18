@@ -180,12 +180,31 @@ html[data-theme="light"] {
     background: var(--color-primary);
     color: var(--color-primary-foreground);
   }
+
+  /* Gradient headings clip their text to a transparent fill, so a
+   * normal ::selection leaves the glyphs invisible (just the
+   * highlight box). Restore an opaque fill while selected. */
+  .text-gradient::selection {
+    -webkit-text-fill-color: var(--color-primary-foreground);
+    color: var(--color-primary-foreground);
+  }
+  .text-gradient::-moz-selection {
+    -webkit-text-fill-color: var(--color-primary-foreground);
+    color: var(--color-primary-foreground);
+  }
 }
 
 @layer components {
   /* Decorative gradient mesh for the auth brand panel. Purely
    * presentational — kept out of markup so the panel stays clean. */
   .auth-aurora {
+    /* This panel's background is always a dark gradient, so pin the
+     * text tokens to the dark-theme (light-ink) values — otherwise
+     * the light theme flips descendant text to dark-on-dark. */
+    --color-foreground: oklch(0.97 0.005 285);
+    --color-muted-foreground: oklch(0.78 0.03 285);
+    --color-border: oklch(1 0 0 / 0.16);
+    color: var(--color-foreground);
     background-color: oklch(0.26 0.035 280);
     background-image: radial-gradient(
         ellipse 80% 60% at 20% 10%,
