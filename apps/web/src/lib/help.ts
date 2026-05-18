@@ -1,13 +1,12 @@
 import { promises as fs } from "node:fs";
 import path from "node:path";
 
-export type HelpBlockType = "paragraphs" | "steps" | "list";
-
-export interface HelpBlock {
-  type: HelpBlockType;
-  heading?: string;
-  items: string[];
-}
+export type HelpBlock =
+  | { type: "paragraphs"; heading?: string; items: string[] }
+  | { type: "steps"; heading?: string; items: string[] }
+  | { type: "list"; heading?: string; items: string[] }
+  | { type: "callout"; heading?: string; text: string }
+  | { type: "table"; heading?: string; headers: string[]; rows: string[][] };
 
 export type HelpArticleType = "article" | "video";
 
