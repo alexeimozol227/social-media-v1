@@ -11,9 +11,9 @@ export async function SiteFooter() {
     {
       title: t("colProduct"),
       links: [
-        { label: t("linkFeatures"), href: "#features" },
-        { label: t("linkAgents"), href: "#agents" },
-        { label: t("linkPricing"), href: "#pricing" },
+        { label: t("linkFeatures"), href: "/#features" },
+        { label: t("linkAgents"), href: "/#agents" },
+        { label: t("linkPricing"), href: "/#pricing" },
       ],
     },
     {
