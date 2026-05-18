@@ -1,0 +1,286 @@
+{
+  "meta": {
+    "title": "Help center",
+    "subtitle": "Articles, guides and video tutorials for the platform",
+    "searchPlaceholder": "Search articles..."
+  },
+  "ui": {
+    "navGroup": "Navigation",
+    "resourcesGroup": "Resources",
+    "helpGroup": "Need help?",
+    "allArticles": "All articles",
+    "changelogNav": "Changelog",
+    "roadmapNav": "Roadmap",
+    "changelogTitle": "Changelog",
+    "changelogSubtitle": "History of changes and new platform capabilities",
+    "roadmapTitle": "Roadmap",
+    "roadmapSubtitle": "Development plans and current work",
+    "backHome": "Home",
+    "backToHelp": "Back to help",
+    "returnToHelp": "Return to help",
+    "read": "Read",
+    "watch": "Watch",
+    "articleLabel": "Article",
+    "videoLabel": "Video",
+    "updatedAt": "Updated",
+    "searchEmpty": "Nothing matched your search",
+    "ctaTitle": "social-media-v1 — autonomous AI agents for social networks",
+    "ctaSubtitle": "Connect a channel and get your first AI post in 15 minutes",
+    "ctaButton": "Start free"
+  },
+  "support": {
+    "email": "support@social.media",
+    "telegram": "@socialmedia_bot"
+  },
+  "categories": [
+    { "id": "getting-started", "title": "Getting started" },
+    { "id": "agents", "title": "AI agents" },
+    { "id": "brand-memory", "title": "Brand memory" },
+    { "id": "account", "title": "Account & settings" },
+    { "id": "billing", "title": "Plans & billing" }
+  ],
+  "articles": [
+    {
+      "slug": "quick-start",
+      "type": "video",
+      "category": "getting-started",
+      "accent": 0,
+      "title": "Quick start with social-media-v1",
+      "summary": "Full product overview: connect a channel, set up brand memory, launch agents and get your first post.",
+      "updated": "May 16, 2026",
+      "duration": "12:00",
+      "videoUrl": "",
+      "blocks": [
+        {
+          "type": "paragraphs",
+          "items": [
+            "This video walks you through every step — from sign-up to your first published AI post. The whole process takes about 15 minutes."
+          ]
+        }
+      ]
+    },
+    {
+      "slug": "connect-telegram",
+      "type": "article",
+      "category": "getting-started",
+      "accent": 1,
+      "title": "How to connect a Telegram channel",
+      "summary": "Step by step: grant the bot admin rights and link a channel so agents can prepare publications.",
+      "updated": "May 14, 2026",
+      "blocks": [
+        {
+          "type": "paragraphs",
+          "items": [
+            "Connecting a channel is the first step after sign-up. It lets agents analyse past posts and publish new ones."
+          ]
+        },
+        {
+          "type": "steps",
+          "heading": "Step 1. Create a brand",
+          "items": [
+            "Open the «Brands» section in your account",
+            "Click «Create brand» and enter a name",
+            "Pick the default content language"
+          ]
+        },
+        {
+          "type": "steps",
+          "heading": "Step 2. Link the channel",
+          "items": [
+            "Add the platform bot as an admin of your Telegram channel",
+            "Grant permission to post messages",
+            "Paste the channel link into the connection form and confirm"
+          ]
+        },
+        {
+          "type": "list",
+          "heading": "What's next",
+          "items": [
+            "Brand memory extracts tone of voice from recent posts",
+            "The content agent prepares drafts for approval",
+            "You choose the mode: «AI does it» or «AI proposes — you approve»"
+          ]
+        }
+      ]
+    },
+    {
+      "slug": "how-brand-memory-works",
+      "type": "article",
+      "category": "brand-memory",
+      "accent": 2,
+      "title": "How brand memory works",
+      "summary": "How AI extracts tone of voice, topics and stop words from your recent posts and keeps them between agent runs.",
+      "updated": "May 12, 2026",
+      "blocks": [
+        {
+          "type": "paragraphs",
+          "items": [
+            "Brand memory is a structured representation of your style: tone of voice, key topics, forbidden phrasings and examples of strong posts.",
+            "It updates automatically when a channel is connected and on a manual rebuild."
+          ]
+        },
+        {
+          "type": "list",
+          "heading": "What's in the memory",
+          "items": [
+            "Tone of voice: formality, emotion, sentence length",
+            "Topics: what the channel writes about most",
+            "Stop words and forbidden topics",
+            "Reference posts as a style sample"
+          ]
+        }
+      ]
+    },
+    {
+      "slug": "operating-modes",
+      "type": "article",
+      "category": "agents",
+      "accent": 3,
+      "title": "AI agent operating modes",
+      "summary": "How «AI does it» differs from «AI proposes — you approve» and when to choose each mode.",
+      "updated": "May 11, 2026",
+      "blocks": [
+        {
+          "type": "paragraphs",
+          "items": [
+            "Every brand has an operating mode that controls how autonomous the agents are."
+          ]
+        },
+        {
+          "type": "list",
+          "heading": "Available modes",
+          "items": [
+            "AI does it — agents publish on schedule without you",
+            "AI proposes — you approve — every post needs confirmation",
+            "Paused — agents prepare drafts but publish nothing"
+          ]
+        }
+      ]
+    },
+    {
+      "slug": "content-agent-overview",
+      "type": "video",
+      "category": "agents",
+      "accent": 4,
+      "title": "Content agent: overview",
+      "summary": "How the content agent plans topics, writes drafts and adapts them to the brand's tone of voice.",
+      "updated": "May 9, 2026",
+      "duration": "06:30",
+      "videoUrl": "",
+      "blocks": [
+        {
+          "type": "paragraphs",
+          "items": [
+            "In this clip we look at how the content agent builds a content plan and prepares publications from brand memory."
+          ]
+        }
+      ]
+    },
+    {
+      "slug": "two-factor-auth",
+      "type": "article",
+      "category": "account",
+      "accent": 0,
+      "title": "Two-factor authentication (2FA)",
+      "summary": "How to enable TOTP, save backup codes and what to do if you lose access to your authenticator app.",
+      "updated": "May 7, 2026",
+      "blocks": [
+        {
+          "type": "steps",
+          "heading": "Enabling 2FA",
+          "items": [
+            "Open «Settings → Security»",
+            "Click «Enable 2FA» and scan the QR code in an authenticator app",
+            "Enter the six-digit code to confirm",
+            "Store the backup codes in a safe place"
+          ]
+        }
+      ]
+    },
+    {
+      "slug": "plans-and-billing",
+      "type": "article",
+      "category": "billing",
+      "accent": 1,
+      "title": "Plans and billing",
+      "summary": "How the Solo, Pro and Network plans differ, how the trial works and how to switch plans.",
+      "updated": "May 5, 2026",
+      "blocks": [
+        {
+          "type": "list",
+          "heading": "Plans",
+          "items": [
+            "Solo — one brand and the core set of agents",
+            "Pro — multiple brands and extended analytics",
+            "Network — team roles and priority support"
+          ]
+        },
+        {
+          "type": "paragraphs",
+          "items": [
+            "The trial requires no card. You can switch plans at any time in the billing section."
+          ]
+        }
+      ]
+    }
+  ],
+  "changelog": [
+    {
+      "version": "0.3.0",
+      "date": "May 16, 2026",
+      "title": "New landing and design system",
+      "description": "The public site has been fully refreshed: a new design system, a help center, and the «Changelog» and «Roadmap» sections.",
+      "link": { "label": "Roadmap", "href": "/help?section=roadmap" }
+    },
+    {
+      "version": "0.2.0",
+      "date": "May 10, 2026",
+      "title": "Brands and channel connection",
+      "description": "Added brands, Telegram channel connection and the first version of brand memory."
+    },
+    {
+      "version": "0.1.0",
+      "date": "May 3, 2026",
+      "title": "Auth, MFA and sessions",
+      "description": "Sign-up, sign-in, email verification, two-factor authentication and session management."
+    }
+  ],
+  "roadmap": [
+    {
+      "id": "in-progress",
+      "title": "In progress",
+      "items": [
+        {
+          "title": "8 AI agents for Telegram",
+          "description": "Content, publishing, analytics, orchestrator, onboarding, moderation, notifications and brand memory.",
+          "tag": "Platform",
+          "when": "MVP · 0–6 mo"
+        }
+      ]
+    },
+    {
+      "id": "planned",
+      "title": "Planned",
+      "items": [
+        {
+          "title": "Research and Engagement",
+          "description": "Agents for topic research and audience engagement.",
+          "tag": "Agents",
+          "when": "Month 7"
+        },
+        {
+          "title": "Strategist and team roles",
+          "description": "A strategy agent and roles for teams collaborating on brands.",
+          "tag": "Platform",
+          "when": "v1.1 · +2–3 mo"
+        },
+        {
+          "title": "Web and advanced analytics",
+          "description": "Support for more platforms and deeper content performance analytics.",
+          "tag": "Analytics",
+          "when": "v2.0"
+        }
+      ]
+    }
+  ]
+}

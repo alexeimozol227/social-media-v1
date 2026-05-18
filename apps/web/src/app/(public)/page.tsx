@@ -642,7 +642,7 @@ export default async function LandingPage() {
                 ))}
               </ul>
               <Link
-                href="#"
+                href="/help"
                 className="mt-5 inline-flex items-center gap-1.5 text-sm font-semibold text-primary transition-colors hover:text-primary-hover"
               >
                 {tRes("helpMore")}
@@ -674,7 +674,7 @@ export default async function LandingPage() {
                 ))}
               </ul>
               <Link
-                href="#"
+                href="/help?section=roadmap"
                 className="mt-5 inline-flex items-center gap-1.5 text-sm font-semibold text-primary transition-colors hover:text-primary-hover"
               >
                 {tRes("roadMore")}
@@ -711,7 +711,7 @@ export default async function LandingPage() {
                 ))}
               </ul>
               <Link
-                href="#"
+                href="/help?section=changelog"
                 className="mt-5 inline-flex items-center gap-1.5 text-sm font-semibold text-primary transition-colors hover:text-primary-hover"
               >
                 {tRes("updMore")}
