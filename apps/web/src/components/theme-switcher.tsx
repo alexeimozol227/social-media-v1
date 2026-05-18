@@ -22,9 +22,9 @@ const THEMES: Theme[] = [
     id: "",
     key: "indigo",
     bg: "oklch(0.215 0 0)",
-    primary: "#d5ff5f",
+    primary: "#063932",
   },
-  { id: "light", key: "light", bg: "oklch(0.98 0 0)", primary: "#d5ff5f" },
+  { id: "light", key: "light", bg: "oklch(0.98 0 0)", primary: "#063932" },
 ];
 
 function applyTheme(id: string) {

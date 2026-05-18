@@ -756,7 +756,7 @@ export default async function LandingPage() {
           </div>
         </section>
 
-        {/* Final CTA — full-bleed band with edge-bleeding product mocks */}
+        {/* Final CTA — full-bleed band with edge-bleeding product mocks. */}
         <section className="relative overflow-hidden border-y border-border">
           <div className="auth-aurora absolute inset-0" aria-hidden="true" />
           <div className="auth-grid absolute inset-0 opacity-30" aria-hidden="true" />
@@ -796,7 +796,12 @@ export default async function LandingPage() {
             </div>
           </div>
 
-          <div className="relative mx-auto max-w-2xl px-5 py-20 text-center sm:px-8 sm:py-24">
+          {/* `text-on-dark` pins descendant text tokens to light-ink
+              so this content stays readable on the auth-aurora panel
+              regardless of the active theme. The floating MiniMock
+              cards above are intentionally outside this scope so
+              they keep their normal light card styling. */}
+          <div className="text-on-dark relative mx-auto max-w-2xl px-5 py-20 text-center sm:px-8 sm:py-24">
             <h2 className="text-balance text-4xl font-bold tracking-tight text-foreground sm:text-5xl">
               {tFinal("title")}
             </h2>
