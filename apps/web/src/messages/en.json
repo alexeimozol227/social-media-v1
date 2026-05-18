@@ -529,9 +529,5 @@
       "channelIdFallback": "id {id}",
       "noTitle": "—"
     }
-  },
-  "legal": {
-    "home": "Home",
-    "effectiveFrom": "In effect from"
   }
 }

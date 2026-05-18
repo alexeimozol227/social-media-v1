@@ -529,9 +529,5 @@
       "channelIdFallback": "id {id}",
       "noTitle": "—"
     }
-  },
-  "legal": {
-    "home": "На главную",
-    "effectiveFrom": "Действует с"
   }
 }

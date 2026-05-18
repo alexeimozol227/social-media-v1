@@ -1,40 +1,155 @@
 {
-  "title": "User Agreement",
-  "updated": "2026-05-17",
-  "intro": "This Agreement describes the rules for using the social-media-v1 service and the mutual obligations of the parties.",
+  "title": "Personal Data Processing Agreement",
+  "version": "Version 2.0 of 15 April 2026 | Revision 2026-04-15",
+  "intro": "This Agreement sets out the terms of processing personal data of social-media-v1 users — a platform of autonomous AI agents for social networks.",
   "sections": [
     {
-      "heading": "1. Acceptance",
-      "body": [
-        "By using the Service, the User confirms they have read and agree to this Agreement, the Terms of Service and the Privacy Policy."
+      "heading": "1. Parties and subject",
+      "blocks": [
+        {
+          "type": "text",
+          "text": "1.1. Sole proprietor Alexei Mozol (reg. no. 12345678, the «Operator») processes the personal data of social-media-v1 users on the basis of this Agreement."
+        },
+        {
+          "type": "callout",
+          "text": "Acceptance of the Public Offer (registration in the Service) constitutes the User's consent to the terms of this Agreement."
+        }
       ]
     },
     {
-      "heading": "2. Acceptable use",
-      "body": [
-        "It is prohibited to use the Service for spam, disinformation, artificial engagement or circumventing social network rules.",
-        "Content that violates the law, third-party rights or belongs to prohibited niches is not allowed."
+      "heading": "2. Categories of personal data",
+      "blocks": [
+        {
+          "type": "text",
+          "text": "The User consents to the processing of the following personal data:"
+        },
+        {
+          "type": "list",
+          "items": [
+            "full name (if provided);",
+            "email address;",
+            "Telegram ID, Telegram username, first and last name from the Telegram profile;",
+            "login IP address;",
+            "records of actions in the Service (audit log);",
+            "browser User-Agent and device fingerprint;",
+            "registration number, name and address of the organisation — for bank-transfer payment."
+          ]
+        }
       ]
     },
     {
-      "heading": "3. User content",
-      "body": [
-        "The User retains rights to their content and grants the Provider the right to process it solely to operate the Service.",
-        "Content passes automated moderation before publishing; final responsibility lies with the User."
+      "heading": "3. Purposes and legal bases",
+      "blocks": [
+        {
+          "type": "text",
+          "text": "Personal data is processed for: registration and account operation; providing Service functionality; billing; transactional notifications; security; compliance with statutory requirements."
+        },
+        {
+          "type": "list",
+          "items": [
+            "performance of the contract — the primary processing to provide the Service;",
+            "consent of the subject — for marketing emails;",
+            "compliance with law — for accounting and fiscal records."
+          ]
+        }
       ]
     },
     {
-      "heading": "4. Suspension and blocking",
-      "body": [
-        "On breach of this Agreement, access may be limited: warning, suspension, account block.",
-        "The Provider notifies the User of the reasons unless prohibited by law."
+      "heading": "4. Actions with data",
+      "blocks": [
+        {
+          "type": "text",
+          "text": "Collection, recording, systematisation, accumulation, storage, refinement, extraction, use, transfer to processors, anonymisation, blocking, deletion, destruction — using automation."
+        }
       ]
     },
     {
-      "heading": "5. Changes",
-      "body": [
-        "The Provider may amend this Agreement with prior notice via the Service or by email.",
-        "Contacts: Alexei Mozol, UNP: 12345678, support@social.media."
+      "heading": "5. Storage and processing territory",
+      "blocks": [
+        {
+          "type": "callout",
+          "text": "All personal data is stored on servers located in the Operator's country of registration. No cross-border transfer of personal data is performed."
+        }
+      ]
+    },
+    {
+      "heading": "6. Term of consent",
+      "blocks": [
+        {
+          "type": "text",
+          "text": "Consent is valid from registration in the Service until the User withdraws it, but for no less than 3 years from the last use of the Service."
+        },
+        {
+          "type": "text",
+          "text": "Data whose retention is required by law (accounting and fiscal records) is kept for the statutory periods regardless of consent withdrawal."
+        }
+      ]
+    },
+    {
+      "heading": "7. Withdrawal of consent",
+      "blocks": [
+        {
+          "type": "list",
+          "items": [
+            "The User may withdraw consent by sending a request to support@social.media.",
+            "Withdrawal terminates access to the Service; data is deleted within 30 calendar days, except data whose retention is legally required.",
+            "Withdrawal does not render unlawful the processing carried out before it was received."
+          ]
+        }
+      ]
+    },
+    {
+      "heading": "8. Rights of the data subject",
+      "blocks": [
+        {
+          "type": "list",
+          "items": [
+            "to obtain information about the processing of their personal data;",
+            "to access their personal data;",
+            "to require correction, blocking or destruction of data that is incomplete, outdated or unlawfully processed;",
+            "to appeal the Operator's actions to the competent authority or in court."
+          ]
+        },
+        {
+          "type": "text",
+          "text": "To exercise rights: support@social.media. Response time — 30 days."
+        }
+      ]
+    },
+    {
+      "heading": "9. Personal data processors",
+      "blocks": [
+        {
+          "type": "text",
+          "text": "The following processors are engaged on the basis of mandate agreements:"
+        },
+        {
+          "type": "table",
+          "headers": ["Processor", "Purpose"],
+          "rows": [
+            ["Payment operator", "processing payment transactions"],
+            ["Email delivery service", "sending email notifications"],
+            ["Hosting provider", "hosting and data storage"],
+            ["Telegram", "Telegram bot and notifications"]
+          ]
+        },
+        {
+          "type": "text",
+          "text": "These processors process personal data solely for the purposes set out in this Agreement."
+        }
+      ]
+    },
+    {
+      "heading": "10. Operator contacts",
+      "blocks": [
+        {
+          "type": "list",
+          "items": [
+            "Sole proprietor Alexei Mozol",
+            "Email: support@social.media",
+            "Telegram: @socialmedia_bot"
+          ]
+        }
       ]
     }
   ]
