@@ -30,13 +30,13 @@
   --color-border: oklch(0.37 0 0);
   --color-border-strong: oklch(0.46 0 0);
   --color-input: oklch(0.285 0 0);
-  --color-ring: #d5ff5f;
+  --color-ring: oklch(0.7 0.13 175);
 
-  /* Brand / primary — neon lime #D5FF5F. */
-  --color-primary: #d5ff5f;
-  --color-primary-hover: #e2ff7a;
-  --color-primary-active: #bff03c;
-  --color-primary-foreground: oklch(0.18 0 0);
+  /* Brand / primary — deep emerald #063932. */
+  --color-primary: #063932;
+  --color-primary-hover: #0a4f44;
+  --color-primary-active: #04261f;
+  --color-primary-foreground: oklch(0.97 0 0);
 
   /* Secondary (neutral fill) */
   --color-secondary: oklch(0.33 0 0);
@@ -88,11 +88,11 @@ html[data-theme="light"] {
   --color-border: oklch(0.9 0 0);
   --color-border-strong: oklch(0.83 0 0);
   --color-input: oklch(0.99 0 0);
-  --color-ring: #d5ff5f;
-  --color-primary: #d5ff5f;
-  --color-primary-hover: #e2ff7a;
-  --color-primary-active: #bff03c;
-  --color-primary-foreground: oklch(0.18 0 0);
+  --color-ring: #063932;
+  --color-primary: #063932;
+  --color-primary-hover: #0a4f44;
+  --color-primary-active: #04261f;
+  --color-primary-foreground: oklch(0.97 0 0);
   --color-secondary: oklch(0.95 0 0);
   --color-secondary-hover: oklch(0.92 0 0);
   --color-secondary-foreground: oklch(0.24 0 0);
@@ -195,22 +195,35 @@ html[data-theme="light"] {
 }
 
 @layer components {
+  /* Pin descendant text tokens to dark-theme (light-ink) values.
+   * Use on any text container that sits on a permanently-dark panel
+   * (regardless of the active theme) so the text stays readable in
+   * the light theme too. Only overrides text-related tokens — leave
+   * card / background tokens alone so nested cards keep their normal
+   * surface colours. */
+  .text-on-dark {
+    --color-foreground: oklch(0.97 0 0);
+    --color-muted-foreground: oklch(0.78 0 0);
+    --color-border: oklch(1 0 0 / 0.16);
+    color: var(--color-foreground);
+  }
+
   /* Decorative gradient mesh for the auth brand panel. Purely
    * presentational — kept out of markup so the panel stays clean. */
   .auth-aurora {
     /* This panel's background is always a dark gradient, so pin the
      * text tokens to the dark-theme (light-ink) values — otherwise
      * the light theme flips descendant text to dark-on-dark. */
-    --color-foreground: oklch(0.97 0.005 285);
-    --color-muted-foreground: oklch(0.78 0.03 285);
+    --color-foreground: oklch(0.97 0 0);
+    --color-muted-foreground: oklch(0.78 0 0);
     --color-border: oklch(1 0 0 / 0.16);
     color: var(--color-foreground);
     background-color: oklch(0.26 0 0);
     background-image: radial-gradient(
         ellipse 80% 60% at 20% 10%,
-        oklch(0.94 0.22 122 / 0.45),
+        oklch(0.7 0.13 175 / 0.45),
         transparent 60%
-      ), radial-gradient(ellipse 70% 60% at 90% 90%, oklch(0.78 0.18 145 / 0.4), transparent 60%),
+      ), radial-gradient(ellipse 70% 60% at 90% 90%, oklch(0.7 0.15 145 / 0.4), transparent 60%),
       radial-gradient(ellipse 60% 50% at 60% 50%, oklch(0.6 0.16 230 / 0.3), transparent 65%);
   }
 
@@ -227,7 +240,7 @@ html[data-theme="light"] {
     background: linear-gradient(
       100deg,
       var(--color-foreground) 30%,
-      oklch(0.94 0.22 122) 60%,
+      oklch(0.7 0.13 175) 60%,
       oklch(0.72 0.15 230) 90%
     );
     -webkit-background-clip: text;
@@ -239,7 +252,7 @@ html[data-theme="light"] {
   .surface-glow {
     background: radial-gradient(
       ellipse 60% 60% at 50% 0%,
-      oklch(0.94 0.22 122 / 0.3),
+      oklch(0.7 0.13 175 / 0.3),
       transparent 70%
     );
   }
@@ -256,7 +269,7 @@ html[data-theme="light"] {
     padding: 1px;
     background: linear-gradient(
       140deg,
-      oklch(0.94 0.22 122 / 0.6),
+      oklch(0.7 0.13 175 / 0.6),
       transparent 40%,
       transparent 60%,
       oklch(0.72 0.15 230 / 0.5)
