@@ -52,6 +52,18 @@
     {
       "id": "billing",
       "title": "Plans & billing"
+    },
+    {
+      "id": "channels",
+      "title": "Channels & brands"
+    },
+    {
+      "id": "security",
+      "title": "Security & privacy"
+    },
+    {
+      "id": "support",
+      "title": "Support & feedback"
     }
   ],
   "articles": [
@@ -265,7 +277,802 @@
           ]
         }
       ],
-      "related": ["two-factor-auth"]
+      "related": [
+        "two-factor-auth",
+        "trial-and-card",
+        "switch-and-cancel-plan",
+        "limits-and-quotas"
+      ]
+    },
+    {
+      "slug": "registration-and-first-login",
+      "type": "article",
+      "category": "getting-started",
+      "accent": 2,
+      "title": "Sign-up, email verification and first login",
+      "summary": "How to create an account, verify your email and sign in. What to do if the verification email doesn't arrive.",
+      "updated": "May 15, 2026",
+      "date": "2026-05-15",
+      "blocks": [
+        {
+          "type": "steps",
+          "heading": "Create an account",
+          "items": [
+            "Open the sign-up page and enter your email and a password (12+ characters)",
+            "Receive an email with a six-digit code and enter it in the verification form",
+            "Accept the terms, privacy policy and user agreement",
+            "Sign in with your email and password — you'll land in the onboarding flow"
+          ]
+        },
+        {
+          "type": "list",
+          "heading": "If the email doesn't arrive",
+          "items": [
+            "Check the «Spam» and «Promotions» folders",
+            "Click «Resend code» — a new request is available once per 60 seconds",
+            "Make sure the email is spelled correctly",
+            "Contact support if the code still doesn't arrive after 5 minutes"
+          ]
+        },
+        {
+          "type": "callout",
+          "text": "Email verification is required — some features (channel connection, payments) won't work without it."
+        }
+      ],
+      "related": ["quick-start", "two-factor-auth", "lost-2fa-recovery"]
+    },
+    {
+      "slug": "channel-connect-troubleshooting",
+      "type": "article",
+      "category": "getting-started",
+      "accent": 3,
+      "title": "What to do if a channel won't connect",
+      "summary": "The most common reasons Telegram channel connection fails and a step-by-step checklist of what to verify.",
+      "updated": "May 13, 2026",
+      "date": "2026-05-13",
+      "blocks": [
+        {
+          "type": "list",
+          "heading": "Pre-connect checklist",
+          "items": [
+            "The channel is public, or you have a direct invite link for the bot",
+            "The bot is added as an admin to the channel itself, not to a discussion chat",
+            "The bot has the «Post messages» and «Edit messages» permissions enabled",
+            "The channel link in the form is fully qualified (e.g. https://t.me/your_channel)"
+          ]
+        },
+        {
+          "type": "steps",
+          "heading": "If the channel still won't link",
+          "items": [
+            "Remove the bot from the channel and add it back — Telegram may cache old permissions",
+            "Make sure you are the owner or an admin with the right to invite bots",
+            "Wait 30–60 seconds and click «Retry» in the connection form",
+            "If the error repeats, take a screenshot and send it to support"
+          ]
+        },
+        {
+          "type": "callout",
+          "text": "We use the official Telegram Bot API, so permissions inherit exactly what you granted in the channel — we cannot «expand» them on our side."
+        }
+      ],
+      "related": ["connect-telegram", "telegram-permissions", "disconnect-channel"]
+    },
+    {
+      "slug": "all-agents-overview",
+      "type": "article",
+      "category": "agents",
+      "accent": 0,
+      "title": "All 8 AI agents: what each one does",
+      "summary": "A short overview of the MVP agent team: Content, Publisher, Analyst, Orchestrator, Brand Memory, Onboarding, Moderation, Notifications.",
+      "updated": "May 10, 2026",
+      "date": "2026-05-10",
+      "blocks": [
+        {
+          "type": "paragraphs",
+          "items": [
+            "On MVP the team consists of eight agents — each covers one slice of channel work. They talk to each other through the orchestrator and a shared event bus, so they behave as a single organism rather than a set of scripts."
+          ]
+        },
+        {
+          "type": "table",
+          "heading": "Agent team",
+          "headers": ["Agent", "Responsibility"],
+          "rows": [
+            ["Content", "Ideas, topics, post drafts in your tone of voice"],
+            ["Publisher", "Scheduling, publishing in Telegram, retries on failures"],
+            ["Analyst", "Channel metrics, digests, recommendations"],
+            ["Orchestrator", "Agent coordination, task queue, priorities"],
+            ["Brand Memory", "Tone of voice, topics, stop words, reference posts"],
+            ["Onboarding", "Channel connection and first run"],
+            ["Moderation", "Content checks for banned topics and risks"],
+            ["Notifications", "Telegram bot and email notifications"]
+          ]
+        },
+        {
+          "type": "callout",
+          "text": "Media is a pipeline inside Content, not a separate agent. Strategist, Research, Engagement and others come post-MVP per the roadmap."
+        }
+      ],
+      "related": ["content-agent-overview", "moderation-agent", "publisher-agent", "analyst-agent"]
+    },
+    {
+      "slug": "moderation-agent",
+      "type": "article",
+      "category": "agents",
+      "accent": 1,
+      "title": "Moderation agent: how we protect the channel",
+      "summary": "What the moderator checks before a post goes out, what content categories it blocks, and how to configure your own rules.",
+      "updated": "May 8, 2026",
+      "date": "2026-05-08",
+      "blocks": [
+        {
+          "type": "paragraphs",
+          "items": [
+            "The moderator runs before publication: every post goes through a check for banned topics, toxicity and risks before it reaches Telegram. If anything looks off, the post is routed to manual approval — even in the «AI does it» mode."
+          ]
+        },
+        {
+          "type": "list",
+          "heading": "What is checked automatically",
+          "items": [
+            "Banned topics from the brand memory",
+            "Stop words and phrasings you asked to avoid",
+            "Legally risky topics (medicine, finance, politics — depending on settings)",
+            "Tone-of-voice alignment"
+          ]
+        },
+        {
+          "type": "callout",
+          "text": "Trust > Speed is a product principle. Better to delay a post than ship something unacceptable."
+        }
+      ],
+      "related": ["all-agents-overview", "stop-words-and-banned-topics", "operating-modes"]
+    },
+    {
+      "slug": "publisher-agent",
+      "type": "article",
+      "category": "agents",
+      "accent": 2,
+      "title": "Publisher agent and publishing schedule",
+      "summary": "How the publisher queues posts, picks the publish time and what it does when Telegram's API returns errors.",
+      "updated": "May 6, 2026",
+      "date": "2026-05-06",
+      "blocks": [
+        {
+          "type": "paragraphs",
+          "items": [
+            "Publisher makes sure a post goes out at the right time to the right channel. It accounts for the brand's timezone, Telegram Bot API limits and the priorities set by the orchestrator."
+          ]
+        },
+        {
+          "type": "list",
+          "heading": "What the publisher can do",
+          "items": [
+            "Per-brand schedules by day and hour",
+            "Priority queue and rescheduling under load",
+            "Automatic retries on transient Telegram errors",
+            "Status logging: draft → scheduled → published → failed"
+          ]
+        },
+        {
+          "type": "callout",
+          "text": "All timestamps are stored in UTC, but the UI shows them in the timezone from your profile settings."
+        }
+      ],
+      "related": ["all-agents-overview", "operating-modes", "limits-and-quotas"]
+    },
+    {
+      "slug": "analyst-agent",
+      "type": "article",
+      "category": "agents",
+      "accent": 3,
+      "title": "Analyst agent: metrics and digests",
+      "summary": "Which metrics the analyst tracks, how to read the weekly digest and where to find per-post reports.",
+      "updated": "May 4, 2026",
+      "date": "2026-05-04",
+      "blocks": [
+        {
+          "type": "list",
+          "heading": "What the analyst tracks",
+          "items": [
+            "Reach, views and subscriber growth by day and week",
+            "Best and worst posts by engagement",
+            "Topics that resonate with your audience",
+            "Anomalies: spikes or drops in metrics"
+          ]
+        },
+        {
+          "type": "paragraphs",
+          "items": [
+            "Once a week the analyst sends a digest: a metrics summary, the top 3 posts and recommendations on what to try next. Full reports live in the «Analytics» section of your account."
+          ]
+        }
+      ],
+      "related": ["all-agents-overview", "content-agent-overview"]
+    },
+    {
+      "slug": "rebuild-brand-memory",
+      "type": "article",
+      "category": "brand-memory",
+      "accent": 4,
+      "title": "When and how to rebuild brand memory",
+      "summary": "Why brand memory gets stale, how to trigger a manual rebuild and what changes in agent behaviour after an update.",
+      "updated": "May 3, 2026",
+      "date": "2026-05-03",
+      "blocks": [
+        {
+          "type": "paragraphs",
+          "items": [
+            "Brand memory is built automatically when you connect a channel, but tone of voice and topics drift over time. A rebuild makes sense when the channel has clearly shifted direction or when you want to fold recent posts into the style sample."
+          ]
+        },
+        {
+          "type": "steps",
+          "heading": "Trigger a rebuild",
+          "items": [
+            "Open the «Brands» section and pick the brand",
+            "Click «Brand memory → Rebuild»",
+            "Confirm — the rebuild takes 2–5 minutes",
+            "Review the refreshed tone of voice and topic list on the same page"
+          ]
+        },
+        {
+          "type": "callout",
+          "text": "After a rebuild, the next Content agent run already uses the new style. Existing drafts can be regenerated manually."
+        }
+      ],
+      "related": ["how-brand-memory-works", "stop-words-and-banned-topics"]
+    },
+    {
+      "slug": "stop-words-and-banned-topics",
+      "type": "article",
+      "category": "brand-memory",
+      "accent": 0,
+      "title": "Stop words and banned topics",
+      "summary": "How to add words that must never appear in posts, and the topics moderation has to block.",
+      "updated": "May 2, 2026",
+      "date": "2026-05-02",
+      "blocks": [
+        {
+          "type": "steps",
+          "heading": "Add stop words",
+          "items": [
+            "Open «Brands → Brand memory → Stop words»",
+            "Type the word or phrase and press Enter",
+            "Save — Content and Moderation pick up the rules immediately"
+          ]
+        },
+        {
+          "type": "list",
+          "heading": "Good examples",
+          "items": [
+            "Competitor names you don't want to mention",
+            "Slang and clichés that don't fit your tone of voice",
+            "Banned topics: financial advice, medicine, politics"
+          ]
+        },
+        {
+          "type": "callout",
+          "text": "Stop words are a soft rule (Content avoids them). Banned topics are a hard rule (Moderation blocks the post)."
+        }
+      ],
+      "related": ["how-brand-memory-works", "moderation-agent", "rebuild-brand-memory"]
+    },
+    {
+      "slug": "change-email-password",
+      "type": "article",
+      "category": "account",
+      "accent": 1,
+      "title": "Change your email and password",
+      "summary": "How to switch to a new email, change your password and what to do if you forgot it.",
+      "updated": "May 1, 2026",
+      "date": "2026-05-01",
+      "blocks": [
+        {
+          "type": "steps",
+          "heading": "Change email",
+          "items": [
+            "Open «Settings → Account → Email»",
+            "Enter the new email and your current password",
+            "Confirm the code from the email sent to the new address"
+          ]
+        },
+        {
+          "type": "steps",
+          "heading": "Change password",
+          "items": [
+            "Open «Settings → Account → Password»",
+            "Enter the current and new password (12+ characters)",
+            "Save — other active sessions will be signed out"
+          ]
+        },
+        {
+          "type": "paragraphs",
+          "items": [
+            "If you forgot your password, click «Forgot password?» on the sign-in page, enter your email and receive a reset link. The link is valid for 1 hour."
+          ]
+        }
+      ],
+      "related": ["two-factor-auth", "manage-sessions", "lost-2fa-recovery"]
+    },
+    {
+      "slug": "manage-sessions",
+      "type": "article",
+      "category": "account",
+      "accent": 2,
+      "title": "Manage active sessions",
+      "summary": "Where to see the list of devices you signed in from and how to terminate a session that isn't yours.",
+      "updated": "April 30, 2026",
+      "date": "2026-04-30",
+      "blocks": [
+        {
+          "type": "paragraphs",
+          "items": [
+            "Each sign-in creates a session: we record the browser, operating system, country and last activity. That way you can spot a foreign login quickly."
+          ]
+        },
+        {
+          "type": "steps",
+          "heading": "Terminate a session",
+          "items": [
+            "Open «Settings → Sessions»",
+            "Find the suspicious or stale session",
+            "Click «Sign out» — the device will be logged out within 60 seconds",
+            "If in doubt, click «Sign out everywhere else» and change your password"
+          ]
+        }
+      ],
+      "related": ["two-factor-auth", "change-email-password"]
+    },
+    {
+      "slug": "lost-2fa-recovery",
+      "type": "article",
+      "category": "account",
+      "accent": 3,
+      "title": "What to do if you lose access to 2FA",
+      "summary": "How to recover access to your account if the authenticator app is unavailable: backup codes and contacting support.",
+      "updated": "April 28, 2026",
+      "date": "2026-04-28",
+      "blocks": [
+        {
+          "type": "steps",
+          "heading": "Using backup codes",
+          "items": [
+            "On the 2FA prompt click «Use a backup code»",
+            "Enter one of the one-time codes you saved",
+            "After signing in, immediately open «Settings → Security» and generate a fresh set of backup codes"
+          ]
+        },
+        {
+          "type": "paragraphs",
+          "items": [
+            "If you've also lost your backup codes, contact support from the account's email. We'll request documents and details proving ownership — this can take up to 48 hours."
+          ]
+        },
+        {
+          "type": "callout",
+          "text": "Each backup code works once. Print them or store them in a password manager right after enabling 2FA."
+        }
+      ],
+      "related": ["two-factor-auth", "contact-support", "manage-sessions"]
+    },
+    {
+      "slug": "delete-account",
+      "type": "article",
+      "category": "account",
+      "accent": 4,
+      "title": "Delete account and export data",
+      "summary": "How to export your data and delete the account. What happens to connected channels and the active subscription.",
+      "updated": "April 26, 2026",
+      "date": "2026-04-26",
+      "blocks": [
+        {
+          "type": "steps",
+          "heading": "Export data",
+          "items": [
+            "Open «Settings → Account → Export»",
+            "Click «Request export» — we'll email you an archive within 24 hours",
+            "The archive contains your profile, brands, posts, brand memory and publication history"
+          ]
+        },
+        {
+          "type": "steps",
+          "heading": "Delete account",
+          "items": [
+            "Open «Settings → Account → Delete account»",
+            "Confirm with your password and a 2FA code",
+            "The subscription is cancelled automatically, channel tokens are revoked",
+            "Data is purged after 30 days — during that window you can cancel the deletion"
+          ]
+        },
+        {
+          "type": "callout",
+          "text": "The platform bot stays in your Telegram channels. Remove it manually if you no longer need it there."
+        }
+      ],
+      "related": ["manage-sessions", "data-and-privacy", "switch-and-cancel-plan"]
+    },
+    {
+      "slug": "trial-and-card",
+      "type": "article",
+      "category": "billing",
+      "accent": 0,
+      "title": "Trial period and paying by card",
+      "summary": "How the 7-day Pro trial works, which cards are accepted and what happens after the trial ends.",
+      "updated": "April 24, 2026",
+      "date": "2026-04-24",
+      "blocks": [
+        {
+          "type": "list",
+          "heading": "What the trial includes",
+          "items": [
+            "7 days of full access to Pro features",
+            "No card required — no charges happen",
+            "Up to 100 publications per brand during the 7 days",
+            "Full analytics, digests and brand memory"
+          ]
+        },
+        {
+          "type": "paragraphs",
+          "items": [
+            "When the trial ends, the account moves to Solo with basic limits. Paid features are paused until you pick a plan."
+          ]
+        },
+        {
+          "type": "callout",
+          "text": "We accept Visa, Mastercard, MIR and SBP cards. Companies can pay by invoice — see «Receipts and invoices for businesses»."
+        }
+      ],
+      "related": ["plans-and-billing", "switch-and-cancel-plan", "invoices-and-receipts"]
+    },
+    {
+      "slug": "switch-and-cancel-plan",
+      "type": "article",
+      "category": "billing",
+      "accent": 1,
+      "title": "Switch plans and cancel the subscription",
+      "summary": "When upgrades and downgrades take effect, how to cancel and what happens to your data afterwards.",
+      "updated": "April 22, 2026",
+      "date": "2026-04-22",
+      "blocks": [
+        {
+          "type": "table",
+          "heading": "Plan change logic",
+          "headers": ["Action", "Takes effect", "Refund"],
+          "rows": [
+            [
+              "Upgrade",
+              "Immediately, access opens straight away",
+              "Prorated charge for the rest of the period"
+            ],
+            ["Downgrade", "At the start of the next billing period", "No proration"],
+            ["Cancellation", "Access stays until the paid period ends", "No refund by default"]
+          ]
+        },
+        {
+          "type": "steps",
+          "heading": "Cancel the subscription",
+          "items": [
+            "Open «Settings → Plan and billing»",
+            "Click «Cancel subscription» and confirm",
+            "Features stay available until the period ends",
+            "After that the account moves to Solo with basic limits"
+          ]
+        },
+        {
+          "type": "callout",
+          "text": "Brand data, channels and brand memory are kept for 30 days after cancellation — during that window you can come back without losing anything."
+        }
+      ],
+      "related": ["plans-and-billing", "trial-and-card", "limits-and-quotas"]
+    },
+    {
+      "slug": "limits-and-quotas",
+      "type": "article",
+      "category": "billing",
+      "accent": 2,
+      "title": "Limits, quotas and what happens when you exceed them",
+      "summary": "How many posts and channels each plan gives you, what the monthly per-brand cap means and how the platform notifies you when you go over.",
+      "updated": "April 20, 2026",
+      "date": "2026-04-20",
+      "blocks": [
+        {
+          "type": "table",
+          "heading": "Baseline limits",
+          "headers": ["", "Solo", "Pro", "Network"],
+          "rows": [
+            ["Brands", "1", "3", "10"],
+            ["Channels per brand", "1", "3", "5"],
+            ["Posts per month", "30", "100", "300"],
+            ["Team members", "1", "3", "10"]
+          ]
+        },
+        {
+          "type": "list",
+          "heading": "What happens when you exceed them",
+          "items": [
+            "60% of the limit — email and Telegram bot notification",
+            "80% — reminder plus a CTA to upgrade to Pro/Network",
+            "100% — auto-publishing is paused, agents keep preparing drafts",
+            "Reactivation — the next billing month or a plan upgrade"
+          ]
+        },
+        {
+          "type": "callout",
+          "text": "Going over the limit never charges you extra without consent — we don't do pay-per-use."
+        }
+      ],
+      "related": ["plans-and-billing", "switch-and-cancel-plan", "publisher-agent"]
+    },
+    {
+      "slug": "invoices-and-receipts",
+      "type": "article",
+      "category": "billing",
+      "accent": 3,
+      "title": "Receipts and invoices for businesses",
+      "summary": "Where to download fiscal receipts, how to request an invoice for a legal entity and which details we need.",
+      "updated": "April 18, 2026",
+      "date": "2026-04-18",
+      "blocks": [
+        {
+          "type": "steps",
+          "heading": "Download a receipt",
+          "items": [
+            "Open «Settings → Plan and billing → Payment history»",
+            "Click «Receipt» next to the payment you need",
+            "The receipt is issued under 54-FZ and suitable for accounting"
+          ]
+        },
+        {
+          "type": "steps",
+          "heading": "Invoice for a legal entity",
+          "items": [
+            "Write to support: TIN, KPP, address, contact person",
+            "Within 1 business day we'll email an invoice",
+            "Once paid, the subscription activates automatically"
+          ]
+        },
+        {
+          "type": "callout",
+          "text": "Closing documents (acts, UPD) are issued on request — usually quarterly or at the end of the billing period."
+        }
+      ],
+      "related": ["plans-and-billing", "trial-and-card", "contact-support"]
+    },
+    {
+      "slug": "create-and-switch-brands",
+      "type": "article",
+      "category": "channels",
+      "accent": 4,
+      "title": "Brands: create, switch and delete",
+      "summary": "Why everything in the platform is organised around brands, how to create another one and how that differs from channels.",
+      "updated": "April 16, 2026",
+      "date": "2026-04-16",
+      "blocks": [
+        {
+          "type": "paragraphs",
+          "items": [
+            "A brand is a container: its own brand memory, tone of voice and channels. One account can run several brands, switch between them and grant the team access to each one separately."
+          ]
+        },
+        {
+          "type": "steps",
+          "heading": "Create a new brand",
+          "items": [
+            "Open the brand switcher in the header",
+            "Click «Create brand» and enter a name",
+            "Pick the content language and timezone",
+            "Connect a channel to it and trigger the brand memory build"
+          ]
+        },
+        {
+          "type": "callout",
+          "text": "Brand count depends on the plan: Solo — 1, Pro — 3, Network — 10."
+        }
+      ],
+      "related": ["connect-multiple-channels", "disconnect-channel", "plans-and-billing"]
+    },
+    {
+      "slug": "connect-multiple-channels",
+      "type": "article",
+      "category": "channels",
+      "accent": 0,
+      "title": "Connect multiple channels to one brand",
+      "summary": "How to add a second and third channel to an existing brand and how agents split publications between them.",
+      "updated": "April 14, 2026",
+      "date": "2026-04-14",
+      "blocks": [
+        {
+          "type": "steps",
+          "heading": "Add another channel",
+          "items": [
+            "Open «Brands → your brand → Channels»",
+            "Click «Add channel» and complete the connection flow",
+            "Pick a channel role: primary, experimental or mirror",
+            "Set a schedule for each channel separately"
+          ]
+        },
+        {
+          "type": "list",
+          "heading": "How posts are split",
+          "items": [
+            "Content prepares drafts at the brand level",
+            "Publisher distributes posts across channels per their schedules",
+            "Mirrors receive delayed copies of posts"
+          ]
+        },
+        {
+          "type": "callout",
+          "text": "Channel cap per brand: Solo — 1, Pro — 3, Network — 5."
+        }
+      ],
+      "related": ["connect-telegram", "create-and-switch-brands", "publisher-agent"]
+    },
+    {
+      "slug": "disconnect-channel",
+      "type": "article",
+      "category": "channels",
+      "accent": 1,
+      "title": "Disconnect a channel and revoke access",
+      "summary": "How to detach a channel from a brand, remove the bot from Telegram and what happens to accumulated memory and history.",
+      "updated": "April 12, 2026",
+      "date": "2026-04-12",
+      "blocks": [
+        {
+          "type": "steps",
+          "heading": "Disconnect a channel",
+          "items": [
+            "Open «Brands → your brand → Channels»",
+            "Click «Disconnect» next to the channel",
+            "Confirm — publications stop immediately",
+            "Remove the bot from the Telegram channel manually if you don't need it any more"
+          ]
+        },
+        {
+          "type": "list",
+          "heading": "What happens to data",
+          "items": [
+            "Publication history stays in analytics",
+            "Brand memory is preserved — it belongs to the brand, not the channel",
+            "Posts scheduled for this channel are cancelled"
+          ]
+        }
+      ],
+      "related": ["connect-telegram", "telegram-permissions", "create-and-switch-brands"]
+    },
+    {
+      "slug": "data-and-privacy",
+      "type": "article",
+      "category": "security",
+      "accent": 2,
+      "title": "How we store your data and channel tokens",
+      "summary": "Where data physically lives, which tokens are encrypted, and who inside the company can reach it.",
+      "updated": "April 10, 2026",
+      "date": "2026-04-10",
+      "blocks": [
+        {
+          "type": "list",
+          "heading": "Baseline principles",
+          "items": [
+            "Data is encrypted in transit (TLS) and at rest (AES-256)",
+            "Channel tokens live in a hardened vault — engineers don't have direct access",
+            "Backups are encrypted and removed according to the retention policy",
+            "Logs do not store PII — we use anonymised events for debugging"
+          ]
+        },
+        {
+          "type": "paragraphs",
+          "items": [
+            "A small group of engineers can reach production, every action is written to an audit log. Unless a user grants access to their brand, no one inside the company reads its content."
+          ]
+        },
+        {
+          "type": "callout",
+          "text": "Full terms live in the privacy policy and user agreement. Both are linked from the footer of the site."
+        }
+      ],
+      "related": ["telegram-permissions", "delete-account", "two-factor-auth"]
+    },
+    {
+      "slug": "telegram-permissions",
+      "type": "article",
+      "category": "security",
+      "accent": 3,
+      "title": "What permissions the bot has in your channel",
+      "summary": "The minimal set of permissions the bot needs to work and why we don't ask for «full rights».",
+      "updated": "April 8, 2026",
+      "date": "2026-04-08",
+      "blocks": [
+        {
+          "type": "list",
+          "heading": "What we need",
+          "items": [
+            "Post messages — to publish content",
+            "Edit messages — to fix typos and refresh content",
+            "View channel stats — so the Analyst can compute metrics"
+          ]
+        },
+        {
+          "type": "list",
+          "heading": "What we DON'T need",
+          "items": [
+            "Delete other people's messages",
+            "Block or unblock subscribers",
+            "Change channel settings or invite admins"
+          ]
+        },
+        {
+          "type": "callout",
+          "text": "You can shrink the bot's permissions or remove it from the channel any time — we'll keep showing analytics for already-published posts."
+        }
+      ],
+      "related": ["connect-telegram", "data-and-privacy", "disconnect-channel"]
+    },
+    {
+      "slug": "contact-support",
+      "type": "article",
+      "category": "support",
+      "accent": 4,
+      "title": "How to contact support",
+      "summary": "Channels you can reach us on, response times and what to attach to a ticket so we can solve it faster.",
+      "updated": "April 6, 2026",
+      "date": "2026-04-06",
+      "blocks": [
+        {
+          "type": "list",
+          "heading": "How to reach us",
+          "items": [
+            "Email: support@social.media — our main channel, we reply within 24 hours",
+            "Telegram bot @socialmedia_bot — short questions, replies during business hours",
+            "In-app chat — priority queue for Network plan customers"
+          ]
+        },
+        {
+          "type": "list",
+          "heading": "What to attach to a ticket",
+          "items": [
+            "Account email and brand name",
+            "Steps to reproduce the issue",
+            "Screenshots or a short screen recording",
+            "Timestamp of the failure (in your own timezone)"
+          ]
+        }
+      ],
+      "related": ["report-bug-or-idea", "lost-2fa-recovery", "invoices-and-receipts"]
+    },
+    {
+      "slug": "report-bug-or-idea",
+      "type": "article",
+      "category": "support",
+      "accent": 0,
+      "title": "Report a bug or suggest an idea",
+      "summary": "Where to file bug reports and feature requests, and how we decide what ships in the next release.",
+      "updated": "April 4, 2026",
+      "date": "2026-04-04",
+      "blocks": [
+        {
+          "type": "paragraphs",
+          "items": [
+            "We build the product together with early users — every idea and bug report lands in a shared backlog and is prioritised transparently. The most requested items show up in the «Roadmap» section of this help center."
+          ]
+        },
+        {
+          "type": "steps",
+          "heading": "Submit an idea",
+          "items": [
+            "Open «Settings → Feedback»",
+            "Pick the type: «Idea» or «Bug»",
+            "Describe the goal, the desired outcome and steps to reproduce",
+            "Optionally «+1» other users' ideas — it helps with prioritisation"
+          ]
+        },
+        {
+          "type": "callout",
+          "text": "We respond to every idea: «picking up», «backlog» or «not a fit». No silent rejections."
+        }
+      ],
+      "related": ["contact-support"]
     }
   ],
   "changelog": [
@@ -301,7 +1108,7 @@
           "title": "8 AI agents for Telegram",
           "description": "Content, publishing, analytics, orchestrator, onboarding, moderation, notifications and brand memory.",
           "tag": "Platform",
-          "when": "MVP · 0–6 mo"
+          "when": "November 2026"
         }
       ]
     },
@@ -313,19 +1120,19 @@
           "title": "Research and Engagement",
           "description": "Agents for topic research and audience engagement.",
           "tag": "Agents",
-          "when": "Month 7"
+          "when": "December 2026"
         },
         {
           "title": "Strategist and team roles",
           "description": "A strategy agent and roles for teams collaborating on brands.",
           "tag": "Platform",
-          "when": "v1.1 · +2–3 mo"
+          "when": "February 2027"
         },
         {
           "title": "Web and advanced analytics",
           "description": "Support for more platforms and deeper content performance analytics.",
           "tag": "Analytics",
-          "when": "v2.0"
+          "when": "October 2027"
         }
       ]
     }
