@@ -3,14 +3,20 @@ import path from "node:path";
 
 export type LegalSlug = "terms" | "privacy" | "agreement";
 
+export type LegalBlock =
+  | { type: "text"; text: string }
+  | { type: "callout"; text: string }
+  | { type: "list"; items: string[] }
+  | { type: "table"; headers: string[]; rows: string[][] };
+
 export interface LegalSection {
   heading: string;
-  body: string[];
+  blocks: LegalBlock[];
 }
 
 export interface LegalDoc {
   title: string;
-  updated: string;
+  version: string;
   intro?: string;
   sections: LegalSection[];
 }

@@ -1,47 +1,443 @@
 {
-  "title": "Terms of Service",
-  "updated": "2026-05-17",
-  "intro": "These Terms govern the use of the social-media-v1 service. By registering and using the service you accept these Terms in full.",
+  "title": "Public offer",
+  "version": "Version 2.0 of 15 April 2026 | Revision 2026-04-15",
+  "intro": "This public offer defines the terms of use of social-media-v1 — a platform of autonomous AI agents that run social-network channels. Acceptance constitutes full and unconditional agreement to these terms.",
   "sections": [
     {
-      "heading": "1. Definitions",
-      "body": [
-        "“Service” — the social-media-v1 software product available via the website and API.",
-        "“User” — an individual or legal entity using the Service under these Terms.",
-        "“Provider” — Alexei Mozol, UNP: 12345678."
+      "heading": "1. General provisions",
+      "blocks": [
+        {
+          "type": "text",
+          "text": "1.1. This document is a public offer of sole proprietor Alexei Mozol (reg. no. 12345678, the «Provider») addressed to an unlimited range of individuals, sole proprietors and legal entities (the «User»)."
+        },
+        {
+          "type": "text",
+          "text": "1.2. The subject of the offer is access to social-media-v1 (the «Service») — a web application and Telegram bot through which AI agents run the User's social-network channels."
+        },
+        {
+          "type": "text",
+          "text": "1.3. Full and unconditional acceptance is any of the following actions:"
+        },
+        {
+          "type": "list",
+          "items": [
+            "registering an account in the Service;",
+            "paying for any plan;",
+            "using the Service after registration."
+          ]
+        },
+        {
+          "type": "callout",
+          "text": "Upon acceptance the offer becomes a contract between the Provider and the User. The contract is mixed and contains elements of a licence agreement and a paid-services agreement."
+        }
       ]
     },
     {
-      "heading": "2. Subject",
-      "body": [
-        "The Provider grants the User access to the Service's social media management features powered by AI agents, under the selected plan.",
-        "The feature set of each plan is listed on the pricing page and may change with prior notice."
+      "heading": "2. Definitions",
+      "blocks": [
+        {
+          "type": "list",
+          "items": [
+            "«Service» — the social-media-v1 platform: web application and Telegram bot.",
+            "«AI agent» — an autonomous module performing channel-management tasks (content, publishing, analytics and others).",
+            "«Brand» — the User's workspace with settings, brand memory and connected channels.",
+            "«Brand memory» — an extracted representation of the brand's tone of voice, topics and constraints.",
+            "«Plan» — the conditions of access to the Service, including limits and price.",
+            "«Subscription» — paid recurring access to the Service.",
+            "«Trial» — 7 calendar days of free access to the «Pro» plan functionality.",
+            "«Auto-renewal» — automatic charge for the next period from the saved card.",
+            "«Social-network API» — the programmatic interface of third-party platforms (Telegram and others).",
+            "«Third-party services» — external platforms and APIs not part of the Service and not controlled by the Provider."
+          ]
+        }
       ]
     },
     {
-      "heading": "3. Registration and account",
-      "body": [
-        "Using the Service requires creating an account and verifying the email address.",
-        "The User is responsible for keeping credentials safe and for all actions performed with their account."
+      "heading": "3. Subject of the contract",
+      "blocks": [
+        {
+          "type": "text",
+          "text": "3.1. The Provider grants the User a non-exclusive right to use the Service in accordance with the selected Plan."
+        },
+        {
+          "type": "text",
+          "text": "3.2. The Service provides the following tools, the scope of which is determined by the Plan:"
+        },
+        {
+          "type": "list",
+          "items": [
+            "connecting social-network channels and managing brands;",
+            "brand memory: extracting tone of voice and topics from past posts;",
+            "8 AI agents: content, publishing, analytics, orchestrator, onboarding, moderation, notifications, brand memory;",
+            "autonomy modes: «AI does it» and «AI proposes — you approve»;",
+            "channel analytics and a weekly AI report."
+          ]
+        },
+        {
+          "type": "text",
+          "text": "3.3. The Provider performs technically feasible actions to keep the Service operational. The availability and completeness of data depend on social-network APIs, which are not under the Provider's control (section 10)."
+        }
       ]
     },
     {
-      "heading": "4. Payment",
-      "body": [
-        "Paid plans are provided on a subscription basis. The trial period is provided without a card.",
-        "Refunds are handled per the refund section and applicable law."
+      "heading": "4. Plans",
+      "blocks": [
+        {
+          "type": "text",
+          "text": "4.1. Current prices are published on the Service's pricing page. The price is fixed at the time of payment and does not change during the paid period."
+        },
+        {
+          "type": "table",
+          "headers": ["", "Solo", "Pro", "Network"],
+          "rows": [
+            [
+              "For whom",
+              "Small business — 1 brand",
+              "Expert or growing brand",
+              "Channel network / mini-agency"
+            ],
+            ["Price per month", "₽1,800", "₽4,200", "₽9,500"],
+            ["Price billed yearly", "₽1,500/mo", "₽3,500/mo", "₽7,900/mo"],
+            ["Brands", "1", "3", "10"],
+            ["Channels per brand", "1", "3", "5"],
+            ["Posts per month", "30", "100", "300"],
+            ["AI text generations", "100", "400", "1,500"],
+            ["AI images per month", "30", "100", "300"],
+            ["Competitors monitored", "5", "15", "50"],
+            ["8 AI agents & brand memory", "✓", "✓", "✓"],
+            ["Weekly AI report", "✓", "✓", "✓"],
+            ["Multi-brand switcher", "—", "✓", "✓"]
+          ]
+        },
+        {
+          "type": "text",
+          "text": "4.2. «Pro» is the recommended plan. All plans include 8 AI agents, brand memory, autopilot modes, the weekly report and two-factor authentication."
+        },
+        {
+          "type": "text",
+          "text": "4.3. Subscription periods: 1 month (no discount) and 12 months (about 17% off the monthly price). The discount applies to the base monthly price."
+        },
+        {
+          "type": "text",
+          "text": "4.4. Prices are shown in ₽ for Russia. In Belarus payment is in Br, in other countries in $; the charge is made in the User's currency at the payment operator's rate."
+        }
       ]
     },
     {
-      "heading": "5. Liability",
-      "body": [
-        "The Service is provided “as is”. The Provider makes reasonable efforts to keep it available but does not guarantee uninterrupted operation.",
-        "The User is solely responsible for content published through the Service and for complying with the rules of the social networks used."
+      "heading": "5. Trial period",
+      "blocks": [
+        {
+          "type": "callout",
+          "text": "New Users get a Trial — 7 calendar days of full access to the «Pro» plan functionality, free and with no card required."
+        },
+        {
+          "type": "list",
+          "items": [
+            "After the Trial ends, access to paid functionality is restricted; no charges are made.",
+            "To continue, a paid Subscription must be purchased.",
+            "The Trial is granted once per account."
+          ]
+        }
       ]
     },
     {
-      "heading": "6. Contacts",
-      "body": ["Alexei Mozol, UNP: 12345678.", "Support email: support@social.media."]
+      "heading": "6. Payment",
+      "blocks": [
+        {
+          "type": "list",
+          "items": [
+            "Payment is accepted by bank card via a licensed payment operator, and by bank transfer against an invoice.",
+            "Card details are not stored by the Provider — payments are processed by the payment operator.",
+            "After a successful payment an electronic receipt is sent to the provided email.",
+            "For invoice payments access is activated manually after funds are confirmed; Auto-renewal is unavailable."
+          ]
+        },
+        {
+          "type": "text",
+          "text": "6.1. Payment is deemed made once confirmation is received from the payment system or the User's bank."
+        }
+      ]
+    },
+    {
+      "heading": "7. Auto-renewal",
+      "blocks": [
+        {
+          "type": "callout",
+          "text": "When Auto-renewal is on, on the end date of the current subscription period the next equivalent period is automatically charged to the saved card. The date and amount of the next charge are shown in the account. Reminders are emailed 7, 3 and 1 day before the charge."
+        },
+        {
+          "type": "list",
+          "items": [
+            "Auto-renewal is enabled voluntarily by the User during card payment and requires a saved payment method.",
+            "The User may disable Auto-renewal in the account at any time before the next charge; the current paid period runs to its end.",
+            "If a charge fails technically, the Provider retries for 7 days, after which the subscription is considered expired and access is restricted.",
+            "A received notice of an upcoming charge is sufficient ground to consider the User notified."
+          ]
+        }
+      ]
+    },
+    {
+      "heading": "8. Refunds",
+      "blocks": [
+        {
+          "type": "text",
+          "text": "8.1. The User may cancel the Subscription at any time in accordance with applicable consumer-protection law."
+        },
+        {
+          "type": "callout",
+          "text": "Refund calculation: the refund is computed from the base (full) monthly price without the discount. Used days are charged as (base monthly price ÷ 30) × number of used days; the remaining part of the amount actually paid is refunded."
+        },
+        {
+          "type": "text",
+          "text": "8.2. Example: «Pro» paid for 12 months at ₽42,000 (₽3,500 × 12). Base price ₽4,200/mo = ₽140/day. 25 days used: 140 × 25 = ₽3,500 withheld. Refund: 42,000 − 3,500 = ₽38,500."
+        },
+        {
+          "type": "text",
+          "text": "8.3. No refund is made if:"
+        },
+        {
+          "type": "list",
+          "items": [
+            "the User used the functionality for more than 25% of the paid period (except for material breaches by the Provider);",
+            "access was granted via an «access days» promo code (no money was paid);",
+            "access was restricted due to the User's breach of the contract."
+          ]
+        },
+        {
+          "type": "list",
+          "items": [
+            "To request a refund, write to support@social.media or @socialmedia_bot: name / company, registration email, reason.",
+            "Review takes 5 business days; the refund is made to the same payment method within 10 business days of confirmation."
+          ]
+        }
+      ]
+    },
+    {
+      "heading": "9. Promo codes",
+      "blocks": [
+        {
+          "type": "list",
+          "items": [
+            "Promo codes are issued at the Provider's discretion: percentage discount, fixed discount or N free days.",
+            "Each promo code is used once by one User unless explicitly stated otherwise.",
+            "Promo codes do not stack, have no cash value and are not exchangeable for money.",
+            "A promo code is deemed applied upon activation; application cannot be undone.",
+            "The Provider is not liable for promo codes distributed by third parties without authorisation."
+          ]
+        }
+      ]
+    },
+    {
+      "heading": "10. Service availability and dependence on third-party services",
+      "blocks": [
+        {
+          "type": "text",
+          "text": "10.1. The Provider maintains the technical operability of its own infrastructure, applying reasonable commercial efforts to keep it available."
+        },
+        {
+          "type": "callout",
+          "text": "Core capabilities — publishing, statistics collection, channel synchronisation — depend on the availability and correctness of social-network APIs (Telegram and others). Those APIs are third-party services not under the Provider's control."
+        },
+        {
+          "type": "text",
+          "text": "10.2. The Provider is not liable for the following situations caused by social-network APIs:"
+        },
+        {
+          "type": "list",
+          "items": [
+            "temporary API unavailability causing delayed or missing data updates;",
+            "changes to the structure, scope or format of transmitted data;",
+            "incorrect, incomplete or delayed data returned by the API;",
+            "rate limits causing synchronisation delays;",
+            "blocking or revocation of access by the social network."
+          ]
+        },
+        {
+          "type": "text",
+          "text": "10.3. Unavailability or incorrectness of data caused by the social-network API is not a breach of the contract and is not grounds for a refund. Planned maintenance is announced at least 12 hours in advance and is not counted in refund calculations."
+        }
+      ]
+    },
+    {
+      "heading": "11. Technical requirements",
+      "blocks": [
+        {
+          "type": "list",
+          "items": [
+            "The Service supports current versions of modern browsers; operability in outdated browsers is not guaranteed.",
+            "The User ensures a stable internet connection and the correctness of the channel access provided.",
+            "The Provider is not liable for inability to use the Service due to the User's device not meeting requirements."
+          ]
+        }
+      ]
+    },
+    {
+      "heading": "12. Data and analytics accuracy",
+      "blocks": [
+        {
+          "type": "text",
+          "text": "12.1. Data shown by the Service is based on information received from social-network APIs. The Service is a display and analysis tool, not the source of primary data."
+        },
+        {
+          "type": "list",
+          "items": [
+            "delay in data transmission by the social-network API;",
+            "rounding and aggregation during API transfer;",
+            "retroactive adjustments to previously transmitted data;",
+            "differences in attribution algorithms."
+          ]
+        },
+        {
+          "type": "callout",
+          "text": "Service data is informational and analytical and cannot be used as financial, tax or legal reporting. The Provider is not liable for losses caused by business decisions based on Service data."
+        }
+      ]
+    },
+    {
+      "heading": "13. User rights and obligations",
+      "blocks": [
+        {
+          "type": "text",
+          "text": "13.1. The User shall:"
+        },
+        {
+          "type": "list",
+          "items": [
+            "provide accurate registration data and keep it current;",
+            "not share account credentials with third parties;",
+            "use the Service only for lawful purposes and follow the rules of the social networks used;",
+            "ensure the right to grant the Provider access to channels;",
+            "not perform actions disrupting the Service (automated attacks, scraping, DDoS);",
+            "pay on time and follow the claims procedure (section 18)."
+          ]
+        },
+        {
+          "type": "text",
+          "text": "13.2. The User may use the Service within the chosen plan, contact support (support@social.media, @socialmedia_bot), request account deletion and obtain a refund under section 8."
+        }
+      ]
+    },
+    {
+      "heading": "14. Provider rights and obligations",
+      "blocks": [
+        {
+          "type": "list",
+          "items": [
+            "The Provider shall maintain the operability of its own infrastructure, announce planned maintenance at least 12 hours in advance, review claims within the set deadlines and process personal data per the Privacy Policy.",
+            "The Provider may change functionality, plans and offer terms per section 17, suspend access for gross breach without refund for the remaining period, use anonymised aggregated data to improve the Service, and engage subcontractors for technical operation."
+          ]
+        }
+      ]
+    },
+    {
+      "heading": "15. Limitation of liability",
+      "blocks": [
+        {
+          "type": "callout",
+          "text": "The Service is provided «as is». The Provider does not guarantee uninterrupted operation, absence of errors or conformity of the Service to the User's subjective expectations."
+        },
+        {
+          "type": "list",
+          "items": [
+            "losses due to unavailability or incorrectness of social-network API data (sections 10, 12);",
+            "losses from business decisions based on Service data;",
+            "unavailability due to force majeure, provider outages and infrastructure attacks;",
+            "third-party actions enabled by the User's own credential mishandling;",
+            "data loss due to the User's actions."
+          ]
+        },
+        {
+          "type": "callout",
+          "text": "The Provider's aggregate liability is limited to the amount actually paid by the User over the last 3 months. Lost profit and indirect damages are not compensated under any circumstances."
+        }
+      ]
+    },
+    {
+      "heading": "16. Intellectual property",
+      "blocks": [
+        {
+          "type": "text",
+          "text": "16.1. Exclusive rights to the Service belong to the Provider. The User receives a non-exclusive, non-transferable licence within the Service's direct functionality."
+        },
+        {
+          "type": "list",
+          "items": [
+            "copying, decompiling and modifying the Service is prohibited;",
+            "creating derivative products and transferring rights to third parties is prohibited;",
+            "removing authorship notices is prohibited."
+          ]
+        },
+        {
+          "type": "text",
+          "text": "16.2. Content created by AI agents on the User's instruction and channel materials belong to the User, who is responsible for their compliance with law and social-network rules."
+        }
+      ]
+    },
+    {
+      "heading": "17. Changes to the offer",
+      "blocks": [
+        {
+          "type": "list",
+          "items": [
+            "The Provider may change the offer unilaterally.",
+            "For price or material changes, notice is given at least 10 calendar days in advance by publication and/or email.",
+            "Continued use after changes take effect means acceptance of the new version; changes do not affect an already-paid period."
+          ]
+        }
+      ]
+    },
+    {
+      "heading": "18. Claims procedure",
+      "blocks": [
+        {
+          "type": "list",
+          "items": [
+            "Before going to court the User must send a written claim to support@social.media.",
+            "The claim must contain the name / company, registration email, problem description, the breached clauses and a demand.",
+            "Review takes 10 business days; if additional information is requested the term is suspended."
+          ]
+        }
+      ]
+    },
+    {
+      "heading": "19. Termination",
+      "blocks": [
+        {
+          "type": "list",
+          "items": [
+            "The User may terminate at any time: by disabling Auto-renewal or by asking support to delete the account with a refund under section 8.",
+            "On account deletion data is removed within 30 calendar days, except data whose retention is legally required.",
+            "The Provider may terminate: immediately for gross breach; with 3 business days' notice for systematic breaches."
+          ]
+        }
+      ]
+    },
+    {
+      "heading": "20. Miscellaneous",
+      "blocks": [
+        {
+          "type": "list",
+          "items": [
+            "The contract is governed by the applicable law of the Provider's place of registration.",
+            "Invalidity of a provision does not invalidate the remaining provisions.",
+            "The Provider's inaction in response to a breach is not a waiver of future enforcement."
+          ]
+        }
+      ]
+    },
+    {
+      "heading": "21. Provider details",
+      "blocks": [
+        {
+          "type": "list",
+          "items": [
+            "Sole proprietor Alexei Mozol",
+            "Reg. no.: 12345678",
+            "Email: support@social.media",
+            "Telegram: @socialmedia_bot"
+          ]
+        }
+      ]
     }
   ]
 }
