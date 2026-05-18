@@ -1,6 +1,7 @@
 "use client";
 
 import { cn } from "@/lib/cn";
+import { useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
 
 /**
@@ -14,16 +15,16 @@ import { useEffect, useState } from "react";
  */
 const STORAGE_KEY = "sm.theme";
 
-type Theme = { id: string; label: string; bg: string; primary: string };
+type Theme = { id: string; key: string; bg: string; primary: string };
 
 const THEMES: Theme[] = [
   {
     id: "",
-    label: "Indigo",
+    key: "indigo",
     bg: "oklch(0.215 0.018 280)",
     primary: "oklch(0.62 0.2 277)",
   },
-  { id: "light", label: "Light", bg: "oklch(0.98 0.004 280)", primary: "oklch(0.55 0.22 277)" },
+  { id: "light", key: "light", bg: "oklch(0.98 0.004 280)", primary: "oklch(0.55 0.22 277)" },
 ];
 
 function applyTheme(id: string) {
@@ -36,6 +37,7 @@ function applyTheme(id: string) {
 }
 
 export function ThemeSwitcher() {
+  const t = useTranslations("theme");
   const [open, setOpen] = useState(false);
   const [active, setActive] = useState("");
 
@@ -58,8 +60,8 @@ export function ThemeSwitcher() {
       {open && (
         <div className="mb-3 w-64 overflow-hidden rounded-2xl border border-border bg-card shadow-pop">
           <div className="border-b border-border px-4 py-3">
-            <p className="text-sm font-semibold text-foreground">Theme (temporary)</p>
-            <p className="mt-0.5 text-xs text-muted-foreground">Palette preview — removed later</p>
+            <p className="text-sm font-semibold text-foreground">{t("title")}</p>
+            <p className="mt-0.5 text-xs text-muted-foreground">{t("subtitle")}</p>
           </div>
           <ul className="max-h-80 overflow-y-auto p-2">
             {THEMES.map((th) => (
@@ -81,7 +83,7 @@ export function ThemeSwitcher() {
                     <span className="h-full w-1/2" style={{ background: th.bg }} />
                     <span className="h-full w-1/2" style={{ background: th.primary }} />
                   </span>
-                  <span className="flex-1">{th.label}</span>
+                  <span className="flex-1">{t(th.key)}</span>
                   {active === th.id && (
                     <svg
                       className="size-4 text-primary"
@@ -107,7 +109,7 @@ export function ThemeSwitcher() {
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        aria-label="Toggle theme"
+        aria-label={t("toggle")}
         aria-expanded={open}
         className="flex h-12 items-center gap-2 rounded-full border border-border bg-card px-5 text-sm font-semibold text-foreground shadow-pop transition-colors hover:bg-secondary"
       >
@@ -115,7 +117,7 @@ export function ThemeSwitcher() {
           <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="2" />
           <path d="M12 3a9 9 0 0 1 0 18Z" fill="currentColor" />
         </svg>
-        Theme
+        {t("button")}
       </button>
     </div>
   );
