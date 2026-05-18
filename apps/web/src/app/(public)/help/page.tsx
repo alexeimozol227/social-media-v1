@@ -1,6 +1,6 @@
 import { HelpCenter, type HelpView } from "@/components/help/help-center";
-import { HelpTopBar } from "@/components/help/help-top-bar";
 import { SiteFooter } from "@/components/landing/site-footer";
+import { SiteHeader } from "@/components/landing/site-header";
 import { loadHelpContent } from "@/lib/help";
 import { getLocale } from "next-intl/server";
 import { notFound } from "next/navigation";
@@ -29,8 +29,8 @@ export default async function HelpPage({
 
   return (
     <div className="min-h-dvh bg-background">
-      <HelpTopBar backHome={content.ui.backHome} />
-      <HelpCenter content={content} view={resolveView(section)} />
+      <SiteHeader />
+      <HelpCenter content={content} initialView={resolveView(section)} />
       <SiteFooter />
     </div>
   );

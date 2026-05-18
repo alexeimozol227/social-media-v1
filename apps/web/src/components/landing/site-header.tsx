@@ -7,11 +7,11 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 
 const SECTIONS = [
-  { id: "features", key: "features" },
-  { id: "how", key: "how" },
-  { id: "pricing", key: "pricing" },
-  { id: "faq", key: "faq" },
-  { id: "resources", key: "resources" },
+  { key: "features", href: "/#features" },
+  { key: "how", href: "/#how" },
+  { key: "pricing", href: "/#pricing" },
+  { key: "faq", href: "/#faq" },
+  { key: "resources", href: "/help" },
 ] as const;
 
 export function SiteHeader() {
@@ -42,13 +42,13 @@ export function SiteHeader() {
 
         <nav className="hidden items-center gap-8 md:flex" aria-label={t("menu")}>
           {SECTIONS.map((s) => (
-            <a
-              key={s.id}
-              href={`#${s.id}`}
+            <Link
+              key={s.key}
+              href={s.href}
               className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
             >
               {t(s.key)}
-            </a>
+            </Link>
           ))}
         </nav>
 
@@ -98,14 +98,14 @@ export function SiteHeader() {
         <div className="border-t border-border bg-background md:hidden">
           <nav className="mx-auto flex max-w-6xl flex-col gap-1 px-5 py-4" aria-label={t("menu")}>
             {SECTIONS.map((s) => (
-              <a
-                key={s.id}
-                href={`#${s.id}`}
+              <Link
+                key={s.key}
+                href={s.href}
                 onClick={() => setOpen(false)}
                 className="rounded-lg px-3 py-3 text-sm font-medium text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
               >
                 {t(s.key)}
-              </a>
+              </Link>
             ))}
             <div className="mt-2 flex flex-col gap-2 border-t border-border pt-4">
               <Link

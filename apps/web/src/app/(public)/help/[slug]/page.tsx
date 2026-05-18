@@ -1,6 +1,6 @@
 import { HelpArticleView } from "@/components/help/help-article";
-import { HelpTopBar } from "@/components/help/help-top-bar";
 import { SiteFooter } from "@/components/landing/site-footer";
+import { SiteHeader } from "@/components/landing/site-header";
 import { findArticle, loadHelpContent } from "@/lib/help";
 import { getLocale } from "next-intl/server";
 import { notFound } from "next/navigation";
@@ -26,7 +26,7 @@ export default async function HelpArticlePage({
 
   return (
     <div className="min-h-dvh bg-background">
-      <HelpTopBar backHome={content.ui.backHome} />
+      <SiteHeader />
       <HelpArticleView content={content} article={article} />
       <SiteFooter />
     </div>
