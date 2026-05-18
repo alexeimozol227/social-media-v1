@@ -1,3 +1,4 @@
+import { RedirectIfAuthenticated } from "@/components/auth/redirect-if-authenticated";
 import { Logo } from "@/components/ui/logo";
 import { getTranslations } from "next-intl/server";
 import Link from "next/link";
@@ -23,7 +24,9 @@ export default async function AuthLayout({
           <Logo />
         </Link>
         <div className="flex flex-1 items-center justify-center py-10">
-          <div className="w-full max-w-[400px]">{children}</div>
+          <div className="w-full max-w-[400px]">
+            <RedirectIfAuthenticated>{children}</RedirectIfAuthenticated>
+          </div>
         </div>
       </main>
 
