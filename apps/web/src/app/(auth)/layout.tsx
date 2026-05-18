@@ -41,7 +41,7 @@ export default async function AuthLayout({
           <ul className="mt-8 flex flex-col gap-3">
             {features.map((f) => (
               <li key={f} className="flex items-center gap-3 text-sm text-foreground/85">
-                <span className="grid size-5 place-items-center rounded-full bg-primary/25 text-primary-foreground">
+                <span className="grid size-5 place-items-center rounded-full bg-primary/25 text-foreground">
                   <svg viewBox="0 0 24 24" fill="none" className="size-3" aria-hidden="true">
                     <path
                       d="m5 13 4 4L19 7"

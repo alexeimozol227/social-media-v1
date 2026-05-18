@@ -226,11 +226,7 @@
       "password": "Password",
       "fullName": "Full name",
       "fullNameOptional": "(optional)",
-      "tosAccept": "I accept the Terms of Service and Privacy Policy",
-      "legalIntro": "By signing up, you accept the",
-      "legalTerms": "Terms",
-      "legalPrivacy": "Privacy Policy",
-      "legalAgreement": "Agreement",
+      "consent": "I consent to the <privacy>processing of personal data</privacy> and accept the <terms>terms of use</terms>",
       "submit": "Create account",
       "haveAccount": "Already have an account?",
       "signIn": "Sign in"
