@@ -15,6 +15,7 @@ from app.api.middleware.errors import register_error_handlers
 from app.api.middleware.idempotency import IdempotencyMiddleware
 from app.api.routes import admin as admin_routes
 from app.api.routes import auth as auth_routes
+from app.api.routes import brand_memory as brand_memory_routes
 from app.api.routes import brands as brand_routes
 from app.api.routes import channels as channel_routes
 from app.api.routes import competitors as competitor_routes
@@ -94,6 +95,10 @@ app.include_router(events_routes.router, prefix="/v1/events", tags=["events"])
 # Both routers register absolute paths (``/v1/...``) so they're mounted
 # without a router-level prefix.
 app.include_router(brand_routes.router, tags=["brands"])
+# PR #21 (docs/plans/phase1-sprint3-plan.md): Brand Memory v0 CRUD.
+# Endpoints are tenant-scoped through ``get_current_user``; the router
+# registers absolute paths so it's mounted prefix-less.
+app.include_router(brand_memory_routes.router, tags=["brand-memory"])
 app.include_router(channel_routes.router, tags=["channels"])
 # PR #18 (docs/plans/phase1-sprint2-plan.md): competitor channel
 # bindings — read-only, role='competitor'. Same prefix-less style as

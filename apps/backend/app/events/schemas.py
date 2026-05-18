@@ -532,6 +532,64 @@ class CircuitBreakerOpenedEvent(BaseEvent):
     )
 
 
+class BrandMemoryCoreUpdatedEvent(BaseEvent):
+    """The brand's core memory payload was just PATCH'd (PR #21).
+
+    Emitted by ``PATCH /v1/brands/{id}/memory/core`` after the row
+    commits. Subscribers:
+
+    * the SPA — invalidates its TanStack-Query cache for
+      ``brand-memory-core`` on the user's per-user channel so a
+      second tab sees the new payload without a manual reload;
+    * the Content Agent (PR #25) — invalidates its in-process
+      memoised effective-payload entry so the next draft pulls the
+      fresh values.
+
+    The payload itself is intentionally *not* embedded — events are
+    notification-only and consumers re-fetch via the API so RLS is
+    re-applied and the wire-format stays small.
+    """
+
+    event_type: Literal["brand_memory.core_updated"] = "brand_memory.core_updated"
+    agent_source: Literal["platform.api"] = "platform.api"
+
+    version: int = Field(
+        ge=1,
+        description="``brand_memory_core.version`` after the PATCH committed.",
+    )
+    updated_by_agent: str | None = Field(
+        default=None,
+        description=(
+            "Slug of the agent that applied the PATCH (e.g. ``onboarding``), "
+            "or None when a human operator edited via the SPA."
+        ),
+    )
+
+
+class BrandMemoryOverlayUpdatedEvent(BaseEvent):
+    """A per-channel Brand Memory overlay was just PATCH'd (PR #21).
+
+    Mirrors :class:`BrandMemoryCoreUpdatedEvent`. The ``workspace_channel_id``
+    field lets channel-scoped consumers (Publisher agent's draft
+    cache for that channel) skip events that don't affect them.
+    """
+
+    event_type: Literal["brand_memory.overlay_updated"] = "brand_memory.overlay_updated"
+    agent_source: Literal["platform.api"] = "platform.api"
+
+    workspace_channel_id: str = Field(
+        description="``workspace_channels.id`` the overlay belongs to.",
+    )
+    version: int = Field(
+        ge=1,
+        description="``brand_memory_overlays.version`` after the PATCH committed.",
+    )
+    updated_by_agent: str | None = Field(
+        default=None,
+        description=("Slug of the agent that applied the PATCH, or None for human edits."),
+    )
+
+
 class ChannelPostEditedEvent(BaseEvent):
     """A previously-ingested channel post was edited on Telegram (PR #16).
 
@@ -587,6 +645,8 @@ Event = Annotated[
     | BrandUpdatedEvent
     | BrandDefaultChangedEvent
     | BrandDeletedEvent
+    | BrandMemoryCoreUpdatedEvent
+    | BrandMemoryOverlayUpdatedEvent
     | AgentRunStartedEvent
     | AgentRunFinishedEvent
     | LLMCallFailedEvent

@@ -3,6 +3,11 @@
 from app.models.agent_run import AgentRun, AgentRunStatus
 from app.models.audit_event import AuditEvent, AuditSeverity
 from app.models.brand import Brand
+from app.models.brand_memory import (
+    BrandMemoryCore,
+    BrandMemoryExample,
+    BrandMemoryOverlay,
+)
 from app.models.channel import (
     Channel,
     ChannelPlatform,
@@ -35,6 +40,9 @@ __all__ = [
     "AuditEvent",
     "AuditSeverity",
     "Brand",
+    "BrandMemoryCore",
+    "BrandMemoryExample",
+    "BrandMemoryOverlay",
     "Channel",
     "ChannelPlatform",
     "ChannelPlatformValues",
