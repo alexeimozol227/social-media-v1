@@ -105,6 +105,11 @@ class ErrorCode:
     ADMIN_ONLY = "ADMIN_ONLY"
     SUPPORT_FORBIDDEN_FIELD = "SUPPORT_FORBIDDEN_FIELD"
 
+    # Brand Memory — PR #21 (docs/plans/phase1-sprint3-plan.md).
+    BRAND_MEMORY_INVALID_PAYLOAD = "BRAND_MEMORY_INVALID_PAYLOAD"
+    BRAND_MEMORY_VERSION_CONFLICT = "BRAND_MEMORY_VERSION_CONFLICT"
+    BRAND_MEMORY_CHANNEL_NOT_BOUND = "BRAND_MEMORY_CHANNEL_NOT_BOUND"
+
     # Competitor channels / user-bot — PR #18.
     COMPETITOR_NOT_PUBLIC = "COMPETITOR_NOT_PUBLIC"
     COMPETITOR_ALREADY_CONNECTED = "COMPETITOR_ALREADY_CONNECTED"
@@ -706,3 +711,51 @@ class LLMContentFilterBlockedError(AppError):
     error_code = ErrorCode.LLM_CONTENT_FILTER_BLOCKED
     http_status = 422
     default_message = "LLM provider's content filter blocked the request."
+
+
+# ---- Brand Memory — PR #21 ----
+
+
+class BrandMemoryInvalidPayloadError(AppError):
+    """Caller submitted a Brand Memory payload that violates the schema.
+
+    The Pydantic body validator catches the cheap structural issues
+    (wrong types, unknown top-level keys); this typed error is raised
+    by :mod:`app.services.brand_memory` when a deeper invariant is
+    violated — e.g. ``taboos`` contains a duplicate phrase or a list
+    field carries an entry over the per-item length cap. Surfaces as
+    422 so the SPA renders an inline form error.
+    """
+
+    error_code = ErrorCode.BRAND_MEMORY_INVALID_PAYLOAD
+    http_status = 422
+    default_message = "Brand Memory payload is invalid."
+
+
+class BrandMemoryVersionConflictError(AppError):
+    """Caller PATCH'd with a stale ``if_match_version``.
+
+    The SPA reads ``version`` on GET and echoes it on PATCH so two
+    concurrent edits can't silently overwrite each other (П11 single
+    source of truth invariant). On conflict the SPA is expected to
+    re-fetch the current row and prompt the user to reconcile.
+    Surfaces as 409 with ``suggested_action='refresh_and_retry'``.
+    """
+
+    error_code = ErrorCode.BRAND_MEMORY_VERSION_CONFLICT
+    http_status = 409
+    default_message = "Brand Memory has been updated since you loaded it. Refresh and try again."
+
+
+class BrandMemoryChannelNotBoundError(AppError):
+    """Caller addressed an overlay for a workspace_channel that doesn't
+    belong to the target brand (or is soft-detached).
+
+    Mirrors :class:`BrandNotInWorkspaceError` — we treat a cross-brand
+    channel id the same as a missing one so a malicious caller can't
+    enumerate other brands' bindings by id-fuzzing the overlay route.
+    """
+
+    error_code = ErrorCode.BRAND_MEMORY_CHANNEL_NOT_BOUND
+    http_status = 404
+    default_message = "Channel is not bound to the requested brand."
