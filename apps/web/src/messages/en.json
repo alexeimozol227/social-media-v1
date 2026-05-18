@@ -529,5 +529,15 @@
       "channelIdFallback": "id {id}",
       "noTitle": "—"
     }
+  },
+  "notFound": {
+    "code": "404",
+    "title": "Page not found",
+    "subtitle": "The link may be outdated or the page was moved.",
+    "home": "Home",
+    "help": "Open help"
+  },
+  "authGuard": {
+    "checking": "Checking your session…"
   }
 }
