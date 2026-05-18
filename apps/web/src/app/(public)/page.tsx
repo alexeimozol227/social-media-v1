@@ -52,7 +52,6 @@ const AGENT_ICONS: Record<string, ReactNode> = {
   ),
   onboarding: <path d="M5 12h14M13 6l6 6-6 6" />,
   moderation: <path d="M12 3 4 6v6c0 5 3.5 8 8 9 4.5-1 8-4 8-9V6l-8-3Zm-2 9 1.5 1.5L15 10" />,
-  notification: <path d="M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9M13.7 21a2 2 0 0 1-3.4 0" />,
 };
 
 const AGENT_KEYS = [
@@ -63,7 +62,6 @@ const AGENT_KEYS = [
   "brandMemory",
   "onboarding",
   "moderation",
-  "notification",
 ] as const;
 
 function delay(ms: number): CSSProperties {
@@ -378,7 +376,26 @@ export default async function LandingPage() {
         </section>
 
         {/* Pillars — featured bento (one large + two stacked) */}
-        <section id="features" className="mx-auto max-w-6xl scroll-mt-20 px-5 py-24 sm:px-8">
+        <section
+          id="features"
+          className="relative mx-auto max-w-6xl scroll-mt-20 px-5 py-24 sm:px-8"
+        >
+          {/* Floating accents — intentionally bleed past the section edges. */}
+          <div className="pointer-events-none absolute inset-0 hidden lg:block" aria-hidden="true">
+            <div
+              className="animate-float absolute -right-10 top-10 -rotate-6 rounded-2xl border border-border bg-card p-3 shadow-pop"
+              style={delay(200)}
+            >
+              <span className="grid size-9 place-items-center rounded-lg bg-primary/15 text-primary">
+                <Icon path={AGENT_ICONS.analyst} className="size-4" />
+              </span>
+            </div>
+            <span className="absolute -left-7 bottom-[-26px] grid size-12 place-items-center rounded-full border border-border bg-card text-primary shadow-pop">
+              <Icon path={AGENT_ICONS.brandMemory} className="size-5" />
+            </span>
+            <span className="absolute -left-4 top-24 size-3 rounded-full bg-primary/30" />
+            <span className="absolute right-10 -bottom-3 size-2.5 rounded-full bg-primary/25" />
+          </div>
           <SectionHeading title={tPillars("title")} subtitle={tPillars("subtitle")} />
           <div className="grid gap-6 lg:grid-cols-3">
             <div className="card-gradient-border relative flex flex-col justify-between overflow-hidden rounded-2xl bg-card p-8 lg:row-span-2">
@@ -425,7 +442,7 @@ export default async function LandingPage() {
                   key={k}
                   className={
                     i === 0
-                      ? "card-gradient-border relative overflow-hidden rounded-2xl bg-card p-6 sm:col-span-2 sm:row-span-2 lg:p-7"
+                      ? "card-gradient-border relative overflow-hidden rounded-2xl bg-card p-6 sm:col-span-2 lg:p-7"
                       : "rounded-2xl border border-border bg-card p-6 transition-colors hover:border-border-strong"
                   }
                 >
@@ -469,7 +486,23 @@ export default async function LandingPage() {
         </section>
 
         {/* How it works — two-column with a vertical timeline */}
-        <section id="how" className="mx-auto max-w-6xl scroll-mt-20 px-5 py-24 sm:px-8">
+        <section id="how" className="relative mx-auto max-w-6xl scroll-mt-20 px-5 py-24 sm:px-8">
+          {/* Floating accents — bleed onto the neighbouring sections. */}
+          <div className="pointer-events-none absolute inset-0 hidden lg:block" aria-hidden="true">
+            <div
+              className="animate-float absolute -right-12 top-[-28px] rotate-6 rounded-2xl border border-border bg-card p-3 shadow-pop"
+              style={{ animationDelay: "700ms", animationDuration: "8s" }}
+            >
+              <span className="grid size-9 place-items-center rounded-lg bg-primary/15 text-primary">
+                <Icon path={AGENT_ICONS.publisher} className="size-4" />
+              </span>
+            </div>
+            <span className="absolute -left-8 top-1/2 grid size-11 place-items-center rounded-full border border-border bg-card text-primary shadow-pop">
+              <Icon path={AGENT_ICONS.orchestrator} className="size-5" />
+            </span>
+            <span className="absolute left-1/3 -bottom-4 size-3 rounded-full bg-primary/30" />
+            <span className="absolute right-8 top-6 size-2.5 rounded-full bg-primary/25" />
+          </div>
           <div className="grid gap-14 lg:grid-cols-[0.9fr_1.1fr] lg:items-start">
             <div className="lg:sticky lg:top-24">
               <h2 className="text-balance text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
@@ -528,74 +561,98 @@ export default async function LandingPage() {
 
         {/* Trusted by — constellation of avatars + agent nodes */}
         <section className="relative overflow-hidden border-y border-border bg-surface/40">
+          {/* Faint world map */}
+          <img
+            src="/world-map.svg"
+            alt=""
+            aria-hidden="true"
+            className="pointer-events-none absolute left-1/2 top-1/2 hidden w-[122%] max-w-none -translate-x-1/2 -translate-y-1/2 opacity-[0.06] lg:block"
+          />
           <div className="pointer-events-none absolute inset-0 hidden lg:block" aria-hidden="true">
-            {/* Avatar nodes (swap /public/avatars/*.svg for real photos). */}
+            {/* Avatars — scattered, not mirrored (swap /public/avatars/*.svg for photos). */}
             <img
               src="/avatars/a1.svg"
               alt=""
-              width={56}
-              height={56}
-              className="absolute left-[7%] top-[20%] size-14 rounded-full border-2 border-border object-cover shadow-pop"
-            />
-            <img
-              src="/avatars/a2.svg"
-              alt=""
-              width={48}
-              height={48}
-              className="animate-float absolute left-[15%] top-[58%] size-12 rounded-full border-2 border-border object-cover shadow-pop"
+              className="absolute left-[5%] top-[16%] size-14 rounded-full border-2 border-border object-cover shadow-pop"
             />
             <img
               src="/avatars/a3.svg"
               alt=""
-              width={44}
-              height={44}
-              className="absolute left-[27%] bottom-[14%] size-11 rounded-full border-2 border-border object-cover shadow-pop"
-            />
-            <img
-              src="/avatars/a4.svg"
-              alt=""
-              width={56}
-              height={56}
-              className="absolute right-[7%] top-[24%] size-14 rounded-full border-2 border-border object-cover shadow-pop"
+              className="animate-float absolute left-[17%] top-[61%] size-11 rounded-full border-2 border-border object-cover shadow-pop"
+              style={{ animationDelay: "300ms", animationDuration: "7s" }}
             />
             <img
               src="/avatars/a5.svg"
               alt=""
-              width={48}
-              height={48}
-              className="animate-float absolute right-[15%] top-[60%] size-12 rounded-full border-2 border-border object-cover shadow-pop"
-              style={{ animationDelay: "900ms", animationDuration: "8s" }}
+              className="absolute left-[30%] top-[11%] size-12 rounded-full border-2 border-border object-cover shadow-pop"
             />
             <img
               src="/avatars/a2.svg"
               alt=""
-              width={40}
-              height={40}
-              className="absolute right-[28%] bottom-[16%] size-10 rounded-full border-2 border-border object-cover shadow-pop"
+              className="animate-float absolute left-[10%] top-[41%] size-9 rounded-full border-2 border-border object-cover shadow-pop"
+              style={{ animationDelay: "1200ms", animationDuration: "9s" }}
             />
-            {/* Agent-icon nodes */}
-            <span className="absolute left-[20%] top-[14%] grid size-10 place-items-center rounded-full border border-border bg-card text-primary">
+            <img
+              src="/avatars/a4.svg"
+              alt=""
+              className="absolute right-[6%] top-[30%] size-14 rounded-full border-2 border-border object-cover shadow-pop"
+            />
+            <img
+              src="/avatars/a2.svg"
+              alt=""
+              className="animate-float absolute right-[20%] top-[13%] size-12 rounded-full border-2 border-border object-cover shadow-pop"
+              style={{ animationDelay: "600ms", animationDuration: "8s" }}
+            />
+            <img
+              src="/avatars/a1.svg"
+              alt=""
+              className="absolute right-[11%] top-[66%] size-9 rounded-full border-2 border-border object-cover shadow-pop"
+            />
+            <img
+              src="/avatars/a3.svg"
+              alt=""
+              className="animate-float absolute right-[34%] top-[47%] size-11 rounded-full border-2 border-border object-cover shadow-pop"
+              style={{ animationDelay: "900ms", animationDuration: "7.5s" }}
+            />
+            <img
+              src="/avatars/a5.svg"
+              alt=""
+              className="absolute left-[43%] top-[74%] size-10 rounded-full border-2 border-border object-cover shadow-pop"
+            />
+            {/* Agent-icon nodes — varied placement */}
+            <span className="absolute left-[23%] top-[31%] grid size-10 place-items-center rounded-full border border-border bg-card text-primary">
               <Icon path={AGENT_ICONS.content} className="size-4" />
             </span>
-            <span className="absolute left-[33%] top-[40%] grid size-9 place-items-center rounded-full border border-border bg-card text-primary">
+            <span
+              className="animate-float absolute left-[38%] top-[52%] grid size-9 place-items-center rounded-full border border-border bg-card text-primary"
+              style={{ animationDelay: "500ms" }}
+            >
               <Icon path={AGENT_ICONS.analyst} className="size-4" />
             </span>
-            <span className="absolute right-[19%] top-[16%] grid size-10 place-items-center rounded-full border border-border bg-card text-primary">
+            <span className="absolute right-[15%] top-[39%] grid size-10 place-items-center rounded-full border border-border bg-card text-primary">
               <Icon path={AGENT_ICONS.publisher} className="size-4" />
             </span>
             <span
-              className="animate-float absolute right-[33%] top-[42%] grid size-9 place-items-center rounded-full border border-border bg-card text-primary"
-              style={{ animationDelay: "400ms" }}
+              className="animate-float absolute right-[28%] top-[67%] grid size-9 place-items-center rounded-full border border-border bg-card text-primary"
+              style={{ animationDelay: "200ms", animationDuration: "9s" }}
             >
               <Icon path={AGENT_ICONS.brandMemory} className="size-4" />
             </span>
-            {/* Plain dots */}
-            <span className="absolute left-[10%] bottom-[28%] size-3 rounded-full bg-primary/30" />
-            <span className="absolute left-[37%] top-[20%] size-2.5 rounded-full bg-primary/25" />
-            <span className="absolute right-[10%] bottom-[26%] size-3 rounded-full bg-primary/30" />
-            <span className="absolute right-[37%] top-[22%] size-2.5 rounded-full bg-primary/25" />
-            <span className="absolute right-[24%] top-[70%] size-2 rounded-full bg-primary/20" />
-            <span className="absolute left-[24%] top-[72%] size-2 rounded-full bg-primary/20" />
+            <span className="absolute left-[8%] top-[78%] grid size-8 place-items-center rounded-full border border-border bg-card text-primary">
+              <Icon path={AGENT_ICONS.orchestrator} className="size-3.5" />
+            </span>
+            <span className="absolute right-[41%] top-[19%] grid size-8 place-items-center rounded-full border border-border bg-card text-primary">
+              <Icon path={AGENT_ICONS.moderation} className="size-3.5" />
+            </span>
+            {/* Scattered dots */}
+            <span className="absolute left-[13%] top-[27%] size-3 rounded-full bg-primary/30" />
+            <span className="absolute left-[35%] top-[22%] size-2 rounded-full bg-primary/25" />
+            <span className="absolute left-[47%] top-[38%] size-2.5 rounded-full bg-primary/20" />
+            <span className="absolute right-[9%] top-[52%] size-3 rounded-full bg-primary/30" />
+            <span className="absolute right-[26%] top-[28%] size-2 rounded-full bg-primary/25" />
+            <span className="absolute right-[44%] top-[60%] size-2.5 rounded-full bg-primary/20" />
+            <span className="absolute left-[21%] top-[83%] size-2 rounded-full bg-primary/20" />
+            <span className="absolute right-[18%] top-[80%] size-2.5 rounded-full bg-primary/25" />
           </div>
 
           <div className="relative mx-auto max-w-xl px-5 py-24 text-center sm:px-8">

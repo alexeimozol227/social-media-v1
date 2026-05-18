@@ -49,6 +49,54 @@ function Block({ block }: { block: HelpArticle["blocks"][number] }) {
           ))}
         </ul>
       )}
+      {block.type === "callout" && (
+        <div
+          className={cn(
+            "rounded-xl border border-primary/30 bg-primary/10 px-5 py-4 text-pretty leading-relaxed text-foreground",
+            block.heading && "mt-3",
+          )}
+        >
+          {block.text}
+        </div>
+      )}
+      {block.type === "table" && (
+        <div
+          className={cn("overflow-x-auto rounded-xl border border-border", block.heading && "mt-4")}
+        >
+          <table className="w-full border-collapse text-sm">
+            <thead>
+              <tr className="bg-surface">
+                {block.headers.map((h) => (
+                  <th
+                    key={h || "col"}
+                    className="border-b border-border px-3 py-2.5 text-left font-semibold text-foreground"
+                  >
+                    {h}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {block.rows.map((row) => (
+                <tr key={row.join("|")} className="even:bg-surface/40">
+                  {row.map((cell, ci) => (
+                    <td
+                      key={`${row.join("|")}-${ci}`}
+                      className={
+                        ci === 0
+                          ? "border-b border-border px-3 py-2.5 font-medium text-foreground"
+                          : "border-b border-border px-3 py-2.5 text-muted-foreground"
+                      }
+                    >
+                      {cell}
+                    </td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
     </section>
   );
 }

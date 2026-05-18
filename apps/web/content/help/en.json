@@ -248,6 +248,21 @@
           "items": [
             "The trial requires no card. You can switch plans at any time in the billing section."
           ]
+        },
+        {
+          "type": "callout",
+          "text": "The trial is 7 days of full Pro access, free and with no card."
+        },
+        {
+          "type": "table",
+          "heading": "Plan comparison",
+          "headers": ["", "Solo", "Pro", "Network"],
+          "rows": [
+            ["Price per month", "₽1,800", "₽4,200", "₽9,500"],
+            ["Brands", "1", "3", "10"],
+            ["Channels per brand", "1", "3", "5"],
+            ["Posts per month", "30", "100", "300"]
+          ]
         }
       ],
       "related": ["two-factor-auth"]
