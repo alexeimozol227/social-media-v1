@@ -23,7 +23,11 @@ export default async function RootLayout({
   const locale = await getLocale();
   const messages = await getMessages();
   return (
-    <html lang={locale}>
+    // The THEME_BOOTSTRAP script below intentionally sets
+    // document.documentElement.dataset.theme before React hydrates,
+    // so the <html> element will differ from the server output. We
+    // own that diff, so silence Next's hydration warning here.
+    <html lang={locale} suppressHydrationWarning>
       <body>
         {/* biome-ignore lint/security/noDangerouslySetInnerHtml: tiny static theme bootstrap, no user input */}
         <script dangerouslySetInnerHTML={{ __html: THEME_BOOTSTRAP }} />

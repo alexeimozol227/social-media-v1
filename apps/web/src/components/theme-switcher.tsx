@@ -21,10 +21,10 @@ const THEMES: Theme[] = [
   {
     id: "",
     key: "indigo",
-    bg: "oklch(0.215 0.018 280)",
-    primary: "oklch(0.62 0.2 277)",
+    bg: "oklch(0.215 0 0)",
+    primary: "#d5ff5f",
   },
-  { id: "light", key: "light", bg: "oklch(0.98 0.004 280)", primary: "oklch(0.55 0.22 277)" },
+  { id: "light", key: "light", bg: "oklch(0.98 0 0)", primary: "#d5ff5f" },
 ];
 
 function applyTheme(id: string) {
