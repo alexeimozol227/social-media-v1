@@ -1,42 +1,75 @@
-"""LLM provider adapters (PR #17).
+"""LLM provider adapters.
 
-docs/04-architecture.md §16 (LLM gateway abstraction) +
-docs/05-tech-stack.md §6: every agent talks to a single
-:class:`LLMProvider` Protocol, the concrete implementation is
-swapped via :data:`app.core.config.Settings.llm_provider` so tests
-run against the deterministic :class:`MockLLMProvider` and
-production talks to Polza (https://polza.ai/) without changing
-agent code.
-
-PR #17 ships the Protocol + the Mock implementation + a Polza
-*skeleton* (everything is wired except the actual ``httpx`` call,
-which lands in Sprint 3 alongside the real cost tracking + budget
-caps).
+PR #20 / docs/plans/phase1-sprint3-plan.md — every agent talks to
+a single :class:`LLMProvider` Protocol; the concrete implementation
+is selected via :data:`app.core.config.Settings.llm_provider` so
+tests run against :class:`MockLLMProvider` (deterministic,
+network-free) and production talks to Polza.
 """
 
 from app.adapters.llm.base import (
-    EmbeddingResult,
+    ChatMessage,
+    ChatResponse,
     LLMBudgetExceededError,
+    LLMCircuitBreakerOpenError,
+    LLMContentFilterBlockedError,
+    LLMContextLengthError,
     LLMError,
     LLMProvider,
     LLMProviderError,
-    LLMResult,
+    LLMProviderUnavailableError,
+    LLMRateLimitError,
     LLMTimeoutError,
-    Tool,
+    ProviderHealth,
+    ResponseFormat,
+    ToolCall,
+    ToolSpec,
+    Usage,
 )
+from app.adapters.llm.circuit_breaker import (
+    CircuitBreakerConfig,
+    LLMCircuitBreaker,
+    LLMCircuitBreakerRegistry,
+)
+from app.adapters.llm.factory import build_default_provider
 from app.adapters.llm.mock import MockLLMProvider
-from app.adapters.llm.polza import PolzaProvider, build_default_provider
+from app.adapters.llm.polza import PolzaProvider, PolzaResponseCache
+from app.adapters.llm.pricing import (
+    ModelPricing,
+    UnknownModelPricingError,
+    all_pricings,
+    compute_cost_usd,
+    get_pricing,
+)
 
 __all__ = [
-    "EmbeddingResult",
+    "ChatMessage",
+    "ChatResponse",
+    "CircuitBreakerConfig",
     "LLMBudgetExceededError",
+    "LLMCircuitBreaker",
+    "LLMCircuitBreakerOpenError",
+    "LLMCircuitBreakerRegistry",
+    "LLMContentFilterBlockedError",
+    "LLMContextLengthError",
     "LLMError",
     "LLMProvider",
     "LLMProviderError",
-    "LLMResult",
+    "LLMProviderUnavailableError",
+    "LLMRateLimitError",
     "LLMTimeoutError",
     "MockLLMProvider",
+    "ModelPricing",
     "PolzaProvider",
-    "Tool",
+    "PolzaResponseCache",
+    "ProviderHealth",
+    "ResponseFormat",
+    "ToolCall",
+    "ToolSpec",
+    "UnknownModelPricingError",
+    "Usage",
+    "all_pricings",
     "build_default_provider",
+    "compute_cost_usd",
+    "get_pricing",
 ]

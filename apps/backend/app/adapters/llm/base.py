@@ -1,39 +1,47 @@
-"""LLMProvider Protocol + shared dataclasses (PR #17).
+"""LLMProvider Protocol + Pydantic types + typed errors.
 
-docs/04-architecture.md §16 + docs/05-tech-stack.md §6 fix the
-contract every concrete LLM adapter has to satisfy:
+PR #20 / docs/plans/phase1-sprint3-plan.md — replaces the PR #17
+skeleton (``complete()`` + ``embed(text)``) with the canonical
+contract every agent and embedding pipeline depends on:
 
-* :meth:`LLMProvider.complete` — text completion / chat with optional
-  tool calling. The reply carries usage so the budget tracker (D60
-  in docs/04 §18.4) can charge the right workspace.
-* :meth:`LLMProvider.embed` — vector embedding of arbitrary text.
-  Used by the Brand Memory pipeline and the channel-post embedding
-  job introduced in PR #17.
+* :meth:`LLMProvider.chat` — chat completions (system / user /
+  assistant turns) with optional tool calling + ``response_format``
+  / json-schema. Streaming is intentionally out-of-scope for MVP
+  (docs/04 §16.2) — the response is buffered in full.
+* :meth:`LLMProvider.embed` — *batched* embedding. Single-text
+  callers wrap in ``[text]`` and read ``result[0]``.
+* :meth:`LLMProvider.health_check` — non-budget-charging probe used
+  by ``HealthCheckAgent`` and the ``/v1/admin/healthcheck/llm``
+  endpoint.
 
-The Protocol is :class:`~typing.Protocol`-typed rather than an ABC so
-agents can accept a duck-typed test double without inheriting from
-the production class. Mypy still verifies the surface — see
-:func:`app.adapters.llm.build_default_provider` for the runtime
-dispatch.
+Every public surface uses Pydantic models — ``dict[str, Any]`` is
+banned in inter-agent contracts per docs/04-architecture.md
+П6 / D34 ("Strict typing everywhere").
 
-PR #17 surfaces four typed errors so the Celery retry logic can
-discriminate transient failures (retry) from permanent ones
-(don't retry, surface the audit event):
+Typed errors (all subclass :class:`LLMError`):
 
-* :class:`LLMError` — base class, never raised directly.
-* :class:`LLMTimeoutError` — HTTP timeout / connection refused →
-  worker re-queues the job with exponential backoff.
-* :class:`LLMBudgetExceededError` — workspace burnt through its
-  budget; the agent stops, the user is notified via the per-user
-  event channel.
-* :class:`LLMProviderError` — everything else (auth failure, schema
-  mismatch, model not found). The worker logs + drops.
+* :class:`LLMTimeoutError` — HTTP / socket timeout. Retryable.
+* :class:`LLMRateLimitError` — provider 429. Retryable, with
+  jittered backoff.
+* :class:`LLMProviderUnavailableError` — provider 5xx (502 / 503 /
+  504). Retryable; counts against the circuit breaker.
+* :class:`LLMBudgetExceededError` — workspace budget is depleted
+  (D60, docs/04 §18.4). Never retried.
+* :class:`LLMContextLengthError` — prompt exceeded the model's
+  context window. Never retried (caller must trim).
+* :class:`LLMContentFilterBlockedError` — provider's safety filter
+  rejected the prompt or response. Never retried.
+* :class:`LLMCircuitBreakerOpenError` — the per-(provider, model)
+  breaker is OPEN; fail fast without consuming the retry budget.
+* :class:`LLMProviderError` — catch-all for everything else (auth,
+  malformed payload, unknown model). Never retried.
 """
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
-from typing import Any, Protocol
+from typing import Annotated, Literal, Protocol
+
+from pydantic import BaseModel, ConfigDict, Field
 
 # ---------------------------------------------------------------------------
 # Typed errors
@@ -41,15 +49,7 @@ from typing import Any, Protocol
 
 
 class LLMError(Exception):
-    """Base class for every error raised by an :class:`LLMProvider`.
-
-    Subclasses pin a stable :attr:`error_code` so the Celery retry
-    decorator + audit-event writer can route on the code without
-    matching exception types. The constructor accepts an optional
-    HTTP status / provider-side error-code for richer log lines —
-    both default to ``None`` because the mock provider doesn't have
-    them.
-    """
+    """Base class for every error raised by an :class:`LLMProvider`."""
 
     error_code: str = "LLM_ERROR"
 
@@ -59,100 +59,170 @@ class LLMError(Exception):
         *,
         status_code: int | None = None,
         provider_code: str | None = None,
+        retry_after_seconds: float | None = None,
     ) -> None:
         super().__init__(message or self.__class__.__name__)
         self.message = message or self.__class__.__name__
         self.status_code = status_code
         self.provider_code = provider_code
+        self.retry_after_seconds = retry_after_seconds
 
 
 class LLMTimeoutError(LLMError):
-    """The provider didn't reply within the configured timeout.
-
-    The Celery task retries with exponential backoff (PR #17 caps
-    retries at 3). A transient blip — provider scaling out, network
-    weather — clears within one retry; permanent issues surface as
-    :class:`LLMProviderError` once the backoff budget is spent.
-    """
+    """HTTP / connection timeout. Retryable."""
 
     error_code = "LLM_TIMEOUT"
 
 
-class LLMBudgetExceededError(LLMError):
-    """The workspace burnt through its budget (D60 in docs/04 §18.4).
+class LLMRateLimitError(LLMError):
+    """Provider returned ``429``. Retryable with jittered backoff."""
 
-    Never retried — the cost guardrail is hard. The agent surfaces
-    a typed event so the dashboard can render an upgrade CTA.
-    Sprint 3 wires the actual accounting; PR #17 reserves the code
-    so the Celery retry logic short-circuits correctly today.
-    """
+    error_code = "LLM_RATE_LIMITED"
+
+
+class LLMProviderUnavailableError(LLMError):
+    """Provider returned ``5xx``. Retryable; counts against the breaker."""
+
+    error_code = "LLM_PROVIDER_UNAVAILABLE"
+
+
+class LLMBudgetExceededError(LLMError):
+    """Workspace burnt through its budget (D60, docs/04 §18.4)."""
 
     error_code = "LLM_BUDGET_EXCEEDED"
 
 
-class LLMProviderError(LLMError):
-    """The provider returned an error response (4xx / 5xx).
+class LLMContextLengthError(LLMError):
+    """Prompt exceeded the model's context window. Permanent."""
 
-    Catch-all for "the request reached the provider but it said
-    no": auth failure, malformed payload, model not found, content
-    policy violation. Not retried — the body of the request hasn't
-    changed between retries.
+    error_code = "LLM_CONTEXT_LENGTH_EXCEEDED"
+
+
+class LLMContentFilterBlockedError(LLMError):
+    """Content filter blocked the prompt / response. Permanent."""
+
+    error_code = "LLM_CONTENT_FILTER_BLOCKED"
+
+
+class LLMCircuitBreakerOpenError(LLMError):
+    """Per-(provider, model) circuit breaker is OPEN — fail fast.
+
+    Raised by the breaker wrapper without invoking the provider,
+    so the retry budget isn't burned on a known-bad endpoint.
     """
+
+    error_code = "LLM_CIRCUIT_BREAKER_OPEN"
+
+
+class LLMProviderError(LLMError):
+    """Catch-all for "the request reached the provider but it said no"."""
 
     error_code = "LLM_PROVIDER_ERROR"
 
 
 # ---------------------------------------------------------------------------
-# Result envelopes
+# Pydantic message / tool / response types
 # ---------------------------------------------------------------------------
 
 
-@dataclass(frozen=True, slots=True)
-class Tool:
-    """OpenAI-style tool / function schema fed into :meth:`LLMProvider.complete`.
+class ChatMessage(BaseModel):
+    """One turn in a chat-completion exchange.
 
-    Mirrors the wire shape so the Polza adapter can forward the
-    payload as-is. The Mock provider ignores ``parameters`` — its
-    tool-call replies are scripted via the fixtures dict.
+    Mirrors the OpenAI ``messages`` shape so every OpenAI-compatible
+    gateway (Polza, OpenRouter, …) accepts it unchanged.
     """
 
+    model_config = ConfigDict(extra="forbid")
+
+    role: Literal["system", "user", "assistant", "tool"]
+    content: str
+    name: str | None = None
+    tool_call_id: str | None = None
+
+
+class ToolSpec(BaseModel):
+    """OpenAI-style function / tool schema fed into :meth:`LLMProvider.chat`.
+
+    ``parameters`` is a JSON Schema object — typed as
+    ``dict[str, object]`` so the contract is explicitly typed (D34
+    bans ``Any`` in inter-agent contracts).
+    """
+
+    model_config = ConfigDict(extra="forbid")
+
+    name: str = Field(..., min_length=1, max_length=64)
+    description: str = Field(..., min_length=1)
+    parameters: dict[str, object] = Field(default_factory=dict)
+
+
+class ToolCall(BaseModel):
+    """A single tool invocation emitted by the assistant."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    id: str
     name: str
-    description: str
-    parameters: dict[str, Any] = field(default_factory=dict)
+    arguments_json: str = Field(
+        ...,
+        description=(
+            "JSON-serialised arguments. Kept as a string so the agent "
+            "layer chooses when to parse / validate against the matching "
+            "ToolSpec.parameters schema."
+        ),
+    )
 
 
-@dataclass(frozen=True, slots=True)
-class LLMResult:
-    """Result of a :meth:`LLMProvider.complete` call.
+class Usage(BaseModel):
+    """Token usage breakdown returned by the provider."""
 
-    ``text`` holds the final assistant message. ``tool_calls`` is a
-    list of ``{"name": ..., "arguments": {...}}`` dicts when the
-    provider chose to call a tool instead of (or in addition to)
-    emitting text — the agent layer dispatches them. ``usage`` is
-    the canonical provider usage payload (``prompt_tokens`` /
-    ``completion_tokens`` / ``total_tokens``) used by the cost
-    tracker.
-    """
+    model_config = ConfigDict(extra="forbid")
 
-    text: str
-    tool_calls: list[dict[str, Any]] = field(default_factory=list)
-    usage: dict[str, int] = field(default_factory=dict)
-    model: str = ""
+    prompt_tokens: int = Field(default=0, ge=0)
+    completion_tokens: int = Field(default=0, ge=0)
+    total_tokens: int = Field(default=0, ge=0)
 
 
-@dataclass(frozen=True, slots=True)
-class EmbeddingResult:
-    """Result of a :meth:`LLMProvider.embed` call.
+ResponseFormatT = Literal["text", "json_object", "json_schema"]
 
-    ``vector`` is the embedding as a list of floats (so callers
-    don't need numpy). ``model`` echoes back the model id the
-    provider used; agents persist it alongside the vector so a
-    later re-embedding pass can detect a model-version bump.
-    """
 
-    vector: list[float]
-    model: str
-    usage: dict[str, int] = field(default_factory=dict)
+class ResponseFormat(BaseModel):
+    """``response_format`` payload — controls structured output."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    type: ResponseFormatT = "text"
+    json_schema: dict[str, object] | None = None
+
+
+class ChatResponse(BaseModel):
+    """Result of a :meth:`LLMProvider.chat` call."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    content: str = Field(
+        default="",
+        description="Final assistant text (may be empty when tools fire).",
+    )
+    tool_calls: list[ToolCall] = Field(default_factory=list)
+    finish_reason: Literal["stop", "length", "tool_calls", "content_filter"] = "stop"
+    model: str = Field(default="")
+    usage: Usage = Field(default_factory=Usage)
+    response_id: str | None = Field(
+        default=None,
+        description="Provider-side correlation id (echoed into the audit log row).",
+    )
+
+
+class ProviderHealth(BaseModel):
+    """:meth:`LLMProvider.health_check` reply."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    provider: str = Field(..., description="Provider slug — ``polza``, ``mock``, …")
+    status: Literal["ok", "degraded", "down"] = "ok"
+    latency_ms: Annotated[int, Field(ge=0)] = 0
+    error_code: str | None = None
+    detail: str | None = None
 
 
 # ---------------------------------------------------------------------------
@@ -163,51 +233,67 @@ class EmbeddingResult:
 class LLMProvider(Protocol):
     """The shared LLM surface every agent depends on.
 
-    docs/04 §16: every concrete provider (Polza, OpenAI-direct,
-    Anthropic-direct, mock) implements this Protocol. The agent
-    layer never imports a concrete class — it accepts an
-    :class:`LLMProvider` parameter and lets dependency injection
-    swap the implementation.
+    docs/04 §16: every concrete provider (Polza, Mock, …)
+    implements this Protocol. The agent layer never imports a
+    concrete class — it accepts an :class:`LLMProvider` parameter
+    and lets the factory + DI choose the implementation.
     """
 
-    async def complete(
+    provider_slug: str
+    """Identifier used in the audit log + circuit-breaker key (e.g. ``polza``)."""
+
+    async def chat(
         self,
-        prompt: str,
+        messages: list[ChatMessage],
         model: str,
         *,
-        tools: list[Tool] | None = None,
+        tools: list[ToolSpec] | None = None,
+        response_format: ResponseFormat | None = None,
+        temperature: float = 0.2,
         max_tokens: int = 2000,
-    ) -> LLMResult:
-        """Run a text completion / chat exchange.
+        idempotency_key: str | None = None,
+    ) -> ChatResponse:
+        """Run one buffered chat-completion exchange.
 
-        ``prompt`` is the full user-facing prompt (the agent layer
-        is responsible for assembling system / user / assistant
-        turns). ``tools`` enables function calling — the provider
-        is free to ignore it if the model doesn't support tools.
-        ``max_tokens`` caps the response so a runaway model can't
-        burn the workspace budget.
+        ``idempotency_key`` is forwarded as an ``Idempotency-Key``
+        header so a retry against the same key returns the same
+        response (provider-side dedup).
         """
 
         ...  # pragma: no cover - Protocol stub
 
-    async def embed(self, text: str, model: str) -> EmbeddingResult:
-        """Embed ``text`` into a fixed-dimensionality vector.
+    async def embed(
+        self,
+        texts: list[str],
+        model: str = "text-embedding-3-small",
+    ) -> list[list[float]]:
+        """Embed a batch of texts into fixed-dim vectors."""
 
-        The dimensionality is determined by ``model`` — callers
-        validate it against their persistence layer (see
-        :class:`app.services.embeddings.EmbeddingsService`).
-        """
+        ...  # pragma: no cover - Protocol stub
+
+    async def health_check(self) -> ProviderHealth:
+        """Probe the gateway with a no-cost / minimal-cost ping."""
 
         ...  # pragma: no cover - Protocol stub
 
 
 __all__ = [
-    "EmbeddingResult",
+    "ChatMessage",
+    "ChatResponse",
     "LLMBudgetExceededError",
+    "LLMCircuitBreakerOpenError",
+    "LLMContentFilterBlockedError",
+    "LLMContextLengthError",
     "LLMError",
     "LLMProvider",
     "LLMProviderError",
-    "LLMResult",
+    "LLMProviderUnavailableError",
+    "LLMRateLimitError",
     "LLMTimeoutError",
-    "Tool",
+    "ProviderHealth",
+    "ResponseFormat",
+    "ResponseFormatT",
+    "ToolCall",
+    "ToolSpec",
+    "Usage",
 ]

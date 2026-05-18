@@ -30,8 +30,8 @@ from typing import Any
 import httpx
 import structlog
 
+from app.adapters.llm import build_default_provider
 from app.adapters.llm.base import LLMTimeoutError
-from app.adapters.llm.polza import build_default_provider
 from app.core.config import settings
 from app.db.session import AsyncSessionLocal
 from app.services.embeddings import EmbeddingPersistResult, EmbeddingsService

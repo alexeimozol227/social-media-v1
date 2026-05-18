@@ -12,23 +12,31 @@ it to :data:`Event`.
 from __future__ import annotations
 
 from app.events.schemas import (
+    AgentRunFinishedEvent,
+    AgentRunStartedEvent,
     AuthRefreshRequiredEvent,
     BaseEvent,
     ChannelConnectedEvent,
     ChannelDetachedEvent,
+    CircuitBreakerOpenedEvent,
     Event,
     EventEnvelope,
+    LLMCallFailedEvent,
     UserRegisteredEvent,
     parse_event,
 )
 
 __all__ = [
+    "AgentRunFinishedEvent",
+    "AgentRunStartedEvent",
     "AuthRefreshRequiredEvent",
     "BaseEvent",
     "ChannelConnectedEvent",
     "ChannelDetachedEvent",
+    "CircuitBreakerOpenedEvent",
     "Event",
     "EventEnvelope",
+    "LLMCallFailedEvent",
     "UserRegisteredEvent",
     "parse_event",
 ]

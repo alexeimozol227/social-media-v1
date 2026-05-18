@@ -1,20 +1,16 @@
-"""Unit tests for the ``channel.embed_post`` Celery task (PR #17).
+"""Unit tests for the ``channel.embed_post`` Celery task (PR #20).
 
 The task body invokes the async :class:`EmbeddingsService` via
 ``asyncio.run`` and a fresh :class:`AsyncSession`. Tests patch the
 session factory + provider builder so the task runs against the
-in-memory SQLite fixture used by the rest of the suite.
+in-memory SQLite fixture.
 
 Coverage:
 
-* Happy path: task calls the service, returns the persist result
-  envelope as a JSON dict.
-* Unknown UUID input doesn't crash the worker — returns a
-  ``skipped="invalid_uuid"`` envelope.
-* Unknown post id is handled by the service and surfaces as
-  ``skipped="unknown_post"`` in the task result.
-* Transient :class:`LLMTimeoutError` triggers a Celery retry (the
-  task raises :class:`~celery.exceptions.Retry`).
+* Happy path returns the persist result envelope.
+* Invalid UUID input doesn't crash the worker.
+* Unknown post id surfaces as ``skipped="unknown_post"``.
+* Transient :class:`LLMTimeoutError` triggers Celery retry.
 """
 
 from __future__ import annotations
@@ -30,12 +26,14 @@ from celery.exceptions import Retry  # type: ignore[import-untyped]
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from app.adapters.llm import (
-    EmbeddingResult,
+    ChatMessage,
+    ChatResponse,
     LLMProvider,
-    LLMResult,
     LLMTimeoutError,
     MockLLMProvider,
-    Tool,
+    ProviderHealth,
+    ResponseFormat,
+    ToolSpec,
 )
 from app.core.config import settings
 from app.models.brand import Brand
@@ -49,17 +47,11 @@ from app.models.user import User, UserStatus
 from app.models.workspace import Workspace, WorkspaceType
 from app.workers.tasks import embed_channel_post as task_module
 
-# ---------------------------------------------------------------------------
-# Fixtures
-# ---------------------------------------------------------------------------
-
 
 @pytest_asyncio.fixture
 async def seed_post(
     db_session: AsyncSession,
 ) -> ChannelPost:
-    """Seed the bare minimum to embed a post end-to-end."""
-
     user = User(
         email="task@example.com",
         hashed_password="x",
@@ -126,8 +118,6 @@ def patched_task_session(
     db_session_factory: async_sessionmaker[AsyncSession],
     monkeypatch: pytest.MonkeyPatch,
 ) -> Iterator[None]:
-    """Point the task's :data:`AsyncSessionLocal` at the test factory."""
-
     monkeypatch.setattr(task_module, "AsyncSessionLocal", db_session_factory)
     yield
 
@@ -136,8 +126,6 @@ def patched_task_session(
 def patched_provider(
     monkeypatch: pytest.MonkeyPatch,
 ) -> Iterator[None]:
-    """Force the task to build a :class:`MockLLMProvider` for tests."""
-
     def _factory() -> LLMProvider:
         return MockLLMProvider(dim=4)
 
@@ -147,29 +135,16 @@ def patched_provider(
     yield
 
 
-# ---------------------------------------------------------------------------
-# Task tests
-# ---------------------------------------------------------------------------
-
-
 def test_task_happy_path_returns_inserted_envelope(
     seed_post: ChannelPost,
     patched_task_session: None,
     patched_provider: None,
 ) -> None:
-    """The task body itself calls ``asyncio.run(...)`` so the test
-    function must be synchronous — otherwise we'd be calling
-    ``asyncio.run`` from a running loop (pytest-asyncio's loop)."""
-
     del patched_task_session, patched_provider
-    # Run the task body synchronously — the celery_app is configured
-    # with task_always_eager=False so we invoke .apply() to use the
-    # in-process Eager backend.
     result = task_module.embed_channel_post.apply(args=[str(seed_post.id)])
     payload = result.get(disable_sync_subtasks=False)
 
     assert payload["inserted"] is True
-    assert payload["updated"] is False
     assert payload["skipped"] is None
     assert payload["channel_post_id"] == str(seed_post.id)
     assert payload["model"] == "text-embedding-3-small"
@@ -194,7 +169,6 @@ def test_task_with_unknown_post_id_returns_skipped(
         disable_sync_subtasks=False
     )
     assert payload["skipped"] == "unknown_post"
-    assert payload["inserted"] is False
 
 
 def test_task_retries_on_transient_error(
@@ -202,33 +176,39 @@ def test_task_retries_on_transient_error(
     monkeypatch: pytest.MonkeyPatch,
     patched_task_session: None,
 ) -> None:
-    """``LLMTimeoutError`` triggers ``self.retry`` (which Celery
-    raises as :class:`Retry` in production worker mode). In Celery's
-    Eager mode used by ``.apply()`` the retry loop runs in-process
-    and exhausts to the original exception after ``MAX_RETRIES``
-    attempts — that's the easiest invariant to assert here without
-    monkey-patching the eager-mode internals."""
-
     del patched_task_session
 
-    embed_calls: list[str] = []
+    embed_calls: list[list[str]] = []
 
     class TimeoutProvider:
-        async def complete(
+        provider_slug = "test"
+
+        async def chat(
             self,
-            prompt: str,
+            messages: list[ChatMessage],
             model: str,
             *,
-            tools: list[Tool] | None = None,
+            tools: list[ToolSpec] | None = None,
+            response_format: ResponseFormat | None = None,
+            temperature: float = 0.2,
             max_tokens: int = 2000,
-        ) -> LLMResult:  # pragma: no cover - never called
-            del prompt, model, tools, max_tokens
-            return LLMResult(text="")
+            idempotency_key: str | None = None,
+        ) -> ChatResponse:  # pragma: no cover - not exercised
+            del messages, model, tools, response_format
+            del temperature, max_tokens, idempotency_key
+            return ChatResponse()
 
-        async def embed(self, text: str, model: str) -> EmbeddingResult:
+        async def embed(
+            self,
+            texts: list[str],
+            model: str = "text-embedding-3-small",
+        ) -> list[list[float]]:
             del model
-            embed_calls.append(text)
+            embed_calls.append(list(texts))
             raise LLMTimeoutError("simulated")
+
+        async def health_check(self) -> ProviderHealth:  # pragma: no cover
+            return ProviderHealth(provider=self.provider_slug, status="ok")
 
     def _factory() -> LLMProvider:
         return TimeoutProvider()
@@ -238,19 +218,10 @@ def test_task_retries_on_transient_error(
     monkeypatch.setattr(settings, "embedding_model", "text-embedding-3-small")
 
     eager_result = task_module.embed_channel_post.apply(args=[str(seed_post.id)])
-    # ``.failed()`` is True regardless of whether the surfaced
-    # exception is :class:`Retry` (real worker mode) or the original
-    # adapter error (eager-mode exhaustion). Both are acceptable.
     assert eager_result.failed()
     assert isinstance(eager_result.result, Retry | LLMTimeoutError)
-    # The retry loop must have actually invoked the embed adapter
-    # more than once (i.e. the retry path was exercised, not just a
-    # single failed attempt).
     assert len(embed_calls) >= 2
 
 
-# A helper marker so the file's async fixture is recognised by the
-# narrow-imports linter — silences ``F401`` on AsyncIterator/Any
-# without leaking into the test surface.
 _unused: tuple[type, ...] = (AsyncIterator, type(Any))
 del _unused

@@ -221,6 +221,69 @@
     "label": "Бренд",
     "defaultBadge": " (по умолчанию)"
   },
+  "admin": {
+    "index": {
+      "title": "Админка",
+      "subtitle": "Внутренние инструменты для администраторов и службы поддержки.",
+      "accessDenied": "У вас нет доступа к этому разделу.",
+      "backToDashboard": "На дашборд",
+      "healthcheckTitle": "Здоровье LLM",
+      "healthcheckBlurb": "Последняя проверка живости провайдеров / моделей.",
+      "agentRunsTitle": "Запуски агентов",
+      "agentRunsBlurb": "Последние запуски агентов во всех воркспейсах."
+    },
+    "healthcheck": {
+      "title": "Здоровье LLM",
+      "subtitle": "Последний health-check на каждую пару провайдер/модель.",
+      "accessDenied": "У вас нет доступа к этому разделу.",
+      "backToDashboard": "На дашборд",
+      "backToAdmin": "Назад в админку",
+      "refresh": "Обновить",
+      "runNow": "Запустить health-check",
+      "loadError": "Не удалось загрузить статус health-check.",
+      "runError": "Не удалось запустить health-check.",
+      "empty": "Health-check ещё не запускался.",
+      "colProvider": "Провайдер",
+      "colModel": "Модель",
+      "colStatus": "Статус",
+      "colLatency": "Задержка",
+      "colError": "Ошибка",
+      "colChecked": "Последняя проверка",
+      "status": {
+        "ok": "ок",
+        "degraded": "деградация",
+        "down": "недоступно"
+      }
+    },
+    "agentRuns": {
+      "title": "Запуски агентов",
+      "subtitle": "Последние запуски агентов во всех воркспейсах.",
+      "accessDenied": "У вас нет доступа к этому разделу.",
+      "backToDashboard": "На дашборд",
+      "backToAdmin": "Назад в админку",
+      "refresh": "Обновить",
+      "apply": "Применить",
+      "loadMore": "Загрузить ещё",
+      "loadError": "Не удалось загрузить запуски агентов.",
+      "empty": "Запусков ещё нет.",
+      "agentLabel": "Агент",
+      "statusLabel": "Статус",
+      "statusAny": "Любой",
+      "colAgent": "Агент",
+      "colStatus": "Статус",
+      "colStarted": "Старт",
+      "colLatency": "Задержка",
+      "colTokens": "Промпт/Ответ",
+      "colCost": "Стоимость (USD)",
+      "colError": "Ошибка",
+      "status": {
+        "started": "запущен",
+        "succeeded": "успех",
+        "failed": "сбой",
+        "cancelled": "отменён"
+      }
+    }
+  },
   "channels": {
     "title": "Каналы",
     "connectedHeader": "Подключённые каналы",

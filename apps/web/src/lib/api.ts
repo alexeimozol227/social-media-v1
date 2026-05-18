@@ -326,3 +326,44 @@ export interface BrandDashboardView {
   channel: BrandDashboardChannelView | null;
   recent_posts: BrandDashboardPostPreview[];
 }
+
+// ---- Admin: agent runs + llm calls + healthcheck (PR #20) ----
+
+export type AgentRunStatusValue = "started" | "succeeded" | "failed" | "cancelled";
+
+export interface AgentRunListItem {
+  id: string;
+  workspace_id: string;
+  brand_id: string | null;
+  agent: string;
+  agent_version: string;
+  status: AgentRunStatusValue;
+  started_at: string;
+  finished_at: string | null;
+  latency_ms: number | null;
+  prompt_tokens: number;
+  completion_tokens: number;
+  cost_usd: string;
+  cost_rub: string;
+  error_code: string | null;
+  originator_user_id: string | null;
+  parent_run_id: string | null;
+}
+
+export interface AgentRunListView {
+  items: AgentRunListItem[];
+  next_cursor: string | null;
+}
+
+export interface LLMHealthStatusItem {
+  provider: string;
+  model: string;
+  status: "ok" | "degraded" | "down";
+  last_checked_at: string | null;
+  latency_ms: number | null;
+  error_code: string | null;
+}
+
+export interface LLMHealthStatusView {
+  items: LLMHealthStatusItem[];
+}

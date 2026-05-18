@@ -424,6 +424,114 @@ class BrandDeletedEvent(BaseEvent):
     agent_source: Literal["platform.api"] = "platform.api"
 
 
+class AgentRunStartedEvent(BaseEvent):
+    """A new ``agent_runs`` row was just persisted (PR #20).
+
+    Published from :class:`~app.services.agent_run_writer.AgentRunWriter`
+    immediately after ``start_run`` commits. Sprint-8 CostGuardian
+    subscribes here to mark the workspace's "active run" gauge.
+    """
+
+    event_type: Literal["agent.run.started"] = "agent.run.started"
+    agent_source: Literal["platform.agents"] = "platform.agents"
+
+    agent_run_id: str = Field(description="agent_runs row UUID.")
+    agent: str = Field(description="``agent_runs.agent`` value (e.g. ``healthcheck``).")
+    agent_version: str = Field(description="``agent_runs.agent_version`` snapshot.")
+    parent_run_id: str | None = Field(
+        default=None,
+        description="``agent_runs.parent_run_id`` UUID, or None for top-level runs.",
+    )
+
+
+class AgentRunFinishedEvent(BaseEvent):
+    """An ``agent_runs`` row reached terminal status (PR #20).
+
+    Published right after :meth:`AgentRunWriter.finish_run` commits.
+    Carries the denormalised totals so consumers (CostGuardian,
+    WS-toast notifier) don't have to re-query the row.
+    """
+
+    event_type: Literal["agent.run.finished"] = "agent.run.finished"
+    agent_source: Literal["platform.agents"] = "platform.agents"
+
+    agent_run_id: str = Field(description="agent_runs row UUID.")
+    agent: str = Field(description="``agent_runs.agent`` value.")
+    status: Literal["succeeded", "failed", "cancelled"] = Field(
+        description="Terminal status assigned by ``finish_run``.",
+    )
+    latency_ms: int = Field(
+        default=0,
+        ge=0,
+        description="``finished_at - started_at`` in milliseconds.",
+    )
+    prompt_tokens: int = Field(default=0, ge=0)
+    completion_tokens: int = Field(default=0, ge=0)
+    cost_usd: str = Field(
+        default="0",
+        description="Denormalised ``agent_runs.cost_usd`` serialised as a string (Decimal-safe).",
+    )
+    cost_rub: str = Field(
+        default="0",
+        description="Denormalised ``agent_runs.cost_rub`` serialised as a string.",
+    )
+    error_code: str | None = Field(
+        default=None,
+        description="``agent_runs.error_code`` on failure, otherwise ``None``.",
+    )
+
+
+class LLMCallFailedEvent(BaseEvent):
+    """One ``llm_calls`` row landed with ``success=false`` (PR #20).
+
+    Published after a non-recoverable LLM error inside a tool-calling
+    loop. Sprint-8 CostGuardian uses the per-provider failure rate
+    to drive the auto-downgrade ladder (D59 / D60 in docs/04 §16.6).
+    """
+
+    event_type: Literal["llm.call.failed"] = "llm.call.failed"
+    agent_source: Literal["platform.agents"] = "platform.agents"
+
+    agent_run_id: str = Field(description="parent agent_runs row UUID.")
+    llm_call_id: str = Field(description="llm_calls row UUID.")
+    provider: str = Field(description="``llm_calls.provider``.")
+    model: str = Field(description="``llm_calls.model``.")
+    error_code: str = Field(
+        description="Typed ``LLMError.error_code`` (e.g. ``LLM_TIMEOUT``).",
+    )
+    retries: int = Field(
+        default=0,
+        ge=0,
+        description="``llm_calls.retries`` snapshot at the moment of failure.",
+    )
+
+
+class CircuitBreakerOpenedEvent(BaseEvent):
+    """A per-(provider, model) circuit breaker just transitioned to OPEN.
+
+    Published once per state transition (CLOSED→OPEN or HALF_OPEN→OPEN)
+    by :class:`~app.adapters.llm.circuit_breaker.LLMCircuitBreaker`.
+    No matching ``circuit_breaker.closed`` event yet — the recovery
+    path is wired in Sprint 8 alongside the on-call dashboard.
+    """
+
+    event_type: Literal["circuit_breaker.opened"] = "circuit_breaker.opened"
+    agent_source: Literal["platform.agents"] = "platform.agents"
+
+    provider: str = Field(description="LLM provider slug (e.g. ``polza``).")
+    model: str = Field(description="Model that tripped the breaker.")
+    reason: str = Field(
+        description=(
+            "Free-form slug — typically ``LLMError.error_code`` of the failing call "
+            "(``LLM_PROVIDER_UNAVAILABLE``, ``LLM_TIMEOUT``, …)."
+        ),
+    )
+    fail_count: int = Field(
+        ge=0,
+        description="Number of consecutive failures observed before opening.",
+    )
+
+
 class ChannelPostEditedEvent(BaseEvent):
     """A previously-ingested channel post was edited on Telegram (PR #16).
 
@@ -478,7 +586,11 @@ Event = Annotated[
     | BrandCreatedEvent
     | BrandUpdatedEvent
     | BrandDefaultChangedEvent
-    | BrandDeletedEvent,
+    | BrandDeletedEvent
+    | AgentRunStartedEvent
+    | AgentRunFinishedEvent
+    | LLMCallFailedEvent
+    | CircuitBreakerOpenedEvent,
     Field(discriminator="event_type"),
 ]
 

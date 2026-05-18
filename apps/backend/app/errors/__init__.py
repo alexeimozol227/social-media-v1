@@ -93,6 +93,18 @@ class ErrorCode:
     LLM_BUDGET_EXCEEDED = "LLM_BUDGET_EXCEEDED"
     LLM_PROVIDER_ERROR = "LLM_PROVIDER_ERROR"
 
+    # LLM gateway extended taxonomy — PR #20 (docs/plans/phase1-sprint3-plan.md).
+    LLM_RATE_LIMITED = "LLM_RATE_LIMITED"
+    LLM_PROVIDER_UNAVAILABLE = "LLM_PROVIDER_UNAVAILABLE"
+    LLM_CIRCUIT_BREAKER_OPEN = "LLM_CIRCUIT_BREAKER_OPEN"
+    LLM_CONTEXT_LENGTH_EXCEEDED = "LLM_CONTEXT_LENGTH_EXCEEDED"
+    LLM_CONTENT_FILTER_BLOCKED = "LLM_CONTENT_FILTER_BLOCKED"
+
+    # Audit log / admin endpoints — PR #20.
+    AGENT_RUN_NOT_FOUND = "AGENT_RUN_NOT_FOUND"
+    ADMIN_ONLY = "ADMIN_ONLY"
+    SUPPORT_FORBIDDEN_FIELD = "SUPPORT_FORBIDDEN_FIELD"
+
     # Competitor channels / user-bot — PR #18.
     COMPETITOR_NOT_PUBLIC = "COMPETITOR_NOT_PUBLIC"
     COMPETITOR_ALREADY_CONNECTED = "COMPETITOR_ALREADY_CONNECTED"
@@ -589,3 +601,108 @@ class SessionRevokeCurrentForbiddenError(AppError):
     default_message = (
         "Cannot revoke the current session via the sessions list. Use sign-out instead."
     )
+
+
+# ---- Audit log / admin endpoints — PR #20 ----
+
+
+class AgentRunNotFoundError(AppError):
+    """Caller asked for an ``agent_runs.id`` that doesn't exist (or
+    isn't visible at their privilege level — the admin lookup
+    treats RLS-blocked rows as absent so support can't enumerate
+    workspaces by id-fuzzing).
+    """
+
+    error_code = ErrorCode.AGENT_RUN_NOT_FOUND
+    http_status = 404
+    default_message = "Agent run not found."
+
+
+class AdminOnlyError(AppError):
+    """Caller without ``platform_role='admin'`` hit an admin-only route.
+
+    ``support`` callers can still see redacted projections of admin
+    list endpoints (no prompts / outputs) but not the
+    healthcheck-trigger or per-row detail.
+    """
+
+    error_code = ErrorCode.ADMIN_ONLY
+    http_status = 403
+    default_message = "This endpoint is restricted to platform administrators."
+
+
+class SupportForbiddenFieldError(AppError):
+    """``platform_role='support'`` caller asked for a PII-bearing field.
+
+    The admin list endpoints expose a redacted projection for
+    support so the helpdesk workflow keeps working — prompts /
+    outputs / raw provider payloads are hidden.
+    """
+
+    error_code = ErrorCode.SUPPORT_FORBIDDEN_FIELD
+    http_status = 403
+    default_message = "Support role cannot read prompts, outputs or raw provider payloads."
+
+
+# ---- LLM gateway extended taxonomy — PR #20 ----
+
+
+class LLMRateLimitedError(AppError):
+    """Provider returned ``429`` (per-key / per-model RPM cap).
+
+    Retried with jittered backoff by tenacity; the typed error is
+    surfaced as ``LLM_RATE_LIMITED`` so the audit log row can be
+    distinguished from a generic provider 5xx.
+    """
+
+    error_code = ErrorCode.LLM_RATE_LIMITED
+    http_status = 429
+    default_message = "LLM provider rate-limited the request."
+
+
+class LLMProviderUnavailableError(AppError):
+    """Provider returned ``5xx`` (gateway timeout, bad gateway, …).
+
+    Retried by tenacity; once the retry budget is spent the failure
+    counts against the per-(provider, model) circuit breaker.
+    """
+
+    error_code = ErrorCode.LLM_PROVIDER_UNAVAILABLE
+    http_status = 503
+    default_message = "LLM provider is temporarily unavailable."
+
+
+class LLMCircuitBreakerOpenError(AppError):
+    """Per-(provider, model) circuit breaker is open.
+
+    Surfaces as 503 with ``suggested_action='retry_later'`` so the
+    agent layer fails fast without burning the retry budget.
+    """
+
+    error_code = ErrorCode.LLM_CIRCUIT_BREAKER_OPEN
+    http_status = 503
+    default_message = "LLM circuit breaker is open; retry after the cool-down window."
+
+
+class LLMContextLengthExceededError(AppError):
+    """Request exceeded the model's context-length cap.
+
+    Permanent — never retried; the agent is expected to trim /
+    summarise and re-call.
+    """
+
+    error_code = ErrorCode.LLM_CONTEXT_LENGTH_EXCEEDED
+    http_status = 422
+    default_message = "Prompt exceeds the model's maximum context length."
+
+
+class LLMContentFilterBlockedError(AppError):
+    """Provider's content filter blocked the prompt or response.
+
+    Permanent — never retried; the caller surfaces a safety message
+    or drops the request, depending on the agent's policy.
+    """
+
+    error_code = ErrorCode.LLM_CONTENT_FILTER_BLOCKED
+    http_status = 422
+    default_message = "LLM provider's content filter blocked the request."
