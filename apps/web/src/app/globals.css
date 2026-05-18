@@ -30,13 +30,18 @@
   --color-border: oklch(0.37 0 0);
   --color-border-strong: oklch(0.46 0 0);
   --color-input: oklch(0.285 0 0);
-  --color-ring: oklch(0.7 0.13 175);
+  --color-ring: oklch(0.74 0.13 168);
 
-  /* Brand / primary — deep emerald #063932. */
-  --color-primary: #063932;
-  --color-primary-hover: #0a4f44;
-  --color-primary-active: #04261f;
-  --color-primary-foreground: oklch(0.97 0 0);
+  /* Brand / primary — emerald. On dark surfaces the same token is used
+   * both as an accent/link colour and as a solid fill, so it has to
+   * read as text on the dark background (deep #063932 only worked as a
+   * fill — ~1.4:1 as text). A brighter emerald with a dark-ink
+   * foreground keeps solid buttons high-contrast (≈8:1) while making
+   * links/icons readable (≈8:1 on bg, ≥6:1 on raised surfaces). */
+  --color-primary: oklch(0.74 0.13 168);
+  --color-primary-hover: oklch(0.79 0.13 168);
+  --color-primary-active: oklch(0.69 0.13 168);
+  --color-primary-foreground: oklch(0.2 0.035 168);
 
   /* Secondary (neutral fill) */
   --color-secondary: oklch(0.33 0 0);

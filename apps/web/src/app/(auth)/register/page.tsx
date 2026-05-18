@@ -95,31 +95,34 @@ export default function RegisterPage() {
           checked={tosAccepted}
           onChange={(e) => setTosAccepted(e.target.checked)}
           required
-          label={t("tosAccept")}
+          label={
+            <>
+              {t.rich("consent", {
+                privacy: (chunks) => (
+                  <Link
+                    href="/privacy"
+                    onClick={(e) => e.stopPropagation()}
+                    className="text-foreground underline underline-offset-2 hover:text-primary"
+                  >
+                    {chunks}
+                  </Link>
+                ),
+                terms: (chunks) => (
+                  <Link
+                    href="/terms"
+                    onClick={(e) => e.stopPropagation()}
+                    className="text-foreground underline underline-offset-2 hover:text-primary"
+                  >
+                    {chunks}
+                  </Link>
+                ),
+              })}
+              <span className="ml-0.5 text-foreground" aria-hidden="true">
+                *
+              </span>
+            </>
+          }
         />
-        <p className="text-xs leading-relaxed text-muted-foreground">
-          {t("legalIntro")}{" "}
-          <Link
-            href="/terms"
-            className="text-foreground underline underline-offset-2 hover:text-primary"
-          >
-            {t("legalTerms")}
-          </Link>
-          ,{" "}
-          <Link
-            href="/privacy"
-            className="text-foreground underline underline-offset-2 hover:text-primary"
-          >
-            {t("legalPrivacy")}
-          </Link>{" "}
-          <Link
-            href="/agreement"
-            className="text-foreground underline underline-offset-2 hover:text-primary"
-          >
-            {t("legalAgreement")}
-          </Link>
-          .
-        </p>
         {error && <Alert tone="error">{error}</Alert>}
         <Button type="submit" loading={submitting} disabled={!tosAccepted} fullWidth>
           {t("submit")}
