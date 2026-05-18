@@ -3,7 +3,7 @@
 import { cn } from "@/lib/cn";
 import type { HelpArticle, HelpContent } from "@/lib/help";
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 export type HelpView = "articles" | "changelog" | "roadmap";
 
@@ -119,12 +119,12 @@ function Sidebar({
   content,
   view,
   activeCategory,
-  onCategory,
+  onSelect,
 }: {
   content: HelpContent;
   view: HelpView;
   activeCategory: string | null;
-  onCategory: (id: string | null) => void;
+  onSelect: (view: HelpView, category: string | null) => void;
 }) {
   const { ui, categories, articles, support } = content;
   const counts = useMemo(() => {
@@ -134,94 +134,56 @@ function Sidebar({
   }, [articles]);
 
   const itemBase =
-    "flex items-center justify-between gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-colors";
+    "flex w-full items-center justify-between gap-2 rounded-lg px-3 py-2 text-left text-sm font-medium transition-colors";
   const active = "bg-primary/12 text-primary";
   const idle = "text-muted-foreground hover:bg-secondary hover:text-foreground";
-
-  // On the changelog/roadmap views the category entries navigate back
-  // to the listing (URL returns to /help). On the listing they filter
-  // in place via client state so the URL stays /help.
-  function CategoryEntry({
-    id,
-    label,
-    count,
-    isActive,
-  }: {
-    id: string | null;
-    label: string;
-    count?: number;
-    isActive: boolean;
-  }) {
-    const inner = (
-      <>
-        <span className="truncate">{label}</span>
-        {typeof count === "number" && (
-          <span className="shrink-0 text-xs text-muted-foreground">{count}</span>
-        )}
-      </>
-    );
-    if (view === "articles") {
-      return (
-        <button
-          type="button"
-          onClick={() => onCategory(id)}
-          className={cn(itemBase, "w-full text-left", isActive ? active : idle)}
-        >
-          {inner}
-        </button>
-      );
-    }
-    return (
-      <Link href="/help" className={cn(itemBase, idle)}>
-        {inner}
-      </Link>
-    );
-  }
+  const groupLabel =
+    "px-3 pb-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground/70";
 
   return (
     <aside className="flex w-full shrink-0 flex-col gap-7 lg:w-60">
       <nav aria-label={ui.navGroup} className="flex flex-col gap-1">
-        <p className="px-3 pb-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground/70">
-          {ui.navGroup}
-        </p>
-        <CategoryEntry
-          id={null}
-          label={ui.allArticles}
-          isActive={view === "articles" && activeCategory === null}
-        />
+        <p className={groupLabel}>{ui.navGroup}</p>
+        <button
+          type="button"
+          onClick={() => onSelect("articles", null)}
+          className={cn(itemBase, view === "articles" && activeCategory === null ? active : idle)}
+        >
+          <span className="truncate">{ui.allArticles}</span>
+        </button>
         {categories.map((c) => (
-          <CategoryEntry
+          <button
             key={c.id}
-            id={c.id}
-            label={c.title}
-            count={counts.get(c.id) ?? 0}
-            isActive={view === "articles" && activeCategory === c.id}
-          />
+            type="button"
+            onClick={() => onSelect("articles", c.id)}
+            className={cn(itemBase, view === "articles" && activeCategory === c.id ? active : idle)}
+          >
+            <span className="truncate">{c.title}</span>
+            <span className="shrink-0 text-xs text-muted-foreground">{counts.get(c.id) ?? 0}</span>
+          </button>
         ))}
       </nav>
 
       <nav aria-label={ui.resourcesGroup} className="flex flex-col gap-1">
-        <p className="px-3 pb-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground/70">
-          {ui.resourcesGroup}
-        </p>
-        <Link
-          href="/help?section=changelog"
+        <p className={groupLabel}>{ui.resourcesGroup}</p>
+        <button
+          type="button"
+          onClick={() => onSelect("changelog", null)}
           className={cn(itemBase, view === "changelog" ? active : idle)}
         >
           <span className="truncate">{ui.changelogNav}</span>
-        </Link>
-        <Link
-          href="/help?section=roadmap"
+        </button>
+        <button
+          type="button"
+          onClick={() => onSelect("roadmap", null)}
           className={cn(itemBase, view === "roadmap" ? active : idle)}
         >
           <span className="truncate">{ui.roadmapNav}</span>
-        </Link>
+        </button>
       </nav>
 
       <div className="flex flex-col gap-2">
-        <p className="px-3 pb-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground/70">
-          {ui.helpGroup}
-        </p>
+        <p className={groupLabel}>{ui.helpGroup}</p>
         <a
           href={`mailto:${support.email}`}
           className="px-3 text-sm text-muted-foreground transition-colors hover:text-foreground"
@@ -259,19 +221,26 @@ function ArticlesView({
     articleLabel: ui.articleLabel,
     videoLabel: ui.videoLabel,
   };
+  const categoryTitles = useMemo(() => {
+    const m = new Map<string, string>();
+    for (const c of categories) m.set(c.id, c.title);
+    return m;
+  }, [categories]);
 
   const q = query.trim().toLowerCase();
+  // Flat list ordered by publication date (newest first) — no
+  // grouping by category. A selected category just filters the list.
   const filtered = useMemo(
     () =>
-      articles.filter((a) => {
-        if (activeCategory && a.category !== activeCategory) return false;
-        if (!q) return true;
-        return a.title.toLowerCase().includes(q) || a.summary.toLowerCase().includes(q);
-      }),
+      articles
+        .filter((a) => {
+          if (activeCategory && a.category !== activeCategory) return false;
+          if (!q) return true;
+          return a.title.toLowerCase().includes(q) || a.summary.toLowerCase().includes(q);
+        })
+        .sort((a, b) => b.date.localeCompare(a.date)),
     [articles, activeCategory, q],
   );
-
-  const shownCategories = categories.filter((c) => filtered.some((a) => a.category === c.id));
 
   return (
     <div className="min-w-0 flex-1">
@@ -302,21 +271,17 @@ function ArticlesView({
         />
       </div>
 
-      {shownCategories.length === 0 ? (
+      {filtered.length === 0 ? (
         <p className="mt-12 text-sm text-muted-foreground">{ui.searchEmpty}</p>
       ) : (
-        <div className="mt-10 flex flex-col gap-12">
-          {shownCategories.map((c) => (
-            <section key={c.id}>
-              <h2 className="text-lg font-semibold text-foreground">{c.title}</h2>
-              <div className="mt-5 grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
-                {filtered
-                  .filter((a) => a.category === c.id)
-                  .map((a) => (
-                    <ArticleCard key={a.slug} article={a} categoryTitle={c.title} labels={labels} />
-                  ))}
-              </div>
-            </section>
+        <div className="mt-10 grid gap-5 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
+          {filtered.map((a) => (
+            <ArticleCard
+              key={a.slug}
+              article={a}
+              categoryTitle={categoryTitles.get(a.category) ?? ""}
+              labels={labels}
+            />
           ))}
         </div>
       )}
@@ -401,22 +366,35 @@ function RoadmapView({ content }: { content: HelpContent }) {
 
 export function HelpCenter({
   content,
-  view,
+  initialView,
 }: {
   content: HelpContent;
-  view: HelpView;
+  initialView: HelpView;
 }) {
-  const [query, setQuery] = useState("");
+  const [view, setView] = useState<HelpView>(initialView);
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
+  const [query, setQuery] = useState("");
+
+  // ?section= is only an entry point from the landing. Inside /help
+  // every switch is client-side, so strip the query and keep the URL
+  // at /help (never ?section=changelog|roadmap).
+  useEffect(() => {
+    if (window.location.search) {
+      window.history.replaceState(null, "", "/help");
+    }
+  }, []);
+
+  function select(next: HelpView, category: string | null) {
+    setView(next);
+    setActiveCategory(category);
+    if (window.location.search) {
+      window.history.replaceState(null, "", "/help");
+    }
+  }
 
   return (
-    <main className="mx-auto flex max-w-6xl flex-col gap-10 px-5 py-12 sm:px-8 lg:flex-row lg:gap-12">
-      <Sidebar
-        content={content}
-        view={view}
-        activeCategory={activeCategory}
-        onCategory={setActiveCategory}
-      />
+    <main className="mx-auto flex max-w-[100rem] flex-col gap-10 px-6 py-12 sm:px-10 lg:flex-row lg:gap-14 lg:px-16">
+      <Sidebar content={content} view={view} activeCategory={activeCategory} onSelect={select} />
       {view === "changelog" ? (
         <ChangelogView content={content} />
       ) : view === "roadmap" ? (

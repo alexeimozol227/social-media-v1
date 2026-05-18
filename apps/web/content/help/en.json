@@ -15,7 +15,6 @@
     "changelogSubtitle": "History of changes and new platform capabilities",
     "roadmapTitle": "Roadmap",
     "roadmapSubtitle": "Development plans and current work",
-    "backHome": "Home",
     "backToHelp": "Back to help",
     "returnToHelp": "Return to help",
     "read": "Read",
@@ -33,11 +32,26 @@
     "telegram": "@socialmedia_bot"
   },
   "categories": [
-    { "id": "getting-started", "title": "Getting started" },
-    { "id": "agents", "title": "AI agents" },
-    { "id": "brand-memory", "title": "Brand memory" },
-    { "id": "account", "title": "Account & settings" },
-    { "id": "billing", "title": "Plans & billing" }
+    {
+      "id": "getting-started",
+      "title": "Getting started"
+    },
+    {
+      "id": "agents",
+      "title": "AI agents"
+    },
+    {
+      "id": "brand-memory",
+      "title": "Brand memory"
+    },
+    {
+      "id": "account",
+      "title": "Account & settings"
+    },
+    {
+      "id": "billing",
+      "title": "Plans & billing"
+    }
   ],
   "articles": [
     {
@@ -48,6 +62,7 @@
       "title": "Quick start with social-media-v1",
       "summary": "Full product overview: connect a channel, set up brand memory, launch agents and get your first post.",
       "updated": "May 16, 2026",
+      "date": "2026-05-16",
       "duration": "12:00",
       "videoUrl": "",
       "blocks": [
@@ -67,6 +82,7 @@
       "title": "How to connect a Telegram channel",
       "summary": "Step by step: grant the bot admin rights and link a channel so agents can prepare publications.",
       "updated": "May 14, 2026",
+      "date": "2026-05-14",
       "blocks": [
         {
           "type": "paragraphs",
@@ -111,6 +127,7 @@
       "title": "How brand memory works",
       "summary": "How AI extracts tone of voice, topics and stop words from your recent posts and keeps them between agent runs.",
       "updated": "May 12, 2026",
+      "date": "2026-05-12",
       "blocks": [
         {
           "type": "paragraphs",
@@ -139,6 +156,7 @@
       "title": "AI agent operating modes",
       "summary": "How «AI does it» differs from «AI proposes — you approve» and when to choose each mode.",
       "updated": "May 11, 2026",
+      "date": "2026-05-11",
       "blocks": [
         {
           "type": "paragraphs",
@@ -165,6 +183,7 @@
       "title": "Content agent: overview",
       "summary": "How the content agent plans topics, writes drafts and adapts them to the brand's tone of voice.",
       "updated": "May 9, 2026",
+      "date": "2026-05-09",
       "duration": "06:30",
       "videoUrl": "",
       "blocks": [
@@ -184,6 +203,7 @@
       "title": "Two-factor authentication (2FA)",
       "summary": "How to enable TOTP, save backup codes and what to do if you lose access to your authenticator app.",
       "updated": "May 7, 2026",
+      "date": "2026-05-07",
       "blocks": [
         {
           "type": "steps",
@@ -205,6 +225,7 @@
       "title": "Plans and billing",
       "summary": "How the Solo, Pro and Network plans differ, how the trial works and how to switch plans.",
       "updated": "May 5, 2026",
+      "date": "2026-05-05",
       "blocks": [
         {
           "type": "list",
@@ -230,7 +251,10 @@
       "date": "May 16, 2026",
       "title": "New landing and design system",
       "description": "The public site has been fully refreshed: a new design system, a help center, and the «Changelog» and «Roadmap» sections.",
-      "link": { "label": "Roadmap", "href": "/help?section=roadmap" }
+      "link": {
+        "label": "Roadmap",
+        "href": "/help?section=roadmap"
+      }
     },
     {
       "version": "0.2.0",
